@@ -57,25 +57,40 @@ export function MarketplaceApp() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
   const [listings, setListings] = useState<Listing[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     let isMounted = true
+    const controller = new AbortController()
 
     async function loadListings() {
+      setIsLoading(true)
+      setLoadError(null)
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/listings/")
+        const response = await fetch("/api/listings", {
+          signal: controller.signal,
+          cache: "no-store",
+        })
         if (!response.ok) {
           throw new Error(`Request failed with status ${response.status}`)
         }
 
         const payload = await response.json()
-        if (isMounted) {
-          setListings(Array.isArray(payload) ? payload.map(normalizeListing) : [])
+        if (!Array.isArray(payload)) {
+          throw new Error("Invalid listings response")
         }
-      } catch (error) {
-        console.error("Failed to load listings from Django API", error)
         if (isMounted) {
-          setListings([])
+          setListings(payload.map(normalizeListing))
+        }
+      } catch {
+        if (isMounted) {
+          setLoadError("We couldn’t load the listings. Please try again.")
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
         }
       }
     }
@@ -84,8 +99,9 @@ export function MarketplaceApp() {
 
     return () => {
       isMounted = false
+      controller.abort()
     }
-  }, [])
+  }, [retryCount])
 
   const results = useMemo(
     () => applyFilters(listings, filters, search),
@@ -126,13 +142,26 @@ export function MarketplaceApp() {
 
           <SelectedFilterChips filters={filters} onChange={setFilters} onReset={resetFilters} />
 
-          <ListingGrid
+          {isLoading ? (
+            <p role="status" className="py-12 text-center text-muted-foreground">Loading listings…</p>
+          ) : loadError ? (
+            <div role="alert" className="rounded-2xl border border-border bg-card p-8 text-center">
+              <p>{loadError}</p>
+              <button
+                type="button"
+                onClick={() => setRetryCount((count) => count + 1)}
+                className="mt-4 rounded-full border border-border px-5 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Try again
+              </button>
+            </div>
+          ) : <ListingGrid
             listings={results}
             savedIds={savedIds}
             onToggleSave={toggleSave}
             viewMode={viewMode}
             onResetFilters={resetFilters}
-          />
+          />}
         </div>
       </main>
 

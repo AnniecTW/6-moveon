@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { useState } from "react"
 import { Heart, MapPin } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Listing } from "@/types/marketplace"
@@ -32,6 +33,7 @@ function SellerBadge({ name }: { name: string }) {
 
 export function ListingCard({ listing, saved, onToggleSave, layout = "grid" }: ListingCardProps) {
   const isList = layout === "list"
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
 
   return (
     <article
@@ -49,7 +51,8 @@ export function ListingCard({ listing, saved, onToggleSave, layout = "grid" }: L
         )}
       >
         <Image
-          src={listing.imageUrl || "/placeholder.svg"}
+          src={listing.imageUrl && listing.imageUrl !== failedImageUrl ? listing.imageUrl : "/placeholder.svg"}
+          onError={() => setFailedImageUrl(listing.imageUrl)}
           alt={listing.title}
           fill
           sizes={isList ? "224px" : "(min-width:1024px) 30vw, (min-width:640px) 45vw, 90vw"}
