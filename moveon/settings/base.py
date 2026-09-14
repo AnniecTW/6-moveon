@@ -122,8 +122,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# `static/css/app.css` is generated from `static/src/input.css` by the Tailwind
-# CLI (`npm run build`). See README > Frontend assets (Tailwind CSS).
+# The browse page uses authored CSS and browser ES modules, with no build step.
+# The older Tailwind source/output remain available but are not loaded by it.
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 

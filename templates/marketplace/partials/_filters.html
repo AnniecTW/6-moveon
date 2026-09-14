@@ -1,125 +1,17 @@
-{% load l10n %}
-{% comment %}
-Filter sidebar. Expects `listings` in context.
-
-Every facet below is derived from the listings the view actually returned
-(via the `regroup` tag), so the options can never drift out of sync with the
-data. Filtering itself happens client side in static/js/marketplace.js.
-
-The "Distance radius" control from the wireframe is intentionally left out:
-Listing has no location field yet, so there would be nothing to filter on.
-Add it here once the model grows one.
-{% endcomment %}
-
-{% regroup listings|dictsort:"item_type.category.category_name" by item_type.category.category_name as category_groups %}
-{% regroup listings|dictsort:"condition" by condition as condition_groups %}
-{% regroup listings|dictsort:"fulfillment_option" by fulfillment_option as fulfillment_groups %}
-
-{% with cheapest=listings|dictsort:"listing_price"|first priciest=listings|dictsortreversed:"listing_price"|first %}
-<aside class="lg:sticky lg:top-24 lg:self-start">
-    {# Collapsible on small screens, always open from `lg` up. #}
-    <details data-filter-panel open
-             class="group rounded-card bg-white p-5 ring-1 ring-neutral-200">
-        <summary class="flex cursor-pointer list-none items-center justify-between lg:cursor-default">
-            <h2 class="font-display text-xl font-bold text-neutral-900">Filter &amp; Browse</h2>
-            <svg class="size-5 text-neutral-400 transition-transform group-open:rotate-180 lg:hidden"
-                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                 stroke-linejoin="round" aria-hidden="true">
-                <path d="m6 9 6 6 6-6"/>
-            </svg>
-        </summary>
-
-        <form data-filter-form class="mt-5 flex flex-col gap-6">
-
-            {# ---- Categories ---- #}
-            <fieldset>
-                <legend class="field-label">Categories</legend>
-                <div class="mt-3 flex flex-col gap-2.5">
-                    <label class="flex cursor-pointer items-center gap-3 text-sm text-neutral-700">
-                        <input type="checkbox" class="checkbox" data-filter="category" value="__all__" checked>
-                        <span class="font-medium">All items</span>
-                        <span class="ml-auto text-xs text-neutral-400">{{ listings|length }}</span>
-                    </label>
-                    {% for group in category_groups %}
-                        <label class="flex cursor-pointer items-center gap-3 text-sm text-neutral-700">
-                            <input type="checkbox" class="checkbox" data-filter="category" value="{{ group.grouper }}">
-                            <span>{{ group.grouper }}</span>
-                            <span class="ml-auto text-xs text-neutral-400">{{ group.list|length }}</span>
-                        </label>
-                    {% endfor %}
-                </div>
-            </fieldset>
-
-            <hr class="border-neutral-200">
-
-            {# ---- Price range (dual handle) ---- #}
-            <fieldset>
-                <legend class="field-label">Price range</legend>
-                <div class="mt-3 flex items-center justify-between text-sm font-semibold text-neutral-600">
-                    <span data-price-min-label>${{ cheapest.listing_price|floatformat:0|default:"0" }}</span>
-                    <span data-price-max-label>${{ priciest.listing_price|floatformat:0|default:"0" }}</span>
-                </div>
-                <div class="relative mt-2 h-5"
-                     data-price-slider
-                     data-floor="{{ cheapest.listing_price|floatformat:0|default:'0'|unlocalize }}"
-                     data-ceiling="{{ priciest.listing_price|floatformat:0|default:'0'|unlocalize }}">
-                    <div class="absolute left-0 top-1/2 h-1.5 w-full -translate-y-1/2 rounded-full bg-neutral-200"></div>
-                    <div class="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand-500" data-price-fill></div>
-                    <input type="range" class="range-input" data-filter="price-min" aria-label="Minimum price"
-                           min="{{ cheapest.listing_price|floatformat:0|default:'0'|unlocalize }}"
-                           max="{{ priciest.listing_price|floatformat:0|default:'0'|unlocalize }}"
-                           value="{{ cheapest.listing_price|floatformat:0|default:'0'|unlocalize }}" step="1">
-                    <input type="range" class="range-input" data-filter="price-max" aria-label="Maximum price"
-                           min="{{ cheapest.listing_price|floatformat:0|default:'0'|unlocalize }}"
-                           max="{{ priciest.listing_price|floatformat:0|default:'0'|unlocalize }}"
-                           value="{{ priciest.listing_price|floatformat:0|default:'0'|unlocalize }}" step="1">
-                </div>
-            </fieldset>
-
-            <hr class="border-neutral-200">
-
-            {# ---- Condition ---- #}
-            <fieldset>
-                <legend class="field-label">Condition</legend>
-                <div class="mt-3 flex flex-col gap-2.5">
-                    {% for group in condition_groups %}
-                        <label class="flex cursor-pointer items-center gap-3 text-sm text-neutral-700">
-                            <input type="checkbox" class="checkbox" data-filter="condition" value="{{ group.grouper }}">
-                            <span>{{ group.list.0.get_condition_display }}</span>
-                            <span class="ml-auto text-xs text-neutral-400">{{ group.list|length }}</span>
-                        </label>
-                    {% endfor %}
-                </div>
-            </fieldset>
-
-            <hr class="border-neutral-200">
-
-            {# ---- Delivery / meetup ---- #}
-            <fieldset>
-                <legend class="field-label">Delivery / meetup option</legend>
-                <div class="mt-3 flex flex-col gap-2.5">
-                    {% for group in fulfillment_groups %}
-                        <label class="flex cursor-pointer items-center gap-3 text-sm text-neutral-700">
-                            <input type="checkbox" class="checkbox" data-filter="fulfillment" value="{{ group.grouper }}">
-                            <span>{{ group.list.0.get_fulfillment_option_display }}</span>
-                            <span class="ml-auto text-xs text-neutral-400">{{ group.list|length }}</span>
-                        </label>
-                    {% endfor %}
-                    <label class="flex cursor-pointer items-center gap-3 text-sm text-neutral-700">
-                        <input type="checkbox" class="checkbox" data-filter="bundle" value="1">
-                        <span>Bundle eligible only</span>
-                    </label>
-                </div>
-            </fieldset>
-
-            {# ---- Actions: results update live, so "Apply" is a match counter, not a submit ---- #}
-            <div class="flex items-center gap-3 border-t border-neutral-200 pt-5">
-                <button type="reset" data-filter-reset class="btn btn-ghost flex-1">Reset filters</button>
-                <p class="flex-1 rounded-xl bg-brand-50 px-4 py-2.5 text-center text-sm font-semibold text-brand-700">
-                    <span data-result-count>{{ listings|length }}</span> match<span data-result-plural>es</span>
-                </p>
-            </div>
-        </form>
-    </details>
-</aside>
-{% endwith %}
+<section class="filter-panel" id="filters" aria-labelledby="filter-heading">
+<div class="filter-header"><div><p class="eyebrow">Refine your curated finds</p><h2 id="filter-heading">Filter &amp; Sort</h2></div><button class="icon-button" data-close-filters type="button" aria-label="Close filters" hidden>×</button></div>
+<form method="get" data-filter-form id="filter-form">
+<input type="hidden" name="q" value="{{ request.GET.q }}">
+<div data-form-errors role="alert">{{ filter_form.errors }}</div>
+<details open><summary>Category</summary>{{ filter_form.category }}</details>
+<details><summary>Item type</summary>
+{% for value, label in filter_form.fields.item_type.choices %}<label class="check-row" data-item-type="{{ value }}"><input type="checkbox" name="item_type" value="{{ value }}" {% if value in filter_form.item_type.value %}checked{% endif %}>{{ label }}</label>{% endfor %}
+</details>
+<details open><summary>Price range</summary><div class="price-inputs"><label>Minimum ($){{ filter_form.min_price }}</label><label>Maximum ($){{ filter_form.max_price }}</label></div></details>
+<details><summary>Condition</summary>{{ filter_form.condition }}</details>
+<details open><summary>Bundle eligibility</summary><label class="check-row">{{ filter_form.bundle }} Bundle eligible only</label></details>
+<details><summary>Delivery / meetup</summary>{{ filter_form.fulfillment }}</details>
+<div class="filter-actions"><a class="button" href="{{ request.path }}" data-reset>Clear all</a><button class="button primary" type="submit">View listings</button></div>
+</form>
+<script type="application/json" id="item-type-categories">[{% for item in filter_form.item_types %}{"id":"{{ item.pk }}","category":"{{ item.category_id }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+</section>

@@ -1,56 +1,59 @@
-{% comment %}
-Hero band for the browse page.
-
-The artwork slot on the right is a grey placeholder for now. To ship the real
-image, drop the file into `static/img/` and replace the <div data-hero-art>
-block with an <img> whose src is a `static` tag pointing at it, plus
-class="size-full object-cover".
-{% endcomment %}
-
-<section class="overflow-hidden rounded-3xl bg-linear-to-r from-sand-100 to-sand-50 ring-1 ring-sand-200">
-    <div class="grid items-stretch gap-0 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-
-        <div class="flex flex-col justify-center gap-3 px-5 py-8 sm:px-8 lg:py-10">
-            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-500">
-                Buy &middot; Sell &middot; Give &middot; Reuse
-            </p>
-
-            <div>
-                <h1 class="font-display text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">MoveOn</h1>
-                <p class="mt-1 font-display text-xl font-semibold text-neutral-700 sm:text-2xl">
-                    Good Stuff. Brighter Tomorrows.
-                </p>
-            </div>
-
-            <p class="max-w-md text-base leading-relaxed text-neutral-600">
-                Furnishing your dorm? Find affordable, reliable items from students, for students.
-            </p>
-
-            <div>
-                {# TODO: point at the bundle-builder view once it exists. #}
-                <a href="#" class="btn btn-primary group h-11 px-5 text-sm">
-                    Start Building Your Bundle
-                    <svg class="size-5 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M4 12h15M13 6l6 6-6 6"/>
-                    </svg>
-                </a>
-            </div>
-        </div>
-
-        {# ---- Placeholder artwork ---- #}
-        <div data-hero-art
-             class="relative flex min-h-48 items-center justify-center bg-neutral-200/70 md:min-h-full">
-            <div class="flex flex-col items-center gap-2 text-neutral-400">
-                <svg class="size-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="4.5" width="18" height="15" rx="2.5"/>
-                    <circle cx="8.5" cy="10" r="1.75"/>
-                    <path d="m3.5 17 4.7-4.4a2 2 0 0 1 2.7-.05L16 17M14 14.3l1.8-1.6a2 2 0 0 1 2.7.03L20.5 15"/>
-                </svg>
-                <p class="text-sm font-medium">Hero image placeholder</p>
-                <p class="text-xs">Drop artwork in <code class="font-mono">static/img/</code></p>
-            </div>
-        </div>
+{% load static l10n %}
+<section class="hero" aria-label="Move-in bundles">
+  <div class="bundle-promo">
+    <p class="eyebrow">Move-In</p><h1>Bundle Builder</h1>
+    <p class="tagline">Fair prices. Curated finds. Your move.</p>
+    <ol class="steps">
+      <li><div><strong>Choose a space</strong><span>Pick the room you're furnishing.</span></div></li>
+      <li><div><strong>Select at least three items</strong><span>Mix and match curated finds.</span></div></li>
+      <li><div><strong>See your bundle price</strong><span>Save more the more you bundle.</span></div></li>
+    </ol>
+    <a class="button primary" href="?bundle=on#listings-heading">Try it! <span aria-hidden="true">→</span></a>
+  </div>
+  <section class="carousel" aria-label="Featured bundles" aria-roledescription="carousel">
+    <div class="carousel-heading">
+      <h2>Featured Bundles</h2>
+      <div class="carousel-controls" hidden><button class="icon-button" data-previous aria-label="Previous bundle">←</button><button class="icon-button" data-next aria-label="Next bundle">→</button><button class="icon-button" data-pause aria-label="Pause slideshow">Ⅱ</button></div>
     </div>
+    <div class="slides">
+      {% for bundle in featured_bundles %}
+      <article class="bundle-slide" aria-label="{{ forloop.counter }} of {{ featured_bundles|length }}: {{ bundle.title }}" aria-roledescription="slide">
+        <div class="bundle-scene">
+          <img src="{% static 'img/reference/' %}{{ bundle.image }}" alt="{{ bundle.alt }}" width="1024" height="1024">
+          {% for spot in bundle.items %}
+          <button class="item-hotspot" type="button" data-hotspot
+                  style="--x:{{ spot.x|unlocalize }}%;--y:{{ spot.y|unlocalize }}%;--w:{{ spot.w|unlocalize }}%;--h:{{ spot.h|unlocalize }}%;--label-x:{{ spot.label_x }}%;--label-bottom:{{ spot.label_bottom }}%"
+                  aria-label="Preview {{ spot.listing.title }}, now ${{ spot.listing.listing_price|floatformat:2 }}"
+                  aria-expanded="false" aria-controls="preview-{{ bundle.slug }}-{{ spot.listing.pk|unlocalize }}">
+            <svg class="item-contour" viewBox="{{ spot.view_box }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+              <path class="contour-shadow" d="{{ spot.outline }}" fill-rule="evenodd" vector-effect="non-scaling-stroke"/>
+              <path class="contour-shape" d="{{ spot.outline }}" fill-rule="evenodd" vector-effect="non-scaling-stroke"/>
+            </svg>
+            <span class="hotspot-price">
+              {% if spot.listing.retail_price %}<del>${{ spot.listing.retail_price|floatformat:"-2" }}</del>{% endif %}
+              <strong>${{ spot.listing.listing_price|floatformat:"-2" }}</strong>
+            </span>
+          </button>
+          <div class="listing-preview" id="preview-{{ bundle.slug }}-{{ spot.listing.pk|unlocalize }}" hidden>
+            <button class="preview-close" type="button" data-close-preview aria-label="Close {{ spot.listing.title }} preview">×</button>
+            {% include "marketplace/partials/_hover_card.html" with item=spot.listing %}
+          </div>
+          {% endfor %}
+        </div>
+        <span class="slide-title">{{ bundle.title }}</span>
+        <div class="bundle-summary" aria-label="{{ bundle.title }} pricing">
+          <dl>
+            <div><dt>Bundle price</dt><dd class="bundle-total">${{ bundle.total|floatformat:2 }}</dd></div>
+            <div><dt>You save</dt><dd>{% if bundle.saved != None %}${{ bundle.saved|floatformat:2 }}{% else %}—{% endif %}</dd></div>
+            <div><dt>Overall discount</dt><dd>{% if bundle.discount %}<span class="discount-tag">{{ bundle.discount|floatformat:1 }}% off</span>{% else %}—{% endif %}</dd></div>
+          </dl>
+        </div>
+        <span class="scene-hint">Hover or tap an outlined item</span>
+      </article>
+      {% empty %}
+      <div class="empty-state"><h3>More bundles on the way</h3><p>Explore available items below.</p></div>
+      {% endfor %}
+    </div>
+    <div class="carousel-dots" hidden>{% for bundle in featured_bundles %}<button data-slide="{{ forloop.counter0 }}" aria-label="{{ bundle.title }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"></button>{% endfor %}</div>
+  </section>
 </section>

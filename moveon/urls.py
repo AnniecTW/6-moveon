@@ -19,6 +19,7 @@ from django.urls import path
 from marketplace import views
 
 urlpatterns = [
+    path('', views.listing_render_view, name='home'),
     path('admin/', admin.site.urls),
     path('listings/manual/', views.listing_manual_view, name='listing_manual'),
     path('listings/render/', views.listing_render_view, name='listing_render'),

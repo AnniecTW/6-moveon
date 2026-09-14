@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
@@ -94,13 +95,13 @@ class Command(BaseCommand):
                     "condition": condition,
                     "listing_price": price,
                     "retail_price": retail,
-                    "benchmark_price": round(price * 1.1, 2),
-                    "benchmark_low": round(price * 0.85, 2),
-                    "benchmark_high": round(price * 1.25, 2),
+                    "benchmark_price": (Decimal(price) * Decimal("1.1")).quantize(Decimal("0.01")),
+                    "benchmark_low": (Decimal(price) * Decimal("0.85")).quantize(Decimal("0.01")),
+                    "benchmark_high": (Decimal(price) * Decimal("1.25")).quantize(Decimal("0.01")),
                     "move_out_date": move_out,
-                    "minimum_price": round(price * 0.7, 2),
+                    "minimum_price": (Decimal(price) * Decimal("0.7")).quantize(Decimal("0.01")),
                     "bundle_eligible": bundle_eligible,
-                    "fulfillment_option": Listing.Fulfillment.EITHER,
+                    "fulfillment_option": Listing.Fulfillment.PICKUP,
                     "status": Listing.Status.SOLD if title == "Desk Chair" else Listing.Status.ACTIVE,
                 },
             )

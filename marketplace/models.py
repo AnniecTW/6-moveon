@@ -96,7 +96,6 @@ class Listing(ValidatedSaveModel):
     class Fulfillment(models.TextChoices):
         PICKUP = "PICKUP", "Pickup"
         DELIVERY = "DELIVERY", "Delivery"
-        EITHER = "EITHER", "Either"
 
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"

@@ -1,6 +1,9 @@
 # MoveOn (INFO 490 - Project 1)
 
-This repository contains the initial Django project scaffolding for the MoveOn application.
+MoveOn uses Django-rendered templates, plain CSS, and small JavaScript modules.
+The browse layout follows the reference frontend while keeping the existing Django apps.
+See [Frontend architecture](docs/frontend-architecture.md) for file responsibilities,
+dependency decisions, supported interactions, and remaining feature work.
 
 ---
 
@@ -11,7 +14,7 @@ Please follow the steps below to set up your local development environment. We a
 ### Prerequisites
 * Git installed and configured
 * Python 3.12 (via Conda or native Python)
-* Node.js and npm
+* Node.js is optional (JavaScript syntax checks and the legacy Tailwind build only).
 
 ---
 
@@ -49,19 +52,12 @@ pip install -r requirements.txt
 
 Copy `.env.example` to `.env` and set a local `SECRET_KEY`. Do not commit `.env`.
 
-#### 4. Install and Build Frontend Assets
-The Django templates use Tailwind CSS for styling. Install the frontend dependencies and build the stylesheet:
-
-```bash
-npm install
-npm run build
-```
-
-During frontend development, use the watch mode in a separate terminal:
-
-```bash
-npm run dev
-```
+#### 4. Frontend Assets
+No frontend install or build is required. Django loads
+`static/css/marketplace.css` and `static/js/marketplace.js` directly.
+Edit the CSS files under `static/css/marketplace/` and JavaScript modules under
+`static/js/marketplace/`, then refresh the browser.
+The older Tailwind files remain available but are not used by the browse page.
 
 #### 5. Run Migrations, Seed Demo Data, & Start Dev Server
 Create the local database, populate it with demo data, and start the server:
@@ -69,6 +65,7 @@ Create the local database, populate it with demo data, and start the server:
 ```bash
 python manage.py migrate
 python manage.py seed_demo_data
+python manage.py seed_featured_bundles
 python manage.py runserver
 ```
 
@@ -78,7 +75,13 @@ The entry points default to `moveon.settings.development`. For production, overr
 DJANGO_SETTINGS_MODULE=moveon.settings.production python manage.py check --deploy
 ```
 
-Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser. If you see the Django rocket launch page, your setup is complete!
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) to browse MoveOn.
+The original `/listings/manual/`, `/listings/render/`, `/listings/cbv-base/`,
+and `/listings/cbv-generic/` routes all share the new layout and filtering behavior.
+The six featured demo listings use local reference images and power the interactive
+bundle scenes. Other listings without image URLs show a photo placeholder.
+
+Run checks with `python manage.py check` and `python manage.py test`.
 
 ---
 

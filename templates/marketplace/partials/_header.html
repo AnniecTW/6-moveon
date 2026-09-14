@@ -1,0 +1,22 @@
+{% load static %}
+<header class="site-header">
+  <div class="page header-inner">
+    <a class="logo" href="{% url 'home' %}" aria-label="MoveOn home"><img src="{% static 'img/logo.png' %}" alt="MoveOn" width="150" height="52"></a>
+    <form class="search" method="get" role="search" data-search-form>
+      {% for key, values in request.GET.lists %}{% if key != 'q' %}{% for value in values %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}{% endif %}{% endfor %}
+      <label class="sr-only" for="search">Search listings</label>
+      <input id="search" type="search" name="q" value="{{ request.GET.q }}" placeholder="Find your next favorite thing…" maxlength="200">
+      <button type="submit" aria-label="Search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button>
+    </form>
+    <nav class="header-actions" aria-label="Marketplace actions">
+      <button class="button primary sell-button" type="button" data-header-action="sell"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13 11 22 2 13V3h10l8 8a1.4 1.4 0 0 1 0 2Z"/><circle cx="7" cy="8" r="1"/></svg><span>Sell Item</span></button>
+      <button class="icon-button" type="button" data-header-action="messages" aria-label="Messages"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg></button>
+      <button class="icon-button shopping-bag" type="button" data-saved-toggle aria-label="Shopping bag — saved items" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14l1 14H4L5 7Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span data-saved-count>0</span></button>
+      <button class="icon-button" type="button" data-header-action="profile" aria-label="Profile"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></button>
+    </nav>
+  </div>
+</header>
+<dialog class="header-dialog" data-header-dialog aria-labelledby="header-dialog-title">
+  <button class="icon-button dialog-close" type="button" aria-label="Close">×</button>
+  <h2 id="header-dialog-title"></h2><p></p>
+</dialog>
