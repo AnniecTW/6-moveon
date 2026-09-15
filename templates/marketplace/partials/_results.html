@@ -1,6 +1,10 @@
 <div class="results-meta"><p class="muted" data-result-count role="status">{{ listings|length }} listing{{ listings|length|pluralize }}</p><div class="filter-chips">{% for chip in filter_chips %}<a href="{{ chip.url }}" class="chip" data-filter-link aria-label="Remove filter: {{ chip.label }}">{{ chip.label }} <span aria-hidden="true">×</span></a>{% endfor %}</div></div>
 <div class="listing-grid" data-listing-grid>
 {% for item in listings %}{% include "marketplace/partials/_listing_card.html" %}{% empty %}
-<div class="empty-state"><h3>{% if filter_form.errors %}Check your filters{% else %}No listings found{% endif %}</h3><p>{% if filter_form.errors %}Correct the highlighted fields to continue.{% else %}Try another search or clear your filters.{% endif %}</p><a class="button" href="{{ request.path }}" data-reset>Clear filters</a></div>
+<div class="empty-state">
+  <h3>{% if filter_form.errors %}Check your filters{% elif filter_chips %}No listings found{% else %}No listings yet{% endif %}</h3>
+  <p>{% if filter_form.errors %}Correct the highlighted fields to continue.{% elif filter_chips %}Try another search or clear your filters.{% else %}There are no listings available right now.{% endif %}</p>
+  {% if filter_chips or filter_form.errors %}<a class="button" href="{{ request.path }}" data-reset>Clear filters</a>{% endif %}
+</div>
 {% endfor %}</div>
 <div class="empty-state" data-saved-empty hidden><h3>No saved items in these results</h3><p>Save a find using the heart on its card, or clear your filters.</p></div>
