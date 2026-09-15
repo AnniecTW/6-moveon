@@ -1,15 +1,19 @@
 # MoveOn (INFO 490 - Project 1)
 
-MoveOn uses Django-rendered templates, plain CSS, and small JavaScript modules.
-The browse layout follows the reference frontend while keeping the existing Django apps.
-See [Frontend architecture](docs/frontend-architecture.md) for file responsibilities,
-dependency decisions, supported interactions, and remaining feature work.
+MoveOn is a student marketplace for buying, selling, giving away, and reusing
+dorm and apartment items. It helps students find affordable secondhand goods
+from other students during move-in and move-out seasons.
+
+The project includes a searchable and filterable listing page, featured bundles,
+saved items, and responsive browser interactions. The application uses Django templates, plain CSS, and
+JavaScript modules. See [Frontend architecture](docs/frontend-architecture.md)
+for implementation details.
 
 ---
 
-## Local Environment Setup
+## Setup
 
-Please follow the steps below to set up your local development environment. We are standardizing on **Python 3.12** across all machines to prevent dependency discrepancies.
+The project uses Python 3.12 across development environments.
 
 ### Prerequisites
 * Git installed and configured
@@ -22,8 +26,8 @@ Please follow the steps below to set up your local development environment. We a
 
 #### 1. Clone the Repository
 ```bash
-git clone https://github.com/AnniecTW/info490-moveon.git
-cd info490-moveon
+git clone https://github.com/AnniecTW/6-moveon.git
+cd 6-moveon
 ```
 
 #### 2. Create and Activate Virtual Environment
@@ -53,11 +57,9 @@ pip install -r requirements.txt
 Copy `.env.example` to `.env` and set a local `SECRET_KEY`. Do not commit `.env`.
 
 #### 4. Frontend Assets
-No frontend install or build is required. Django loads
-`static/css/marketplace.css` and `static/js/marketplace.js` directly.
-Edit the CSS files under `static/css/marketplace/` and JavaScript modules under
-`static/js/marketplace/`, then refresh the browser.
-The older Tailwind files remain available but are not used by the browse page.
+No frontend installation or build step is required. The browse page uses the
+CSS and JavaScript files under `static/css/marketplace/` and `static/js/`.
+Tailwind's package and source files are kept for possible future use.
 
 #### 5. Run Migrations, Seed Demo Data, & Start Dev Server
 Create the local database, populate it with demo data, and start the server:
@@ -82,10 +84,3 @@ The six featured demo listings use local reference images and power the interact
 bundle scenes. Other listings without image URLs show a photo placeholder.
 
 Run checks with `python manage.py check` and `python manage.py test`.
-
----
-
-### 📌 Development Notes
-* **Never commit local databases or environment secrets:** `data/db.sqlite3` and `.env` are already excluded via `.gitignore`.
-* **Branching Strategy:** Please create feature branches off `main` rather than committing directly to `main`.
-* Git does not track empty directories. The `wireframes` and `branching_strategy` folders therefore contain a README placeholder so the required documentation structure remains visible in the repository before those folders receive their first substantive files.
