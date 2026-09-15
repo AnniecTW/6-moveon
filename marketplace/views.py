@@ -21,7 +21,7 @@ class ListingBaseView(View):
         return render(request, 'marketplace/listing_list.html', browse_context(request))
 
 # 4. Generic CBV
-class ListingGenericView(ListView):
+class ListingListView(ListView): # Naming Pattern: <Model><Purpose>View
     model = Listing
     template_name = 'marketplace/listing_list.html'
     context_object_name = 'listings'

@@ -24,5 +24,5 @@ urlpatterns = [
     path('listings/manual/', views.listing_manual_view, name='listing_manual'),
     path('listings/render/', views.listing_render_view, name='listing_render'),
     path('listings/cbv-base/', views.ListingBaseView.as_view(), name='listing_cbv_base'),
-    path('listings/cbv-generic/', views.ListingGenericView.as_view(), name='listing_cbv_generic'),
+    path('listings/cbv-generic/', views.ListingListView.as_view(), name='listing_cbv_generic'),
 ]
