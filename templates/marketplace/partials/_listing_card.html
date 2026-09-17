@@ -1,110 +1,41 @@
 {% load l10n %}
-{% comment %}
-One listing card. Expects `item` (a marketplace.Listing) in context.
-
-The `data-*` attributes are the contract with static/js/marketplace.js: the
-sidebar filters and the sort control read them to show/hide/reorder cards
-entirely client side, so no extra query-string handling is needed in the view.
-`|unlocalize` keeps numbers machine-parseable regardless of the active locale.
-{% endcomment %}
-
-<article data-listing-card
-         data-title="{{ item.title }}"
-         data-price="{{ item.listing_price|unlocalize }}"
-         data-created="{{ item.created_at|date:'U' }}"
-         data-category="{{ item.item_type.category.category_name }}"
-         data-condition="{{ item.condition }}"
-         data-fulfillment="{{ item.fulfillment_option }}"
-         data-bundle="{{ item.bundle_eligible|yesno:'1,0' }}"
-         data-keywords="{{ item.title }} {{ item.item_type.item_type_name }} {{ item.item_type.category.category_name }} {{ item.seller.display_name }} {{ item.description }}"
-         class="group flex flex-col overflow-hidden rounded-card bg-white ring-1 ring-neutral-200 transition hover:-translate-y-0.5 hover:shadow-lg hover:ring-neutral-300">
-
-    {# ---- Photo ---- #}
-    <div class="relative aspect-[16/10] overflow-hidden bg-neutral-200">
-        {% if item.image_url %}
-            <img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy"
-                 class="size-full object-cover transition-transform duration-300 group-hover:scale-105">
-        {% else %}
-            {# Grey placeholder until real photos are uploaded. #}
-            <div class="flex size-full flex-col items-center justify-center gap-1.5 text-neutral-400">
-                <svg class="size-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="4.5" width="18" height="15" rx="2.5"/>
-                    <circle cx="8.5" cy="10" r="1.75"/>
-                    <path d="m3.5 17 4.7-4.4a2 2 0 0 1 2.7-.05L16 17M14 14.3l1.8-1.6a2 2 0 0 1 2.7.03L20.5 15"/>
-                </svg>
-                <span class="text-xs font-medium">No photo yet</span>
-            </div>
-        {% endif %}
-
-        <button type="button" data-favorite-toggle data-favorite-id="{{ item.pk|unlocalize }}"
-                aria-pressed="false"
-                aria-label="Save {{ item.title }} to your favorites"
-                class="absolute right-2.5 top-2.5 grid size-8 place-items-center rounded-full bg-white/95 text-neutral-500 shadow-sm transition hover:text-rose-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 aria-pressed:text-rose-500">
-            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 20.4 4.6 13a4.6 4.6 0 1 1 7.4-5.3A4.6 4.6 0 1 1 19.4 13L12 20.4Z"
-                      class="transition-[fill]" fill="none" data-heart-fill/>
-            </svg>
-        </button>
-
-        {% if item.bundle_eligible %}
-            <span class="absolute left-2.5 top-2.5 rounded-full bg-brand-600/95 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm">
-                Bundle eligible
-            </span>
-        {% endif %}
+<article
+  class="listing-card"
+  data-listing-card
+  data-id="{{ item.pk|unlocalize }}"
+  id="listing-{{ item.pk|unlocalize }}"
+>
+  <div class="card-photo">
+    {% if item.display_image_url %}<img
+      src="{{ item.display_image_url }}"
+      alt="{{ item.title }}"
+      loading="lazy"
+      width="640"
+      height="480"
+    />{% else %}
+    <div class="photo-placeholder">No photo yet</div>
+    {% endif %} {% if item.bundle_eligible %}<span class="bundle-badge"
+      >Bundle eligible</span
+    >{% endif %}
+    <button
+      type="button"
+      class="favorite"
+      data-favorite-id="{{ item.pk|unlocalize }}"
+      aria-label="Save {{ item.title }}"
+      aria-pressed="false"
+      hidden
+    >
+      ♡
+    </button>
+  </div>
+  <div class="card-content">
+    <p class="eyebrow">{{ item.item_type.category.category_name }} · {{ item.item_type.item_type_name }}</p>
+    <h3>{{ item.title }}</h3>
+    {% include "marketplace/partials/_price.html" %}
+    <div class="card-meta">
+      <span class="condition">{{ item.get_condition_display }}</span
+      ><span>{{ item.created_at|date:"M j" }}</span>
     </div>
-
-    {# ---- Details ---- #}
-    <div class="flex flex-1 flex-col gap-1.5 p-3">
-        <p class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-            {{ item.item_type.category.category_name }} &middot; {{ item.item_type.item_type_name }}
-        </p>
-
-        {# TODO: wrap in a link to the listing-detail view once one exists. #}
-        <h3 class="font-display text-base font-semibold leading-snug text-neutral-900">{{ item.title }}</h3>
-
-        <p class="text-base font-bold text-neutral-900">
-            {% if item.listing_price %}
-                ${{ item.listing_price|floatformat:2 }}
-            {% else %}
-                <span class="text-brand-600">Free</span>
-            {% endif %}
-            {% if item.retail_price %}
-                <span class="ml-1 text-sm font-medium text-neutral-400 line-through">${{ item.retail_price|floatformat:0 }}</span>
-            {% endif %}
-        </p>
-
-        <p class="flex items-center gap-1.5 text-sm text-neutral-500">
-            <svg class="size-4 shrink-0 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z"/>
-                <circle cx="12" cy="10" r="2.5"/>
-            </svg>
-            {% if item.fulfillment_option == 'PICKUP' %}Campus pickup
-            {% elif item.fulfillment_option == 'DELIVERY' %}Delivery available
-            {% else %}Pickup or delivery{% endif %}
-        </p>
-
-        <div class="mt-auto flex flex-wrap items-center gap-1.5 pt-1.5">
-            {% if item.condition == 'NEW' %}
-                <span class="rounded-lg bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700">New</span>
-            {% elif item.condition == 'LIKE_NEW' %}
-                <span class="rounded-lg bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700">Like-New</span>
-            {% elif item.condition == 'GOOD' %}
-                <span class="rounded-lg bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">Good</span>
-            {% elif item.condition == 'FAIR' %}
-                <span class="rounded-lg bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-700">Fair</span>
-            {% else %}
-                <span class="rounded-lg bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-600">Poor</span>
-            {% endif %}
-
-            <span class="ml-auto flex items-center gap-1.5 text-xs text-neutral-500">
-                <span class="grid size-6 place-items-center rounded-full bg-neutral-100 text-[10px] font-bold text-neutral-600">
-                    {{ item.seller.display_name|slice:":1"|upper }}
-                </span>
-                {{ item.seller.display_name }}
-            </span>
-        </div>
-    </div>
+    <div class="card-bottom"><span>{{ item.seller.display_name|default:item.seller.username }}</span></div>
+  </div>
 </article>

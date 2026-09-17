@@ -9,3 +9,4 @@ Week 2:
 - Added reusable marketplace templates, Tailwind frontend assets, and an empty listing state.
 - Added named listing routes and implemented four Listing views: manual HttpResponse, render FBV, base CBV, and generic ListView.
 - Updated the README and branching strategy documentation with setup and workflow instructions.
+- For Section 3, Part B, the feature template includes `templates/marketplace/partials/_results.html`, where `{% for %}` renders the listings and `{% empty %}` displays a meaningful empty-state message when no listings are available.

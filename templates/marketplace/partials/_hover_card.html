@@ -1,0 +1,29 @@
+<article
+  class="listing-card preview-card"
+  aria-label="{{ item.title }} preview"
+>
+  <div class="card-photo">
+    {% if item.display_image_url %}<img
+      src="{{ item.display_image_url }}"
+      alt="{{ item.title }}"
+      width="320"
+      height="240"
+    />{% else %}
+    <div class="photo-placeholder">No photo yet</div>
+    {% endif %}
+  </div>
+  <div class="card-content">
+    <div class="card-meta">
+      <span class="condition">{{ item.get_condition_display }}</span
+      ><span>Bundle eligible</span>
+    </div>
+    <h3>{{ item.title }}</h3>
+    {% include "marketplace/partials/_price.html" %}
+    <p class="muted">{{ item.seller.display_name }}</p>
+    <a
+      class="button primary"
+      href="?q={{ item.title|urlencode }}#listing-{{ item.pk }}"
+      >View listing →</a
+    >
+  </div>
+</article>

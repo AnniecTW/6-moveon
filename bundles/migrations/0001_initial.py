@@ -6,54 +6,169 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('marketplace', '0003_itemtype'),
+        ("marketplace", "0003_itemtype"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Bundle',
+            name="Bundle",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('space', models.CharField(choices=[('BEDROOM', 'Bedroom'), ('KITCHEN', 'Kitchen'), ('LIVING_ROOM', 'Living Room'), ('BATHROOM', 'Bathroom'), ('ENTIRE_HOUSE', 'Entire House'), ('ASSORTED', 'Assorted')], max_length=20)),
-                ('selected_tier', models.CharField(blank=True, choices=[('BUDGET', 'Budget'), ('BEST_VALUE', 'Best Value'), ('PREMIUM', 'Premium')], max_length=20, null=True)),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('REQUESTS_SENT', 'Requests Sent'), ('PARTIALLY_ACCEPTED', 'Partially Accepted'), ('CONFIRMED', 'Confirmed'), ('CANCELLED', 'Cancelled')], default='DRAFT', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('buyer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='bundles', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "space",
+                    models.CharField(
+                        choices=[
+                            ("BEDROOM", "Bedroom"),
+                            ("KITCHEN", "Kitchen"),
+                            ("LIVING_ROOM", "Living Room"),
+                            ("BATHROOM", "Bathroom"),
+                            ("ENTIRE_HOUSE", "Entire House"),
+                            ("ASSORTED", "Assorted"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "selected_tier",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("BUDGET", "Budget"),
+                            ("BEST_VALUE", "Best Value"),
+                            ("PREMIUM", "Premium"),
+                        ],
+                        max_length=20,
+                        null=True,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("REQUESTS_SENT", "Requests Sent"),
+                            ("PARTIALLY_ACCEPTED", "Partially Accepted"),
+                            ("CONFIRMED", "Confirmed"),
+                            ("CANCELLED", "Cancelled"),
+                        ],
+                        default="DRAFT",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "buyer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="bundles",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-updated_at'],
+                "ordering": ["-updated_at"],
             },
         ),
         migrations.CreateModel(
-            name='BundleCategory',
+            name="BundleCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('bundle', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='requested_categories', to='bundles.bundle')),
-                ('item_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='bundle_categories', to='marketplace.itemtype')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "bundle",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="requested_categories",
+                        to="bundles.bundle",
+                    ),
+                ),
+                (
+                    "item_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="bundle_categories",
+                        to="marketplace.itemtype",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['bundle', 'item_type'],
+                "ordering": ["bundle", "item_type"],
             },
         ),
         migrations.CreateModel(
-            name='BundleItem',
+            name="BundleItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('listing_price_snapshot', models.DecimalField(decimal_places=2, max_digits=8)),
-                ('proposed_bundle_price', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ('final_price', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ('item_status', models.CharField(choices=[('SELECTED', 'Selected'), ('REQUESTED', 'Requested'), ('ACCEPTED', 'Accepted'), ('DECLINED', 'Declined'), ('REPLACED', 'Replaced')], default='SELECTED', max_length=20)),
-                ('responded_at', models.DateTimeField(blank=True, null=True)),
-                ('bundle', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='bundle_items', to='bundles.bundle')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "listing_price_snapshot",
+                    models.DecimalField(decimal_places=2, max_digits=8),
+                ),
+                (
+                    "proposed_bundle_price",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=8, null=True
+                    ),
+                ),
+                (
+                    "final_price",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=8, null=True
+                    ),
+                ),
+                (
+                    "item_status",
+                    models.CharField(
+                        choices=[
+                            ("SELECTED", "Selected"),
+                            ("REQUESTED", "Requested"),
+                            ("ACCEPTED", "Accepted"),
+                            ("DECLINED", "Declined"),
+                            ("REPLACED", "Replaced"),
+                        ],
+                        default="SELECTED",
+                        max_length=20,
+                    ),
+                ),
+                ("responded_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "bundle",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="bundle_items",
+                        to="bundles.bundle",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['bundle', 'listing'],
+                "ordering": ["bundle", "listing"],
             },
         ),
     ]

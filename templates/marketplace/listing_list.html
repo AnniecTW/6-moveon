@@ -1,66 +1,49 @@
-{% extends "marketplace/base.html" %}
-{% load static %}
-
-{% block title %}Browse Listings - MoveOn{% endblock %}
-
-{% block listing_content %}
-    {% include "marketplace/partials/_hero.html" %}
-
-    {# `data-marketplace` scopes everything static/js/marketplace.js touches. #}
-    <div data-marketplace class="mt-8 grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-8">
-
-        {% include "marketplace/partials/_filters.html" %}
-
-        <section aria-labelledby="listings-heading">
-
-            {# ---- Section header + sort ---- #}
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <h2 id="listings-heading" class="font-display text-2xl font-bold text-neutral-900">
-                    Popular Items on Campus
-                </h2>
-
-                <div class="flex items-center gap-2">
-                    <label for="sort-by" class="text-sm font-medium text-neutral-500">Sort by</label>
-                    <div class="relative">
-                        <select id="sort-by" data-sort
-                                class="h-10 appearance-none rounded-xl border-0 bg-white py-0 pl-4 pr-10 text-sm font-medium text-neutral-800 ring-1 ring-neutral-200 ring-inset focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            <option value="newest">Newest</option>
-                            <option value="price-asc">Price: Low &ndash; High</option>
-                            <option value="price-desc">Price: High &ndash; Low</option>
-                            <option value="title-asc">Name: A &ndash; Z</option>
-                        </select>
-                        <svg class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400"
-                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="m6 9 6 6 6-6"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            {# ---- Grid: `listings` comes from marketplace.views.listing_render_view ---- #}
-            <div data-listing-grid class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {% for item in listings %}
-                    {% include "marketplace/partials/_listing_card.html" %}
-                {% empty %}
-                    <div class="col-span-full rounded-card bg-white px-6 py-16 text-center ring-1 ring-neutral-200">
-                        <p class="text-lg font-semibold text-neutral-700">No listings available yet.</p>
-                        <p class="mt-1 text-sm text-neutral-500">Be the first student to post an item! &#128640;</p>
-                    </div>
-                {% endfor %}
-            </div>
-
-            {# Shown by JS when filters/search exclude every card. #}
-            <div data-no-results hidden
-                 class="mt-5 rounded-card bg-white px-6 py-16 text-center ring-1 ring-neutral-200">
-                <p class="text-lg font-semibold text-neutral-700">Nothing matches those filters.</p>
-                <p class="mt-1 text-sm text-neutral-500">Try widening your price range or clearing a category.</p>
-                <button type="button" data-filter-reset class="btn btn-soft mt-5">Reset filters</button>
-            </div>
-        </section>
+{% extends "marketplace/base.html" %} {% load static %} {% block title %}Browse Listings |
+MoveOn{% endblock %} {% block listing_content %} {% include "marketplace/partials/_hero.html" %}
+<div data-marketplace>
+  <div class="toolbar">
+    <div>
+      <p class="eyebrow">A fresh start, for less</p>
+      <h2 id="listings-heading">Browse Listings</h2>
     </div>
-{% endblock %}
-
-{% block extra_scripts %}
-    <script src="{% static 'js/marketplace.js' %}" defer></script>
+    <div class="toolbar-actions">
+      <button class="button" type="button" data-open-filters hidden>
+        ☷ Filters
+      </button>
+      <label class="sort-label" for="id_sort">Sort by {{ filter_form.sort }}</label>
+      <button class="button no-js-sort" type="submit" form="filter-form">
+        Apply sort
+      </button>
+      <div
+        class="view-controls"
+        role="group"
+        aria-label="Listing layout"
+        hidden
+      >
+        <button
+          class="icon-button"
+          data-view="grid"
+          aria-label="Grid view"
+          aria-pressed="true"
+        >
+          ▦</button
+        ><button
+          class="icon-button"
+          data-view="list"
+          aria-label="List view"
+          aria-pressed="false"
+        >
+          ☰
+        </button>
+      </div>
+    </div>
+  </div>
+  {% include "marketplace/partials/_filters.html" %}
+  <p data-browse-status class="muted" role="status" aria-live="polite"></p>
+  <section data-results aria-labelledby="listings-heading">
+    {% include "marketplace/partials/_results.html" %}
+  </section>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script type="module" src="{% static 'js/marketplace.js' %}"></script>
 {% endblock %}

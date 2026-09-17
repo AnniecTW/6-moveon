@@ -1,17 +1,24 @@
 # MoveOn (INFO 490 - Project 1)
 
-This repository contains the initial Django project scaffolding for the MoveOn application.
+MoveOn is a student marketplace for buying, selling, giving away, and reusing
+dorm and apartment items. It helps students find affordable secondhand goods
+from other students during move-in and move-out seasons.
+
+The project includes a searchable and filterable listing page, featured bundles,
+saved items, and responsive browser interactions. The application uses Django templates, plain CSS, and
+JavaScript modules. See [Frontend architecture](docs/frontend-architecture.md)
+for implementation details.
 
 ---
 
-## Local Environment Setup
+## Setup
 
-Please follow the steps below to set up your local development environment. We are standardizing on **Python 3.12** across all machines to prevent dependency discrepancies.
+The project uses Python 3.12 across development environments.
 
 ### Prerequisites
 * Git installed and configured
 * Python 3.12 (via Conda or native Python)
-* Node.js and npm
+* Node.js is optional (JavaScript syntax checks and the legacy Tailwind build only).
 
 ---
 
@@ -19,8 +26,8 @@ Please follow the steps below to set up your local development environment. We a
 
 #### 1. Clone the Repository
 ```bash
-git clone https://github.com/AnniecTW/info490-moveon.git
-cd info490-moveon
+git clone https://github.com/AnniecTW/6-moveon.git
+cd 6-moveon
 ```
 
 #### 2. Create and Activate Virtual Environment
@@ -47,28 +54,46 @@ cd info490-moveon
 pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env` and set a local `SECRET_KEY`. Do not commit `.env`.
-
-#### 4. Install and Build Frontend Assets
-The Django templates use Tailwind CSS for styling. Install the frontend dependencies and build the stylesheet:
+#### 4. Configure Environment Variables
+Create a local environment file from the tracked template:
 
 ```bash
-npm install
-npm run build
+# macOS / Linux
+cp .env.example .env
+
+# Windows PowerShell
+Copy-Item .env.example .env
 ```
 
-During frontend development, use the watch mode in a separate terminal:
+Open `.env` and replace the placeholder value with a local Django secret key:
+
+```env
+SECRET_KEY=your-local-secret-key
+```
+
+You can generate a secure local key with:
 
 ```bash
-npm run dev
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-#### 5. Run Migrations, Seed Demo Data, & Start Dev Server
+Copy the generated value after `SECRET_KEY=` in `.env`.
+
+The application loads this value from `.env` when Django starts. Keep `.env`
+local and never commit it. Only `.env.example` should be tracked in Git.
+
+#### 5. Frontend Assets
+No frontend installation or build step is required. The browse page uses the
+CSS and JavaScript files under `static/css/marketplace/` and `static/js/`.
+Tailwind's package and source files are kept for possible future use.
+
+#### 6. Run Migrations, Seed Demo Data, & Start Dev Server
 Create the local database, populate it with demo data, and start the server:
 
 ```bash
 python manage.py migrate
 python manage.py seed_demo_data
+python manage.py seed_featured_bundles
 python manage.py runserver
 ```
 
@@ -78,11 +103,10 @@ The entry points default to `moveon.settings.development`. For production, overr
 DJANGO_SETTINGS_MODULE=moveon.settings.production python manage.py check --deploy
 ```
 
-Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser. If you see the Django rocket launch page, your setup is complete!
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) to browse MoveOn.
+The original `/listings/manual/`, `/listings/render/`, `/listings/cbv-base/`,
+and `/listings/cbv-generic/` routes all share the new layout and filtering behavior.
+The six featured demo listings use local reference images and power the interactive
+bundle scenes. Other listings without image URLs show a photo placeholder.
 
----
-
-### 📌 Development Notes
-* **Never commit local databases or environment secrets:** `data/db.sqlite3` and `.env` are already excluded via `.gitignore`.
-* **Branching Strategy:** Please create feature branches off `main` rather than committing directly to `main`.
-* Git does not track empty directories. The `wireframes` and `branching_strategy` folders therefore contain a README placeholder so the required documentation structure remains visible in the repository before those folders receive their first substantive files.
+Run checks with `python manage.py check` and `python manage.py test`.

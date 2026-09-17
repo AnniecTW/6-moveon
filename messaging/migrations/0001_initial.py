@@ -6,47 +6,111 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('bundles', '0001_initial'),
-        ('marketplace', '0004_listing_pricerecommendation_transaction'),
+        ("bundles", "0001_initial"),
+        ("marketplace", "0004_listing_pricerecommendation_transaction"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Conversation',
+            name="Conversation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('last_message_at', models.DateTimeField(blank=True, null=True)),
-                ('bundle_item', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='conversations', to='bundles.bundleitem')),
-                ('buyer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='conversations_as_buyer', to=settings.AUTH_USER_MODEL)),
-                ('listing', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='conversations', to='marketplace.listing')),
-                ('seller', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='conversations_as_seller', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("last_message_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "bundle_item",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="conversations",
+                        to="bundles.bundleitem",
+                    ),
+                ),
+                (
+                    "buyer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="conversations_as_buyer",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "listing",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="conversations",
+                        to="marketplace.listing",
+                    ),
+                ),
+                (
+                    "seller",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="conversations_as_seller",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-last_message_at', '-created_at'],
+                "ordering": ["-last_message_at", "-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='Message',
+            name="Message",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('body_text', models.TextField()),
-                ('is_read', models.BooleanField(default=False)),
-                ('sent_at', models.DateTimeField(auto_now_add=True)),
-                ('conversation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='messages', to='messaging.conversation')),
-                ('sender', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sent_messages', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("body_text", models.TextField()),
+                ("is_read", models.BooleanField(default=False)),
+                ("sent_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "conversation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="messages",
+                        to="messaging.conversation",
+                    ),
+                ),
+                (
+                    "sender",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sent_messages",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['sent_at'],
+                "ordering": ["sent_at"],
             },
         ),
         migrations.AddConstraint(
-            model_name='conversation',
-            constraint=models.UniqueConstraint(fields=('buyer', 'seller', 'listing'), name='unique_conversation_per_listing'),
+            model_name="conversation",
+            constraint=models.UniqueConstraint(
+                fields=("buyer", "seller", "listing"),
+                name="unique_conversation_per_listing",
+            ),
         ),
     ]

@@ -5,26 +5,33 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('bundles', '0001_initial'),
-        ('marketplace', '0004_listing_pricerecommendation_transaction'),
+        ("bundles", "0001_initial"),
+        ("marketplace", "0004_listing_pricerecommendation_transaction"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bundleitem',
-            name='listing',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='bundle_items', to='marketplace.listing'),
+            model_name="bundleitem",
+            name="listing",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="bundle_items",
+                to="marketplace.listing",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='bundlecategory',
-            constraint=models.UniqueConstraint(fields=('bundle', 'item_type'), name='unique_item_type_per_bundle'),
+            model_name="bundlecategory",
+            constraint=models.UniqueConstraint(
+                fields=("bundle", "item_type"), name="unique_item_type_per_bundle"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='bundleitem',
-            constraint=models.UniqueConstraint(fields=('bundle', 'listing'), name='unique_listing_per_bundle'),
+            model_name="bundleitem",
+            constraint=models.UniqueConstraint(
+                fields=("bundle", "listing"), name="unique_listing_per_bundle"
+            ),
         ),
     ]
