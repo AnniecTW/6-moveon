@@ -1,20 +1,33 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import ItemCategory, ItemType, Listing, PriceRecommendation, Transaction, User
+from .models import (
+    ItemCategory,
+    ItemType,
+    Listing,
+    PriceRecommendation,
+    Transaction,
+    User,
+)
 
 
 @admin.register(User)
 class MoveOnUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
-        ("MoveOn profile", {"fields": ("email_verified", "display_name", "account_status")}),
+        (
+            "MoveOn profile",
+            {"fields": ("email_verified", "display_name", "account_status")},
+        ),
     )
     # UserAdmin's own add_fieldsets is a *separate* minimal form used only on the
     # "+ Add user" creation page (username/password only). Without extending it too,
     # our required custom fields (email, display_name) would be skippable on creation
     # even though they're required everywhere else.
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ("MoveOn profile", {"fields": ("email", "display_name", "email_verified", "account_status")}),
+        (
+            "MoveOn profile",
+            {"fields": ("email", "display_name", "email_verified", "account_status")},
+        ),
     )
     list_display = ("username", "display_name", "email", "account_status", "is_staff")
     list_filter = ("account_status", "is_staff", "is_superuser", "is_active")
@@ -35,18 +48,39 @@ class ItemTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Listing)
 class ListingAdmin(admin.ModelAdmin):
-    list_display = ("title", "seller", "item_type", "listing_price", "status", "bundle_eligible", "created_at")
+    list_display = (
+        "title",
+        "seller",
+        "item_type",
+        "listing_price",
+        "status",
+        "bundle_eligible",
+        "created_at",
+    )
     list_filter = ("status", "condition", "bundle_eligible", "fulfillment_option")
     search_fields = ("title", "description")
 
 
 @admin.register(PriceRecommendation)
 class PriceRecommendationAdmin(admin.ModelAdmin):
-    list_display = ("listing", "previous_price", "recommended_price", "status", "generated_at")
+    list_display = (
+        "listing",
+        "previous_price",
+        "recommended_price",
+        "status",
+        "generated_at",
+    )
     list_filter = ("status",)
 
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ("listing", "buyer", "seller", "agreed_price", "status", "created_at")
+    list_display = (
+        "listing",
+        "buyer",
+        "seller",
+        "agreed_price",
+        "status",
+        "created_at",
+    )
     list_filter = ("status",)

@@ -13,6 +13,7 @@ class ConversationAdmin(admin.ModelAdmin):
             form.base_fields["listing"].required = obj is None
         return form
 
+
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     list_display = ("conversation", "sender", "body_text", "is_read", "sent_at")

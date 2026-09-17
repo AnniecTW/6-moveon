@@ -1,0 +1,394 @@
+/* Same font families as the reference. System fonts remain usable offline. */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+:root {
+  --serif: "Cormorant Garamond", Georgia, serif;
+  --sans: "Inter", system-ui, sans-serif;
+}
+body {
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+.bundle-promo h1 {
+  font-size: clamp(42px, 4.5vw, 62px);
+  font-weight: 500;
+  line-height: 1.02;
+}
+.card-content h3 {
+  font-family: var(--serif);
+  font-size: 23px;
+  line-height: 1.15;
+}
+.prices {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.prices strong {
+  font-size: 25px;
+  font-weight: 600;
+}
+.discount-tag {
+  display: inline-block;
+  border-radius: 30px;
+  padding: 3px 8px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  background: #efe7d7;
+  color: #836a43;
+  white-space: nowrap;
+}
+.header-inner {
+  gap: 24px;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.header-actions .icon-button {
+  border: 0;
+  background: transparent;
+}
+.header-actions .icon-button:hover {
+  background: var(--soft);
+}
+.header-actions svg,
+.search svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sell-button {
+  white-space: nowrap;
+  margin-right: 8px;
+  padding-inline: 18px;
+}
+.shopping-bag {
+  position: relative;
+}
+.shopping-bag [data-saved-count] {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  min-width: 17px;
+  padding-inline: 4px;
+  font-size: 10px;
+}
+.header-dialog {
+  border: 1px solid var(--border);
+  background: var(--canvas);
+  color: var(--ink);
+  border-radius: 22px;
+  padding: 32px;
+  max-width: min(420px, calc(100% - 32px));
+}
+.header-dialog::backdrop {
+  background: #302c2866;
+  backdrop-filter: blur(3px);
+}
+.header-dialog h2 {
+  padding-right: 25px;
+}
+.header-dialog p {
+  margin-top: 16px;
+  color: var(--muted);
+}
+.dialog-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: 0;
+}
+.bundle-slide {
+  aspect-ratio: 16/11;
+  isolation: isolate;
+}
+.bundle-scene {
+  position: absolute;
+  width: 100%;
+  aspect-ratio: 1;
+  bottom: 0;
+  left: 0;
+}
+.bundle-scene > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.slide-title {
+  max-width: 48%;
+  font-size: 10px;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+}
+.bundle-summary {
+  z-index: 2;
+  width: 215px;
+  top: 14px;
+  right: 14px;
+  bottom: auto;
+  padding: 15px;
+  border-radius: 16px;
+  background: #fffefac9;
+}
+.bundle-summary dl {
+  margin: 0;
+  font-size: 12px;
+}
+.bundle-summary dl > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.bundle-summary dl > div:last-child {
+  margin: 0;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+}
+.bundle-summary dt {
+  color: var(--muted);
+}
+.bundle-summary dd {
+  margin: 0;
+  font-weight: 500;
+}
+.bundle-summary .bundle-total {
+  font-family: var(--sans);
+  font-size: 24px;
+  font-weight: 600;
+}
+/* Leave hotspot wrappers outside a stacking context so every price can sit
+   above all contours, the scene title, and the summary overlay. */
+.item-hotspot {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  z-index: auto;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  pointer-events: none;
+}
+.item-hotspot:focus-visible {
+  outline: none;
+}
+.item-contour {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.contour-shadow,
+.contour-shape {
+  stroke-dasharray: 0.1 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.contour-shadow {
+  fill: none;
+  stroke: #55442a80;
+  stroke-width: 2px;
+  pointer-events: none;
+}
+.contour-shape {
+  fill: #fff3c108;
+  stroke: #fff0c9;
+  stroke-width: 1.1px;
+  pointer-events: visiblePainted;
+  transition:
+    fill 0.2s,
+    stroke-width 0.2s;
+}
+.item-hotspot:hover .contour-shape,
+.item-hotspot:focus-visible .contour-shape,
+.item-hotspot[aria-expanded="true"] .contour-shape {
+  fill: #e3c46c30;
+  stroke: #fff7df;
+  stroke-width: 1.6px;
+}
+.item-hotspot:focus-visible .contour-shadow {
+  stroke: #806032;
+  stroke-width: 3px;
+}
+.hotspot-price {
+  position: absolute;
+  z-index: 4;
+  bottom: var(--label-bottom, 10%);
+  left: var(--label-x, 50%);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  pointer-events: auto;
+  white-space: nowrap;
+  text-shadow:
+    0 0 6px #fffefa,
+    0 0 3px #fffefa,
+    0 1px 2px #fffefa;
+}
+.hotspot-price del {
+  color: #a34236;
+  font-family: var(--sans);
+  font-size: clamp(16px, 1.8vw, 21px);
+  font-weight: 500;
+}
+.hotspot-price strong {
+  color: #333127;
+  font-family: var(--sans);
+  font-size: clamp(24px, 2.6vw, 32px);
+  font-weight: 600;
+}
+.scene-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  background: #fffefacd;
+  color: #615b50;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  pointer-events: none;
+}
+.listing-preview {
+  position: fixed;
+  width: 260px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  z-index: 50;
+  filter: drop-shadow(0 10px 25px #352c2833);
+}
+.preview-close {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  right: 7px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  background: var(--surface);
+  font-size: 21px;
+}
+.preview-card:hover {
+  transform: none;
+}
+.preview-card .card-photo {
+  aspect-ratio: 16/9;
+}
+.preview-card .card-content {
+  padding: 13px;
+}
+.preview-card .button {
+  display: flex;
+  margin-top: 12px;
+  padding: 7px 12px;
+  min-height: 36px;
+  font-size: 12px;
+}
+.preview-card .prices {
+  margin-block: 8px;
+}
+.listing-card {
+  scroll-margin-top: 170px;
+}
+.listing-card:target {
+  outline: 3px solid var(--gold);
+  outline-offset: 5px;
+}
+@media (max-width: 1050px) {
+  .header-inner {
+    gap: 12px;
+  }
+  .sell-button {
+    padding-inline: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .header-actions {
+    margin-left: auto;
+  }
+  .header-actions .icon-button {
+    width: 34px;
+    min-height: 36px;
+  }
+  .sell-button {
+    min-height: 36px;
+    padding: 8px;
+    margin-right: 0;
+    font-size: 11px;
+  }
+  .sell-button svg {
+    display: none;
+  }
+  .logo {
+    flex-basis: 112px;
+    width: 112px;
+  }
+  .logo img {
+    width: 112px;
+  }
+  .bundle-summary {
+    width: 175px;
+    padding: 10px;
+  }
+  .bundle-summary dl {
+    font-size: 10px;
+  }
+  .bundle-summary dl > div {
+    gap: 5px;
+    margin-bottom: 4px;
+  }
+  .bundle-summary .bundle-total {
+    font-size: 21px;
+  }
+}
+@media (max-width: 430px) {
+  .header-inner {
+    gap: 6px;
+  }
+  .header-actions {
+    gap: 2px;
+  }
+  .bundle-slide {
+    aspect-ratio: 1/1;
+  }
+  .slide-title {
+    top: 10px;
+    left: 10px;
+    max-width: 44%;
+  }
+  .bundle-summary {
+    top: 10px;
+    right: 10px;
+    width: 158px;
+  }
+  .bundle-summary .discount-tag {
+    font-size: 9px;
+    padding-inline: 5px;
+  }
+  .hotspot-price strong {
+    font-size: 28px;
+  }
+  .scene-hint {
+    font-size: 9px;
+  }
+}

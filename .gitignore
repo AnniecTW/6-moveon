@@ -59,7 +59,7 @@ cover/
 *.log
 local_settings.py
 *.sqlite3
-db.sqlite3
+data/db.sqlite3
 db.sqlite3-journal
 
 # Flask stuff:
@@ -220,3 +220,5 @@ __marimo__/
 
 
 .idea/
+# Node / frontend build
+node_modules/

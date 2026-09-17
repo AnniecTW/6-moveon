@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="MoveOn — curated secondhand finds for your next move."
+    />
+    <title>{% block title %}MoveOn{% endblock %}</title>
+    <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml" />
+    <link rel="stylesheet" href="{% static 'css/marketplace.css' %}" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to listings</a>
+    {% include "marketplace/partials/_header.html" %}
+    <main id="main-content" class="page">{% block listing_content %}{% endblock %}</main>
+    <footer class="site-footer">
+      <div class="page">
+        <p>MoveOn — a fresh start at a fair price.</p>
+        <p>Curated secondhand furniture, built for move-in season.</p>
+      </div>
+    </footer>
+    {% block extra_scripts %}{% endblock %}
+  </body>
+</html>

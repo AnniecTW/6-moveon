@@ -1,0 +1,62 @@
+<section class="filter-panel" id="filters" aria-labelledby="filter-heading">
+  <div class="filter-header">
+    <div>
+      <p class="eyebrow">Refine your curated finds</p>
+      <h2 id="filter-heading">Filter &amp; Sort</h2>
+    </div>
+    <button
+      class="icon-button"
+      data-close-filters
+      type="button"
+      aria-label="Close filters"
+      hidden
+    >
+      ×
+    </button>
+  </div>
+  <form method="get" data-filter-form id="filter-form">
+    <input type="hidden" name="q" value="{{ request.GET.q }}" />
+    <div data-form-errors role="alert">{{ filter_form.errors }}</div>
+    <details open>
+      <summary>Category</summary>
+      {{ filter_form.category }}
+    </details>
+    <details>
+      <summary>Item type</summary>
+      {% for value, label in filter_form.fields.item_type.choices %}<label class="check-row" data-item-type="{{ value }}"
+        ><input
+          type="checkbox"
+          name="item_type"
+          value="{{ value }}"
+          {% if value in filter_form.item_type.value %}checked{% endif %}
+        />{{ label }}</label
+      >{% endfor %}
+    </details>
+    <details open>
+      <summary>Price range</summary>
+      <div class="price-inputs">
+        <label>Minimum ($){{ filter_form.min_price }}</label
+        ><label>Maximum ($){{ filter_form.max_price }}</label>
+      </div>
+    </details>
+    <details>
+      <summary>Condition</summary>
+      {{ filter_form.condition }}
+    </details>
+    <details open>
+      <summary>Bundle eligibility</summary>
+      <label class="check-row">{{ filter_form.bundle }} Bundle eligible only</label>
+    </details>
+    <details>
+      <summary>Delivery / meetup</summary>
+      {{ filter_form.fulfillment }}
+    </details>
+    <div class="filter-actions">
+      <a class="button" href="{{ request.path }}" data-reset>Clear all</a
+      ><button class="button primary" type="submit">View listings</button>
+    </div>
+  </form>
+  <script type="application/json" id="item-type-categories">
+    [{% for item in filter_form.item_types %}{"id":"{{ item.pk }}","category":"{{ item.category_id }}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+  </script>
+</section>

@@ -38,8 +38,12 @@ class Bundle(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bundles"
     )
     space = models.CharField(max_length=20, choices=Space.choices)
-    selected_tier = models.CharField(max_length=20, choices=Tier.choices, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    selected_tier = models.CharField(
+        max_length=20, choices=Tier.choices, null=True, blank=True
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -58,8 +62,12 @@ class BundleCategory(models.Model):
     listings eventually fill them.
     """
 
-    bundle = models.ForeignKey(Bundle, on_delete=models.CASCADE, related_name="requested_categories")
-    item_type = models.ForeignKey(ItemType, on_delete=models.PROTECT, related_name="bundle_categories")
+    bundle = models.ForeignKey(
+        Bundle, on_delete=models.CASCADE, related_name="requested_categories"
+    )
+    item_type = models.ForeignKey(
+        ItemType, on_delete=models.PROTECT, related_name="bundle_categories"
+    )
 
     class Meta:
         ordering = ["bundle", "item_type"]
@@ -87,27 +95,52 @@ class BundleItem(ValidatedSaveModel):
         DECLINED = "DECLINED", "Declined"
         REPLACED = "REPLACED", "Replaced"
 
-    bundle = models.ForeignKey(Bundle, on_delete=models.CASCADE, related_name="bundle_items")
-    listing = models.ForeignKey(Listing, on_delete=models.PROTECT, related_name="bundle_items")
+    bundle = models.ForeignKey(
+        Bundle, on_delete=models.CASCADE, related_name="bundle_items"
+    )
+    listing = models.ForeignKey(
+        Listing, on_delete=models.PROTECT, related_name="bundle_items"
+    )
     listing_price_snapshot = models.DecimalField(max_digits=8, decimal_places=2)
-    proposed_bundle_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    final_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    item_status = models.CharField(max_length=20, choices=ItemStatus.choices, default=ItemStatus.SELECTED)
+    proposed_bundle_price = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    final_price = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    item_status = models.CharField(
+        max_length=20, choices=ItemStatus.choices, default=ItemStatus.SELECTED
+    )
     responded_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["bundle", "listing"]
         constraints = [
-            models.UniqueConstraint(fields=["bundle", "listing"], name="unique_listing_per_bundle")
+            models.UniqueConstraint(
+                fields=["bundle", "listing"], name="unique_listing_per_bundle"
+            )
         ]
 
     def clean(self):
         super().clean()
         if not self._state.adding and self.pk:
             database = database_for(self)
-            previous_listing = type(self).objects.using(database).filter(pk=self.pk).values_list("listing_id", flat=True).first()
-            if previous_listing != self.listing_id and self.conversations.using(database).exists():
-                raise ValidationError({"listing": "The listing cannot change while this bundle item is referenced by a conversation."})
+            previous_listing = (
+                type(self)
+                .objects.using(database)
+                .filter(pk=self.pk)
+                .values_list("listing_id", flat=True)
+                .first()
+            )
+            if (
+                previous_listing != self.listing_id
+                and self.conversations.using(database).exists()
+            ):
+                raise ValidationError(
+                    {
+                        "listing": "The listing cannot change while this bundle item is referenced by a conversation."
+                    }
+                )
 
     def __str__(self):
         return f"{self.bundle}: {self.listing.title}"

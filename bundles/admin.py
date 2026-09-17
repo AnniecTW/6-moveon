@@ -16,5 +16,11 @@ class BundleCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(BundleItem)
 class BundleItemAdmin(admin.ModelAdmin):
-    list_display = ("bundle", "listing", "item_status", "listing_price_snapshot", "final_price")
+    list_display = (
+        "bundle",
+        "listing",
+        "item_status",
+        "listing_price_snapshot",
+        "final_price",
+    )
     list_filter = ("item_status",)

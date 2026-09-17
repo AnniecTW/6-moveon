@@ -9,7 +9,7 @@
 
 ## Environment
 
-Development uses a dedicated conda environment, `moveon-env` (Python 3.12), with dependencies installed exactly from `requirements.txt` (Django 6.1.1). This matches the README's documented setup instructions exactly, so anyone following the README ends up with the same environment used to build and test this submission.
+Development uses a dedicated conda environment, `moveon-env` (Python 3.12), with dependencies installed exactly from `../../../requirements.txt` (Django 6.1.1). This matches the README's documented setup instructions exactly, so anyone following the README ends up with the same environment used to build and test this submission.
 
 ## Model Scope
 
@@ -70,7 +70,7 @@ Username `admin`, password `uiuc12345` (course-mandated password). The original 
 
 ## Seed Data
 
-Realistic demo data is created via `python manage.py seed_demo_data` (a Django management command, `marketplace/management/commands/seed_demo_data.py`), rather than only manual Admin entry, so it's reproducible and reviewable in source control. It creates:
+Realistic demo data is created via `python manage.py seed_demo_data` (a Django management command, `../../../marketplace/management/commands/seed_demo_data.py`), rather than only manual Admin entry, so it's reproducible and reviewable in source control. It creates:
 
 - 4 student users (Alex, Jamie, Sam, Maya) plus the `admin` superuser.
 - 4 item categories and 10 item types.
@@ -92,7 +92,7 @@ A teammate audit flagged a few differences between this implementation and the t
 - **Login uses `username`, not `email`** — the spec explicitly allows this: "it is acceptable for `username` to remain Django's standard login/admin identifier while `email` is unique and represents the university email."
 - **`image_url` / `meetup_location` use `blank=True` (empty string) rather than `null=True`** — standard Django convention for optional text fields (avoids two different "no value" states, `NULL` vs. `''`, for the same field); not a data-loss or validation gap.
 
-If the team's canonical ERD doc is later revised to remove these allowances, these five points are exactly what would need to change in `marketplace/models.py` / `bundles/models.py`.
+If the team's canonical ERD doc is later revised to remove these allowances, these five points are exactly what would need to change in `../../../marketplace/models.py` / `bundles/models.py`.
 
 ## Participant Integrity Follow-Up
 

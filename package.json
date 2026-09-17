@@ -1,0 +1,14 @@
+{
+  "name": "moveon-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tailwind CSS build pipeline for the MoveOn Django templates.",
+  "scripts": {
+    "dev": "tailwindcss -i ./static/src/input.css -o ./static/css/app.css --watch",
+    "build": "tailwindcss -i ./static/src/input.css -o ./static/css/app.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.14",
+    "tailwindcss": "^4.1.14"
+  }
+}

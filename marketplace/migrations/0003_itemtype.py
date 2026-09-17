@@ -5,22 +5,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('marketplace', '0002_itemcategory'),
+        ("marketplace", "0002_itemcategory"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ItemType',
+            name="ItemType",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('item_type_name', models.CharField(max_length=100)),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='item_types', to='marketplace.itemcategory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("item_type_name", models.CharField(max_length=100)),
+                (
+                    "category",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="item_types",
+                        to="marketplace.itemcategory",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['category', 'item_type_name'],
-                'constraints': [models.UniqueConstraint(fields=('category', 'item_type_name'), name='unique_item_type_per_category')],
+                "ordering": ["category", "item_type_name"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("category", "item_type_name"),
+                        name="unique_item_type_per_category",
+                    )
+                ],
             },
         ),
     ]

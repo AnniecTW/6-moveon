@@ -1,0 +1,162 @@
+{% load static l10n %}
+<section class="hero" aria-label="Move-in bundles">
+  <div class="bundle-promo">
+    <p class="eyebrow">Move-In</p>
+    <h1>Bundle Builder</h1>
+    <p class="tagline">Fair prices. Curated finds. Your move.</p>
+    <ol class="steps">
+      <li>
+        <div>
+          <strong>Choose a space</strong
+          ><span>Pick the room you're furnishing.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Select at least three items</strong
+          ><span>Mix and match curated finds.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>See your bundle price</strong
+          ><span>Save more the more you bundle.</span>
+        </div>
+      </li>
+    </ol>
+    <a class="button primary" href="?bundle=on#listings-heading"
+      >Try it! <span aria-hidden="true">→</span></a
+    >
+  </div>
+  <section
+    class="carousel"
+    aria-label="Featured bundles"
+    aria-roledescription="carousel"
+  >
+    <div class="carousel-heading">
+      <h2>Featured Bundles</h2>
+      <div class="carousel-controls" hidden>
+        <button class="icon-button" data-previous aria-label="Previous bundle">
+          ←</button
+        ><button class="icon-button" data-next aria-label="Next bundle">
+          →</button
+        ><button class="icon-button" data-pause aria-label="Pause slideshow">
+          Ⅱ
+        </button>
+      </div>
+    </div>
+    <div class="slides">
+      {% for bundle in featured_bundles %}
+      <article
+        class="bundle-slide"
+        aria-label="{{ forloop.counter }} of {{ featured_bundles|length }}: {{ bundle.title }}"
+        aria-roledescription="slide"
+      >
+        <div class="bundle-scene">
+          <img
+            src="{% static 'img/reference/' %}{{ bundle.image }}"
+            alt="{{ bundle.alt }}"
+            width="1024"
+            height="1024"
+          />
+          {% for spot in bundle.items %}
+          <button
+            class="item-hotspot"
+            type="button"
+            data-hotspot
+            style="
+              --x: {{ spot.x|unlocalize }}%;
+              --y: {{ spot.y|unlocalize }}%;
+              --w: {{ spot.w|unlocalize }}%;
+              --h: {{ spot.h|unlocalize }}%;
+              --label-x: {{ spot.label_x }}%;
+              --label-bottom: {{ spot.label_bottom }}%;
+            "
+            aria-label="Preview {{ spot.listing.title }}, now ${{ spot.listing.listing_price|floatformat:2 }}"
+            aria-expanded="false"
+            aria-controls="preview-{{ bundle.slug }}-{{ spot.listing.pk|unlocalize }}"
+          >
+            <svg
+              class="item-contour"
+              viewBox="{{ spot.view_box }}"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                class="contour-shadow"
+                d="{{ spot.outline }}"
+                fill-rule="evenodd"
+                vector-effect="non-scaling-stroke"
+              />
+              <path
+                class="contour-shape"
+                d="{{ spot.outline }}"
+                fill-rule="evenodd"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+            <span class="hotspot-price">
+              {% if spot.listing.retail_price %}<del>${{ spot.listing.retail_price|floatformat:"-2" }}</del>{% endif %}
+              <strong>${{ spot.listing.listing_price|floatformat:"-2" }}</strong>
+            </span>
+          </button>
+          <div
+            class="listing-preview"
+            id="preview-{{ bundle.slug }}-{{ spot.listing.pk|unlocalize }}"
+            hidden
+          >
+            <button
+              class="preview-close"
+              type="button"
+              data-close-preview
+              aria-label="Close {{ spot.listing.title }} preview"
+            >
+              ×
+            </button>
+            {% include "marketplace/partials/_hover_card.html" with item=spot.listing %}
+          </div>
+          {% endfor %}
+        </div>
+        <span class="slide-title">{{ bundle.title }}</span>
+        <div class="bundle-summary" aria-label="{{ bundle.title }} pricing">
+          <dl>
+            <div>
+              <dt>Bundle price</dt>
+              <dd class="bundle-total">${{ bundle.total|floatformat:2 }}</dd>
+            </div>
+            <div>
+              <dt>You save</dt>
+              <dd>
+                {% if bundle.saved != None %}${{ bundle.saved|floatformat:2 }}{% else %}—{% endif %}
+              </dd>
+            </div>
+            <div>
+              <dt>Overall discount</dt>
+              <dd>
+                {% if bundle.discount %}<span class="discount-tag"
+                  >{{ bundle.discount|floatformat:1 }}% off</span
+                >{% else %}—{% endif %}
+              </dd>
+            </div>
+          </dl>
+        </div>
+        <span class="scene-hint">Hover or tap an outlined item</span>
+      </article>
+      {% empty %}
+      <div class="empty-state">
+        <h3>More bundles on the way</h3>
+        <p>Explore available items below.</p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="carousel-dots" hidden>
+      {% for bundle in featured_bundles %}<button
+        data-slide="{{ forloop.counter0 }}"
+        aria-label="{{ bundle.title }}"
+        aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+      ></button
+      >{% endfor %}
+    </div>
+  </section>
+</section>

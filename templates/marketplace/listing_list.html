@@ -1,0 +1,49 @@
+{% extends "marketplace/base.html" %} {% load static %} {% block title %}Browse Listings |
+MoveOn{% endblock %} {% block listing_content %} {% include "marketplace/partials/_hero.html" %}
+<div data-marketplace>
+  <div class="toolbar">
+    <div>
+      <p class="eyebrow">A fresh start, for less</p>
+      <h2 id="listings-heading">Browse Listings</h2>
+    </div>
+    <div class="toolbar-actions">
+      <button class="button" type="button" data-open-filters hidden>
+        ☷ Filters
+      </button>
+      <label class="sort-label" for="id_sort">Sort by {{ filter_form.sort }}</label>
+      <button class="button no-js-sort" type="submit" form="filter-form">
+        Apply sort
+      </button>
+      <div
+        class="view-controls"
+        role="group"
+        aria-label="Listing layout"
+        hidden
+      >
+        <button
+          class="icon-button"
+          data-view="grid"
+          aria-label="Grid view"
+          aria-pressed="true"
+        >
+          ▦</button
+        ><button
+          class="icon-button"
+          data-view="list"
+          aria-label="List view"
+          aria-pressed="false"
+        >
+          ☰
+        </button>
+      </div>
+    </div>
+  </div>
+  {% include "marketplace/partials/_filters.html" %}
+  <p data-browse-status class="muted" role="status" aria-live="polite"></p>
+  <section data-results aria-labelledby="listings-heading">
+    {% include "marketplace/partials/_results.html" %}
+  </section>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script type="module" src="{% static 'js/marketplace.js' %}"></script>
+{% endblock %}
