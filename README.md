@@ -54,14 +54,40 @@ cd 6-moveon
 pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env` and set a local `SECRET_KEY`. Do not commit `.env`.
+#### 4. Configure Environment Variables
+Create a local environment file from the tracked template:
 
-#### 4. Frontend Assets
+```bash
+# macOS / Linux
+cp .env.example .env
+
+# Windows PowerShell
+Copy-Item .env.example .env
+```
+
+Open `.env` and replace the placeholder value with a local Django secret key:
+
+```env
+SECRET_KEY=your-local-secret-key
+```
+
+You can generate a secure local key with:
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+Copy the generated value after `SECRET_KEY=` in `.env`.
+
+The application loads this value from `.env` when Django starts. Keep `.env`
+local and never commit it. Only `.env.example` should be tracked in Git.
+
+#### 5. Frontend Assets
 No frontend installation or build step is required. The browse page uses the
 CSS and JavaScript files under `static/css/marketplace/` and `static/js/`.
 Tailwind's package and source files are kept for possible future use.
 
-#### 5. Run Migrations, Seed Demo Data, & Start Dev Server
+#### 6. Run Migrations, Seed Demo Data, & Start Dev Server
 Create the local database, populate it with demo data, and start the server:
 
 ```bash
