@@ -6,7 +6,7 @@ Week 1:
 
 Week 2:
 - Added split development and production settings with environment-based secret management.
-- Added reusable marketplace templates, Tailwind frontend assets, and an empty listing state.
-- Added named listing routes and implemented four Listing views: manual HttpResponse, render FBV, base CBV, and generic ListView.
-- Updated the README and branching strategy documentation with setup and workflow instructions.
+- Added reusable marketplace templates, Tailwind frontend assets, and an empty listing state. (See templates\marketplace directory).
+- Added named listing routes and implemented four Listing views: manual HttpResponse, render FBV, base CBV, and generic ListView. (See marketplace\views for views code and docs\notes\views_screenshots for screenshots).
+- Updated the README and branching strategy documentation with setup and workflow instructions. (See docs\branching_strategy).
 - For Section 3, Part B, the feature template includes `templates/marketplace/partials/_results.html`, where `{% for %}` renders the listings and `{% empty %}` displays a meaningful empty-state message when no listings are available.
