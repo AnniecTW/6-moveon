@@ -9,9 +9,12 @@ class BrowseTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.seller = User.objects.create_user(
-            username="seller", email="seller@example.com", display_name="Seller")
+            username="seller", email="seller@example.com", display_name="Seller"
+        )
         cls.category = ItemCategory.objects.create(category_name="Furniture")
-        cls.item_type = ItemType.objects.create(category=cls.category, item_type_name="Desk")
+        cls.item_type = ItemType.objects.create(
+            category=cls.category, item_type_name="Desk"
+        )
         for title, price, status, delivery in [
             ("Oak desk", 50, "ACTIVE", "DELIVERY"),
             ("Small desk", 20, "ACTIVE", "PICKUP"),
@@ -19,37 +22,67 @@ class BrowseTests(TestCase):
             ("Sold desk", 5, "SOLD", "DELIVERY"),
         ]:
             Listing.objects.create(
-                seller=cls.seller, item_type=cls.item_type, title=title,
-                listing_price=price, condition="GOOD", status=status,
-                fulfillment_option=delivery, bundle_eligible=price == 50)
+                seller=cls.seller,
+                item_type=cls.item_type,
+                title=title,
+                listing_price=price,
+                condition="GOOD",
+                status=status,
+                fulfillment_option=delivery,
+                bundle_eligible=price == 50,
+            )
 
     def test_all_view_styles_render_same_active_listings(self):
-        for name in ("home", "listing_manual", "listing_render", "listing_cbv_base", "listing_cbv_generic"):
+        for name in (
+            "home",
+            "listing_manual",
+            "listing_render",
+            "listing_cbv_base",
+            "listing_cbv_generic",
+        ):
             with self.subTest(name=name):
                 response = self.client.get(reverse(name))
                 self.assertEqual(response.status_code, 200)
-                self.assertEqual({x.title for x in response.context["listings"]}, {"Oak desk", "Small desk"})
+                self.assertEqual(
+                    {x.title for x in response.context["listings"]},
+                    {"Oak desk", "Small desk"},
+                )
                 self.assertContains(response, "css/marketplace.css")
                 self.assertContains(response, 'type="module"')
 
     def test_search_price_category_and_bundle(self):
-        response = self.client.get(reverse("home"), {
-            "q": "oak", "min_price": "30", "max_price": "60",
-            "category": str(self.category.pk), "bundle": "on"})
+        response = self.client.get(
+            reverse("home"),
+            {
+                "q": "oak",
+                "min_price": "30",
+                "max_price": "60",
+                "category": str(self.category.pk),
+                "bundle": "on",
+            },
+        )
         self.assertEqual([x.title for x in response.context["listings"]], ["Oak desk"])
         self.assertEqual(len(response.context["filter_chips"]), 5)
 
     def test_pickup_filter(self):
-        response = self.client.get(reverse("home"), {"fulfillment": "PICKUP", "sort": "price-asc"})
-        self.assertEqual([x.title for x in response.context["listings"]], ["Small desk"])
+        response = self.client.get(
+            reverse("home"), {"fulfillment": "PICKUP", "sort": "price-asc"}
+        )
+        self.assertEqual(
+            [x.title for x in response.context["listings"]], ["Small desk"]
+        )
 
     def test_delivery_does_not_include_pickup_only(self):
         response = self.client.get(reverse("home"), {"fulfillment": "DELIVERY"})
         self.assertEqual([x.title for x in response.context["listings"]], ["Oak desk"])
 
     def test_invalid_filters_return_errors_not_server_errors(self):
-        for params in ({"min_price": "oops"}, {"min_price": "80", "max_price": "20"},
-                       {"sort": "invalid"}, {"category": "999999"}):
+        for params in (
+            {"min_price": "oops"},
+            {"min_price": "80", "max_price": "20"},
+            {"sort": "invalid"},
+            {"category": "999999"},
+        ):
             with self.subTest(params=params):
                 response = self.client.get(reverse("home"), params)
                 self.assertEqual(response.status_code, 200)
@@ -57,7 +90,9 @@ class BrowseTests(TestCase):
                 self.assertEqual(len(response.context["listings"]), 0)
 
     def test_chip_removal_preserves_other_parameters(self):
-        response = self.client.get(reverse("home"), {"q": "desk", "condition": "GOOD", "sort": "price-desc"})
+        response = self.client.get(
+            reverse("home"), {"q": "desk", "condition": "GOOD", "sort": "price-desc"}
+        )
         chip = next(c for c in response.context["filter_chips"] if c["label"] == "desk")
         self.assertNotIn("q=", chip["url"])
         self.assertIn("condition=GOOD", chip["url"])
@@ -70,8 +105,14 @@ class BrowseTests(TestCase):
 
     def test_free_listing_and_query_efficiency(self):
         Listing.objects.create(
-            seller=self.seller, item_type=self.item_type, title="Free desk",
-            listing_price=0, condition="FAIR", status="ACTIVE", fulfillment_option="PICKUP")
+            seller=self.seller,
+            item_type=self.item_type,
+            title="Free desk",
+            listing_price=0,
+            condition="FAIR",
+            status="ACTIVE",
+            fulfillment_option="PICKUP",
+        )
         with self.assertNumQueries(4):
             response = self.client.get(reverse("home"), {"max_price": "0"})
         self.assertContains(response, "Free desk")

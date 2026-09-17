@@ -22,7 +22,8 @@ CONTOURS = {
             "M 834 740 L 893 750 L 911 776 "
             "Q 869 800 824 788 Z"
         ),
-        "label_x": 52, "label_bottom": 35,
+        "label_x": 52,
+        "label_bottom": 35,
     },
     "coffee-table.png": {
         "bounds": (413, 705, 188, 168),
@@ -32,7 +33,8 @@ CONTOURS = {
             "M 434 757 L 581 757 L 583 806 L 433 806 Z "
             "M 432 818 L 584 818 L 587 853 L 431 853 Z"
         ),
-        "label_x": 50, "label_bottom": 64,
+        "label_x": 50,
+        "label_bottom": 64,
     },
     "gray-pillow.png": {
         "bounds": (168, 592, 117, 96),
@@ -41,7 +43,8 @@ CONTOURS = {
             "Q 258 625 276 659 Q 280 665 271 669 "
             "Q 236 678 200 682 Q 186 650 175 604 Z"
         ),
-        "label_x": 50, "label_bottom": 24,
+        "label_x": 50,
+        "label_bottom": 24,
     },
     "oak-desk.png": {
         "bounds": (256, 588, 405, 302),
@@ -52,7 +55,8 @@ CONTOURS = {
             "L 283 879 L 265 883 L 267 622 Z "
             "M 641 649 L 653 649 L 653 810 L 641 814 Z"
         ),
-        "label_x": 19, "label_bottom": 76,
+        "label_x": 19,
+        "label_bottom": 76,
     },
     "desk-lamp.png": {
         "bounds": (305, 414, 134, 191),
@@ -65,7 +69,8 @@ CONTOURS = {
             "Q 312 589 328 588 L 315 486 "
             "Q 311 478 319 475 L 395 438 Z"
         ),
-        "label_x": 60, "label_bottom": 17,
+        "label_x": 60,
+        "label_bottom": 17,
     },
     "bookshelf.png": {
         "bounds": (637, 570, 258, 287),
@@ -75,7 +80,8 @@ CONTOURS = {
             "L 664 831 L 663 850 L 651 850 "
             "L 650 830 L 643 825 Z"
         ),
-        "label_x": 50, "label_bottom": 22,
+        "label_x": 50,
+        "label_bottom": 22,
     },
 }
 
@@ -84,9 +90,12 @@ def contour_geometry(asset):
     contour = CONTOURS[asset]
     x, y, width, height = contour["bounds"]
     return {
-        "x": x / 1024 * 100, "y": y / 1024 * 100,
-        "w": width / 1024 * 100, "h": height / 1024 * 100,
+        "x": x / 1024 * 100,
+        "y": y / 1024 * 100,
+        "w": width / 1024 * 100,
+        "h": height / 1024 * 100,
         "view_box": f"{x} {y} {width} {height}",
         "outline": contour["path"],
-        "label_x": contour["label_x"], "label_bottom": contour["label_bottom"],
+        "label_x": contour["label_x"],
+        "label_bottom": contour["label_bottom"],
     }

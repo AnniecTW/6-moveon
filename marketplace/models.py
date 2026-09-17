@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 
 from .validation import ValidatedSaveModel, database_for, participant_errors
 
+
 class User(AbstractUser):
     """
     Represents one unified student account on MoveOn.
@@ -71,7 +72,8 @@ class ItemType(models.Model):
         ordering = ["category", "item_type_name"]
         constraints = [
             models.UniqueConstraint(
-                fields=["category", "item_type_name"], name="unique_item_type_per_category"
+                fields=["category", "item_type_name"],
+                name="unique_item_type_per_category",
             )
         ]
 
@@ -115,16 +117,28 @@ class Listing(ValidatedSaveModel):
     image_url = models.URLField(blank=True)
     condition = models.CharField(max_length=20, choices=Condition.choices)
     listing_price = models.DecimalField(max_digits=8, decimal_places=2)
-    retail_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    benchmark_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    benchmark_low = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    benchmark_high = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    retail_price = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    benchmark_price = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    benchmark_low = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    benchmark_high = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
     move_out_date = models.DateField(null=True, blank=True)
-    minimum_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    minimum_price = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
     bundle_eligible = models.BooleanField(default=False)
     sell_no_matter_what = models.BooleanField(default=False)
     fulfillment_option = models.CharField(max_length=20, choices=Fulfillment.choices)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -135,13 +149,25 @@ class Listing(ValidatedSaveModel):
         super().clean()
         if not self._state.adding and self.pk:
             database = database_for(self)
-            previous_owner = type(self).objects.using(database).filter(pk=self.pk).values_list("seller_id", flat=True).first()
+            previous_owner = (
+                type(self)
+                .objects.using(database)
+                .filter(pk=self.pk)
+                .values_list("seller_id", flat=True)
+                .first()
+            )
             if previous_owner != self.seller_id and (
                 self.transactions.using(database).exists()
                 or self.conversations.using(database).exists()
-                or self.bundle_items.using(database).filter(conversations__isnull=False).exists()
+                or self.bundle_items.using(database)
+                .filter(conversations__isnull=False)
+                .exists()
             ):
-                raise ValidationError({"seller": "The owner cannot change after a transaction or conversation references this listing."})
+                raise ValidationError(
+                    {
+                        "seller": "The owner cannot change after a transaction or conversation references this listing."
+                    }
+                )
 
     def __str__(self):
         return self.title
@@ -167,8 +193,12 @@ class PriceRecommendation(models.Model):
     )
     previous_price = models.DecimalField(max_digits=8, decimal_places=2)
     recommended_price = models.DecimalField(max_digits=8, decimal_places=2)
-    applied_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    applied_price = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING
+    )
     generated_at = models.DateTimeField(auto_now_add=True)
     responded_at = models.DateTimeField(null=True, blank=True)
 
@@ -176,7 +206,9 @@ class PriceRecommendation(models.Model):
         ordering = ["-generated_at"]
 
     def __str__(self):
-        return f"{self.listing.title}: {self.previous_price} -> {self.recommended_price}"
+        return (
+            f"{self.listing.title}: {self.previous_price} -> {self.recommended_price}"
+        )
 
 
 class Transaction(ValidatedSaveModel):
@@ -202,14 +234,26 @@ class Transaction(ValidatedSaveModel):
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="sales"
     )
     bundle = models.ForeignKey(
-        "bundles.Bundle", on_delete=models.SET_NULL, null=True, blank=True, related_name="transactions"
+        "bundles.Bundle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="transactions",
     )
     bundle_item = models.ForeignKey(
-        "bundles.BundleItem", on_delete=models.SET_NULL, null=True, blank=True, related_name="transactions"
+        "bundles.BundleItem",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="transactions",
     )
     agreed_price = models.DecimalField(max_digits=8, decimal_places=2)
-    benchmark_price_snapshot = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING_PICKUP)
+    benchmark_price_snapshot = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING_PICKUP
+    )
     meetup_datetime = models.DateTimeField(null=True, blank=True)
     meetup_location = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -226,9 +270,14 @@ class Transaction(ValidatedSaveModel):
 
     def clean(self):
         super().clean()
-        owner_id = Listing.objects.using(database_for(self)).filter(
-            pk=self.listing_id
-        ).values_list("seller_id", flat=True).first() if self.listing_id else None
+        owner_id = (
+            Listing.objects.using(database_for(self))
+            .filter(pk=self.listing_id)
+            .values_list("seller_id", flat=True)
+            .first()
+            if self.listing_id
+            else None
+        )
         errors = participant_errors(self.buyer_id, self.seller_id, owner_id)
         if errors:
             raise ValidationError(errors)

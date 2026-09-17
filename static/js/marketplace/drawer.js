@@ -10,9 +10,11 @@ export function setupDrawer() {
   opener.hidden = false;
   panel.querySelector("[data-close-filters]").hidden = false;
   opener.addEventListener("click", () => dialog.showModal());
-  const close = () => { dialog.close(); };
+  const close = () => {
+    dialog.close();
+  };
   panel.querySelector("[data-close-filters]").addEventListener("click", close);
-  dialog.addEventListener("click", event => {
+  dialog.addEventListener("click", (event) => {
     if (event.target === dialog) {
       const rect = dialog.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right) close();
@@ -20,4 +22,3 @@ export function setupDrawer() {
   });
   return { close };
 }
-

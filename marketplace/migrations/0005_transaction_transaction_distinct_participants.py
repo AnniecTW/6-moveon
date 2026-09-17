@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('bundles', '0002_initial'),
-        ('marketplace', '0004_listing_pricerecommendation_transaction'),
+        ("bundles", "0002_initial"),
+        ("marketplace", "0004_listing_pricerecommendation_transaction"),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='transaction',
-            constraint=models.CheckConstraint(condition=models.Q(('buyer', models.F('seller')), _negated=True), name='transaction_distinct_participants'),
+            model_name="transaction",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("buyer", models.F("seller")), _negated=True),
+                name="transaction_distinct_participants",
+            ),
         ),
     ]

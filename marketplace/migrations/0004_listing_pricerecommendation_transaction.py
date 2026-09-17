@@ -6,76 +6,256 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('bundles', '0001_initial'),
-        ('marketplace', '0003_itemtype'),
+        ("bundles", "0001_initial"),
+        ("marketplace", "0003_itemtype"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Listing',
+            name="Listing",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('description', models.TextField(blank=True)),
-                ('image_url', models.URLField(blank=True)),
-                ('condition', models.CharField(choices=[('NEW', 'New'), ('LIKE_NEW', 'Like New'), ('GOOD', 'Good'), ('FAIR', 'Fair'), ('POOR', 'Poor')], max_length=20)),
-                ('listing_price', models.DecimalField(decimal_places=2, max_digits=8)),
-                ('retail_price', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ('benchmark_price', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ('benchmark_low', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ('benchmark_high', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ('move_out_date', models.DateField(blank=True, null=True)),
-                ('minimum_price', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ('bundle_eligible', models.BooleanField(default=False)),
-                ('sell_no_matter_what', models.BooleanField(default=False)),
-                ('fulfillment_option', models.CharField(choices=[('PICKUP', 'Pickup'), ('DELIVERY', 'Delivery'), ('EITHER', 'Either')], max_length=20)),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('ACTIVE', 'Active'), ('RESERVED', 'Reserved'), ('SOLD', 'Sold'), ('INACTIVE', 'Inactive')], default='DRAFT', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('item_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='listings', to='marketplace.itemtype')),
-                ('seller', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='listings', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("description", models.TextField(blank=True)),
+                ("image_url", models.URLField(blank=True)),
+                (
+                    "condition",
+                    models.CharField(
+                        choices=[
+                            ("NEW", "New"),
+                            ("LIKE_NEW", "Like New"),
+                            ("GOOD", "Good"),
+                            ("FAIR", "Fair"),
+                            ("POOR", "Poor"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("listing_price", models.DecimalField(decimal_places=2, max_digits=8)),
+                (
+                    "retail_price",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=8, null=True
+                    ),
+                ),
+                (
+                    "benchmark_price",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=8, null=True
+                    ),
+                ),
+                (
+                    "benchmark_low",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=8, null=True
+                    ),
+                ),
+                (
+                    "benchmark_high",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=8, null=True
+                    ),
+                ),
+                ("move_out_date", models.DateField(blank=True, null=True)),
+                (
+                    "minimum_price",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=8, null=True
+                    ),
+                ),
+                ("bundle_eligible", models.BooleanField(default=False)),
+                ("sell_no_matter_what", models.BooleanField(default=False)),
+                (
+                    "fulfillment_option",
+                    models.CharField(
+                        choices=[
+                            ("PICKUP", "Pickup"),
+                            ("DELIVERY", "Delivery"),
+                            ("EITHER", "Either"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("ACTIVE", "Active"),
+                            ("RESERVED", "Reserved"),
+                            ("SOLD", "Sold"),
+                            ("INACTIVE", "Inactive"),
+                        ],
+                        default="DRAFT",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "item_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="listings",
+                        to="marketplace.itemtype",
+                    ),
+                ),
+                (
+                    "seller",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="listings",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='PriceRecommendation',
+            name="PriceRecommendation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('previous_price', models.DecimalField(decimal_places=2, max_digits=8)),
-                ('recommended_price', models.DecimalField(decimal_places=2, max_digits=8)),
-                ('applied_price', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('ACCEPTED', 'Accepted'), ('DECLINED', 'Declined'), ('MODIFIED', 'Modified'), ('EXPIRED', 'Expired')], default='PENDING', max_length=20)),
-                ('generated_at', models.DateTimeField(auto_now_add=True)),
-                ('responded_at', models.DateTimeField(blank=True, null=True)),
-                ('listing', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='price_recommendations', to='marketplace.listing')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("previous_price", models.DecimalField(decimal_places=2, max_digits=8)),
+                (
+                    "recommended_price",
+                    models.DecimalField(decimal_places=2, max_digits=8),
+                ),
+                (
+                    "applied_price",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=8, null=True
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("ACCEPTED", "Accepted"),
+                            ("DECLINED", "Declined"),
+                            ("MODIFIED", "Modified"),
+                            ("EXPIRED", "Expired"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("generated_at", models.DateTimeField(auto_now_add=True)),
+                ("responded_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "listing",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="price_recommendations",
+                        to="marketplace.listing",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-generated_at'],
+                "ordering": ["-generated_at"],
             },
         ),
         migrations.CreateModel(
-            name='Transaction',
+            name="Transaction",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('agreed_price', models.DecimalField(decimal_places=2, max_digits=8)),
-                ('benchmark_price_snapshot', models.DecimalField(blank=True, decimal_places=2, max_digits=8, null=True)),
-                ('status', models.CharField(choices=[('PENDING_PICKUP', 'Pending Pickup'), ('COMPLETED', 'Completed'), ('CANCELLED', 'Cancelled')], default='PENDING_PICKUP', max_length=20)),
-                ('meetup_datetime', models.DateTimeField(blank=True, null=True)),
-                ('meetup_location', models.CharField(blank=True, max_length=255)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('completed_at', models.DateTimeField(blank=True, null=True)),
-                ('bundle', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='transactions', to='bundles.bundle')),
-                ('bundle_item', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='transactions', to='bundles.bundleitem')),
-                ('buyer', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='purchases', to=settings.AUTH_USER_MODEL)),
-                ('listing', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='transactions', to='marketplace.listing')),
-                ('seller', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='sales', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("agreed_price", models.DecimalField(decimal_places=2, max_digits=8)),
+                (
+                    "benchmark_price_snapshot",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=8, null=True
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING_PICKUP", "Pending Pickup"),
+                            ("COMPLETED", "Completed"),
+                            ("CANCELLED", "Cancelled"),
+                        ],
+                        default="PENDING_PICKUP",
+                        max_length=20,
+                    ),
+                ),
+                ("meetup_datetime", models.DateTimeField(blank=True, null=True)),
+                ("meetup_location", models.CharField(blank=True, max_length=255)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("completed_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "bundle",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="transactions",
+                        to="bundles.bundle",
+                    ),
+                ),
+                (
+                    "bundle_item",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="transactions",
+                        to="bundles.bundleitem",
+                    ),
+                ),
+                (
+                    "buyer",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="purchases",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "listing",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="transactions",
+                        to="marketplace.listing",
+                    ),
+                ),
+                (
+                    "seller",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="sales",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
     ]

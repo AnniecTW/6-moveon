@@ -6,29 +6,33 @@ from django.views.generic import ListView
 from .models import Listing
 from .browse import browse_context
 
+
 # 1. FBV (Manual HttpResponse)
 def listing_manual_view(request):
-    template = loader.get_template('marketplace/listing_list.html')
+    template = loader.get_template("marketplace/listing_list.html")
     return HttpResponse(template.render(browse_context(request), request))
+
 
 # 2. FBV (render shortcut)
 def listing_render_view(request):
-    return render(request, 'marketplace/listing_list.html', browse_context(request))
+    return render(request, "marketplace/listing_list.html", browse_context(request))
+
 
 # 3. Base CBV
 class ListingBaseView(View):
     def get(self, request):
-        return render(request, 'marketplace/listing_list.html', browse_context(request))
+        return render(request, "marketplace/listing_list.html", browse_context(request))
+
 
 # 4. Generic CBV
-class ListingListView(ListView): # Naming Pattern: <Model><Purpose>View
+class ListingListView(ListView):  # Naming Pattern: <Model><Purpose>View
     model = Listing
-    template_name = 'marketplace/listing_list.html'
-    context_object_name = 'listings'
+    template_name = "marketplace/listing_list.html"
+    context_object_name = "listings"
 
     def get_queryset(self):
         self.browse = browse_context(self.request)
-        return self.browse['listings']
+        return self.browse["listings"]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

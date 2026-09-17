@@ -5,17 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('bundles', '0002_initial'),
-        ('marketplace', '0005_transaction_transaction_distinct_participants'),
-        ('messaging', '0001_initial'),
+        ("bundles", "0002_initial"),
+        ("marketplace", "0005_transaction_transaction_distinct_participants"),
+        ("messaging", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='conversation',
-            constraint=models.CheckConstraint(condition=models.Q(('buyer', models.F('seller')), _negated=True), name='conversation_distinct_participants'),
+            model_name="conversation",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("buyer", models.F("seller")), _negated=True),
+                name="conversation_distinct_participants",
+            ),
         ),
     ]

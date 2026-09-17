@@ -13,8 +13,12 @@ class DiscountTests(SimpleTestCase):
         self.assertIsNone(discount_percent(None, Decimal("10")))
         self.assertIsNone(discount_percent(Decimal("0"), Decimal("0")))
         self.assertIsNone(discount_percent(Decimal("10"), Decimal("12")))
-        self.assertEqual(discount_percent(Decimal("100"), Decimal("0")), Decimal("100.0"))
-        self.assertEqual(discount_percent(Decimal("140"), Decimal("95")), Decimal("32.1"))
+        self.assertEqual(
+            discount_percent(Decimal("100"), Decimal("0")), Decimal("100.0")
+        )
+        self.assertEqual(
+            discount_percent(Decimal("140"), Decimal("95")), Decimal("32.1")
+        )
 
 
 class FeaturedTests(TestCase):
@@ -38,7 +42,9 @@ class FeaturedTests(TestCase):
         item.listing_price = Decimal("90")
         item.save()
         response = self.client.get(reverse("home"))
-        self.assertEqual(response.context["featured_bundles"][0]["total"], Decimal("142"))
+        self.assertEqual(
+            response.context["featured_bundles"][0]["total"], Decimal("142")
+        )
         self.assertContains(response, "$90.00")
 
     def test_unavailable_item_removes_incomplete_bundle(self):
@@ -54,7 +60,9 @@ class FeaturedTests(TestCase):
         call_command("seed_featured_bundles", stdout=StringIO())
         item.refresh_from_db()
         self.assertEqual(item.listing_price, Decimal("88"))
-        self.assertEqual(Listing.objects.filter(seller__username=DEMO_USERNAME).count(), 6)
+        self.assertEqual(
+            Listing.objects.filter(seller__username=DEMO_USERNAME).count(), 6
+        )
 
     def test_popular_uses_inquiries_instead_of_alphabetical_order(self):
         chair = Listing.objects.get(title="Rocking Chair")

@@ -1,6 +1,8 @@
 <p class="prices">
   {% if item.retail_price %}<del>${{ item.retail_price|floatformat:2 }}</del>{% endif %}
-  <strong>{% if item.listing_price == 0 %}Free{% else %}${{ item.listing_price|floatformat:2 }}{% endif %}</strong>
-  {% if item.discount_percent %}<span class="discount-tag">{{ item.discount_percent|floatformat:1 }}% off</span>{% endif %}
+  <strong
+    >{% if item.listing_price == 0 %}Free{% else %}${{ item.listing_price|floatformat:2 }}{% endif %}</strong
+  >
+  {% if item.discount_percent %}<span class="discount-tag">{{ item.discount_percent|floatformat:1 }}% off</span
+  >{% endif %}
 </p>
-
