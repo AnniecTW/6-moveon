@@ -1,0 +1,121 @@
+{% extends "bundles/base.html" %}
+
+{% block title %}Bundle Builder | Move-In Bundle{% endblock %}
+
+{% block stepper %}
+  {% include "bundles/partials/_stepper.html" with current_step=3 %}
+{% endblock %}
+
+{% block wizard_content %}
+  <h1 class="wizard-heading">Build your bundle</h1>
+
+  <div class="wizard-chips">
+    <span class="chip">{{ bundle.get_space_display }}</span>
+    {% for category in categories %}
+      <span class="chip">{{ category.item_type_name }}</span>
+    {% endfor %}
+    <a class="chip" href="{% url 'bundles:select_categories' %}">Edit categories</a>
+  </div>
+
+  {% if missing_categories %}
+    <p class="wizard-note muted">Some categories had no bundle-eligible listings and were skipped.</p>
+  {% endif %}
+
+  <div class="wizard-layout">
+    <section class="wizard-panel">
+      <div class="tier-tabs" role="tablist">
+        {% for tier_value, tier_label in tier_choices %}
+          <a
+            class="tier-tab{% if tier_value == active_tier %} is-active{% endif %}"
+            href="?bundle={{ bundle.id }}&tier={{ tier_value }}"
+            role="tab"
+            aria-selected="{% if tier_value == active_tier %}true{% else %}false{% endif %}"
+          >
+            {{ tier_label }}
+          </a>
+        {% endfor %}
+      </div>
+
+      <p class="generation-source-badge{% if generation_source == "llm" %} is-llm{% else %} is-heuristic{% endif %}">
+        {% if generation_source == "llm" %}
+          &#10024; AI-generated pick
+        {% else %}
+          Price-based pick — AI suggestions unavailable right now
+        {% endif %}
+      </p>
+
+      {% if rationale %}
+        <p class="tier-rationale">{{ rationale }}</p>
+      {% endif %}
+
+      <div class="bundle-card filter-panel">
+        <p class="eyebrow">{% if active_tier == "BEST_VALUE" %}Recommended bundle{% else %}Bundle{% endif %}</p>
+        <div class="bundle-card-grid">
+          {% for category in categories %}
+            <article class="bundle-item-card">
+              {% if category.current_item %}
+                <div class="card-photo">
+                  {% if category.current_item.listing.image_url %}
+                    <img src="{{ category.current_item.listing.image_url }}" alt="" />
+                  {% else %}
+                    <div class="photo-placeholder">{{ category.item_type_name }}</div>
+                  {% endif %}
+                </div>
+                <div class="card-content">
+                  <p class="eyebrow">{{ category.item_type_name }}</p>
+                  <h3>{{ category.current_item.listing.title }}</h3>
+                  <p class="prices"><strong>${{ category.current_item.listing.listing_price }}</strong></p>
+                  <p class="card-meta">
+                    <span>by {{ category.current_item.listing.seller.display_name }}</span>
+                    <span class="condition">{{ category.current_item.listing.get_condition_display }}</span>
+                  </p>
+                </div>
+                {% if category.swap_candidates %}
+                  <details class="swap-details">
+                    <summary class="button primary swap-toggle">Swap</summary>
+                    <div class="swap-candidates">
+                      {% for candidate in category.swap_candidates %}
+                        <form method="post" action="{% url 'bundles:builder' %}?bundle={{ bundle.id }}" class="swap-candidate">
+                          {% csrf_token %}
+                          <input type="hidden" name="action" value="swap" />
+                          <input type="hidden" name="tier" value="{{ active_tier }}" />
+                          <input type="hidden" name="item_type_id" value="{{ category.item_type_id }}" />
+                          <input type="hidden" name="listing_id" value="{{ candidate.id }}" />
+                          <div class="swap-candidate__info">
+                            <h4>{{ candidate.title }}</h4>
+                            <p class="swap-candidate__price"><strong>${{ candidate.listing_price }}</strong></p>
+                            <p class="muted">by {{ candidate.seller.display_name }} · {{ candidate.get_condition_display }}</p>
+                          </div>
+                          <button type="submit" class="button swap-candidate__button">Swap in</button>
+                        </form>
+                      {% endfor %}
+                    </div>
+                  </details>
+                {% endif %}
+              {% else %}
+                <div class="empty-state"><p>No listing available for {{ category.item_type_name }}.</p></div>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <aside class="filter-panel wizard-sidebar">
+      <h2>Bundle summary</h2>
+      <p><span class="muted">Items selected</span><br /><strong>{{ items_count }}</strong></p>
+      <p><span class="muted">Total</span><br /><strong>${{ individual_total }}</strong></p>
+      {% if items_count < minimum_items %}
+        <p class="muted">Select at least {{ minimum_items }} items to unlock checkout.</p>
+      {% endif %}
+      <div class="wizard-actions wizard-actions--stacked">
+        <a class="button" href="{% url 'bundles:select_categories' %}">Back</a>
+        <a
+          class="button primary{% if items_count < minimum_items %} is-disabled{% endif %}"
+          href="{% url 'bundles:summary' %}?bundle={{ bundle.id }}"
+          {% if items_count < minimum_items %}aria-disabled="true" tabindex="-1"{% endif %}
+        >Continue to Summary</a>
+      </div>
+    </aside>
+  </div>
+{% endblock %}

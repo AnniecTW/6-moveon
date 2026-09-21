@@ -1,0 +1,7 @@
+/* Reuses the marketplace app's shared tokens/components rather than
+   duplicating them - bundles is the first non-marketplace frontend, and
+   promoting theme.css to a shared location was deliberately deferred to
+   avoid touching files another session might be editing concurrently. */
+@import url("./marketplace/theme.css");
+@import url("./marketplace/components.css");
+@import url("./bundles/wizard.css");

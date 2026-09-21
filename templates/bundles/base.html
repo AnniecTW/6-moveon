@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Move-In Bundle | MoveOn{% endblock %}</title>
+    <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml" />
+    <link rel="stylesheet" href="{% static 'css/marketplace.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/bundles.css' %}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="page header-inner">
+        <a class="logo" href="{% url 'home' %}" aria-label="MoveOn home"
+          ><img src="{% static 'img/logo.png' %}" alt="MoveOn" width="150" height="52"
+        /></a>
+        <p class="eyebrow wizard-title">Move-In Bundle Sale</p>
+        <nav class="header-actions" aria-label="Account actions">
+          <span class="icon-button" title="Messages (coming soon)" aria-label="Messages">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="m3 6 9 7 9-7" />
+            </svg>
+          </span>
+          <span class="icon-button" title="Profile (coming soon)" aria-label="Profile">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
+          </span>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content" class="page wizard-page">
+      <ol class="wizard-stepper" aria-label="Bundle builder steps">
+        {% block stepper %}{% endblock %}
+      </ol>
+
+      {% if messages %}
+        <ul class="wizard-messages">
+          {% for message in messages %}
+            <li class="wizard-message{% if message.tags %} wizard-message--{{ message.tags }}{% endif %}">
+              {{ message }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% block wizard_content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+      <div class="page">
+        <p>MoveOn — a fresh start at a fair price.</p>
+      </div>
+    </footer>
+    {% block extra_scripts %}{% endblock %}
+  </body>
+</html>

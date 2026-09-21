@@ -1,0 +1,34 @@
+{% extends "bundles/base.html" %}
+
+{% block title %}Select a space | Move-In Bundle{% endblock %}
+
+{% block stepper %}
+  {% include "bundles/partials/_stepper.html" with current_step=1 %}
+{% endblock %}
+
+{% block wizard_content %}
+  <div class="wizard-layout">
+    <section class="filter-panel wizard-panel">
+      <h1>What part of the home are you shopping for?</h1>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <fieldset class="space-grid">
+          <legend class="sr-only">Choose a space</legend>
+          {% for radio in form.space %}
+            <label class="space-tile">
+              {{ radio.tag }}
+              <span>{{ radio.choice_label }}</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        {% if form.space.errors %}<p class="errorlist">{{ form.space.errors|join:", " }}</p>{% endif %}
+
+        <p class="muted wizard-note">Bundle pricing unlocks when you add at least 3 items to your bundle.</p>
+        <div class="wizard-actions">
+          <a class="button" href="{% url 'home' %}">Cancel</a>
+          <button type="submit" class="button primary">Continue to Categories</button>
+        </div>
+      </form>
+    </section>
+  </div>
+{% endblock %}
