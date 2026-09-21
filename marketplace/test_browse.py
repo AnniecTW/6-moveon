@@ -123,6 +123,6 @@ class DemoSeedTests(TestCase):
     def test_seed_is_valid_and_idempotent(self):
         output = StringIO()
         call_command("seed_demo_data", stdout=output)
-        self.assertEqual(Listing.objects.count(), 8)
+        self.assertEqual(Listing.objects.count(), 29)
         call_command("seed_demo_data", stdout=output)
-        self.assertEqual(Listing.objects.count(), 8)
+        self.assertEqual(Listing.objects.count(), 29)

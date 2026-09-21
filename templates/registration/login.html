@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Log in | MoveOn</title>
+    <link rel="stylesheet" href="{% static 'css/marketplace.css' %}" />
+  </head>
+  <body>
+    <main class="page" style="max-width: 420px; padding-block: 64px;">
+      <p class="eyebrow">MoveOn</p>
+      <h1 style="font-size: 32px;">Log in</h1>
+      <p class="muted">
+        Stopgap login for local testing - not the wireframed Login/Signup
+        pages, which are a separate, not-yet-built feature.
+      </p>
+      <form method="post" class="filter-panel">
+        {% csrf_token %}
+        {% if form.errors %}
+          <p class="errorlist">Your username and password didn't match. Please try again.</p>
+        {% endif %}
+        <p>
+          <label for="id_username">Username</label><br />
+          {{ form.username }}
+        </p>
+        <p>
+          <label for="id_password">Password</label><br />
+          {{ form.password }}
+        </p>
+        <input type="hidden" name="next" value="{{ next }}" />
+        <button type="submit" class="button primary">Log in</button>
+      </form>
+      <p class="muted">Demo accounts: alex / jamie / sam / maya, password: password123</p>
+      <p><a href="{% url 'home' %}">&larr; Back to MoveOn</a></p>
+    </main>
+  </body>
+</html>

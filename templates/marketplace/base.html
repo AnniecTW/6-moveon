@@ -11,6 +11,12 @@
     <title>{% block title %}MoveOn{% endblock %}</title>
     <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml" />
     <link rel="stylesheet" href="{% static 'css/marketplace.css' %}" />
+    {% comment %}
+      Styles for the Move-In Bundle popup (bundles app) - purely additive
+      classes (.space-tile, .category-tile, .bundle-start-dialog, etc.)
+      that don't touch anything the existing homepage already uses.
+    {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/bundles/wizard.css' %}" />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to listings</a>

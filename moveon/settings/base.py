@@ -28,6 +28,11 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
+# Optional: powers the AI Bundle Builder's tier classification (bundles app).
+# Left blank, that feature falls back to a plain price-based heuristic
+# instead of failing.
+GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+
 
 # Application definition
 
@@ -44,6 +49,10 @@ INSTALLED_APPS = [
 ]
 
 AUTH_USER_MODEL = "marketplace.User"
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "home"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

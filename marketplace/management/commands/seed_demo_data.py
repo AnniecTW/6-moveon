@@ -29,6 +29,9 @@ class Command(BaseCommand):
             users = self._seed_users()
             categories, item_types = self._seed_taxonomy()
             listings = self._seed_listings(users, item_types)
+            listings.update(
+                self._seed_bundle_builder_listings(users, item_types)
+            )
             self._seed_price_recommendations(listings)
             self._seed_bundle(users, item_types, listings)
             self._seed_messaging(users, listings)
@@ -67,9 +70,9 @@ class Command(BaseCommand):
 
     def _seed_taxonomy(self):
         taxonomy = {
-            "Furniture": ["Sofa", "Desk", "Chair", "Dresser"],
+            "Furniture": ["Sofa", "Desk", "Chair", "Dresser", "Coffee Table"],
             "Electronics": ["Television", "Monitor", "Speaker"],
-            "Home Decor": ["Rug", "Lamp"],
+            "Home Decor": ["Rug", "Lamp", "Curtains", "Shelf", "Decor"],
             "Appliances": ["Microwave"],
         }
         categories = {}
@@ -199,6 +202,73 @@ class Command(BaseCommand):
                     "status": Listing.Status.SOLD
                     if title == "Desk Chair"
                     else Listing.Status.ACTIVE,
+                },
+            )
+            listings[title] = listing
+        return listings
+
+    def _seed_bundle_builder_listings(self, users, item_types):
+        """
+        Extra bundle-eligible listings covering the Living Room category
+        grid (Sofa, Television, Rug, Curtains, Coffee Table, Lamp, Shelf,
+        Decor). Several of these item types have no listings at all in
+        _seed_listings, and the ones that do only have one each - the AI
+        Bundle Builder needs multiple distinct candidates per category to
+        produce meaningfully different Budget/Best Value/Premium picks.
+        """
+        today = date.today()
+        specs = [
+            ("Compact Loveseat", "Jamie", "Sofa", 45, "FAIR", 18),
+            ("Sectional Sofa", "Sam", "Sofa", 110, "LIKE_NEW", 25),
+            ("32-inch TV", "Maya", "Television", 60, "FAIR", 12),
+            ("55-inch Smart TV", "Alex", "Television", 200, "LIKE_NEW", 28),
+            ("Refurbished Flatscreen", "Jamie", "Television", 85, "GOOD", 20),
+            ("Small Area Rug", "Jamie", "Rug", 18, "FAIR", 14),
+            ("Patterned Wool Rug", "Sam", "Rug", 48, "LIKE_NEW", 22),
+            ("Blackout Curtains", "Alex", "Curtains", 12, "GOOD", 16),
+            ("Linen Curtain Panels", "Maya", "Curtains", 28, "LIKE_NEW", 24),
+            ("Sheer Window Curtains", "Sam", "Curtains", 9, "FAIR", 10),
+            ("Small Coffee Table", "Jamie", "Coffee Table", 22, "FAIR", 19),
+            ("Glass Coffee Table", "Sam", "Coffee Table", 58, "LIKE_NEW", 27),
+            ("Rustic Wood Coffee Table", "Alex", "Coffee Table", 40, "GOOD", 21),
+            ("Desk Lamp", "Alex", "Lamp", 10, "GOOD", 15),
+            ("Modern Floor Lamp", "Maya", "Lamp", 32, "NEW", 26),
+            ("Small Bookshelf", "Jamie", "Shelf", 20, "GOOD", 17),
+            ("Tall Shelving Unit", "Sam", "Shelf", 45, "LIKE_NEW", 23),
+            ("Cube Storage Shelf", "Alex", "Shelf", 30, "GOOD", 20),
+            ("Wall Art Set", "Alex", "Decor", 8, "GOOD", 13),
+            ("Decorative Vase Set", "Maya", "Decor", 15, "NEW", 22),
+            ("Framed Prints Bundle", "Sam", "Decor", 11, "FAIR", 18),
+        ]
+        listings = {}
+        for title, owner, type_name, price, condition, move_out_days in specs:
+            listing, _ = Listing.objects.get_or_create(
+                title=title,
+                seller=users[owner],
+                defaults={
+                    "item_type": item_types[type_name],
+                    "description": f"{title} in {condition.replace('_', ' ').title()} condition.",
+                    "condition": condition,
+                    "listing_price": price,
+                    "retail_price": (Decimal(price) * Decimal("1.5")).quantize(
+                        Decimal("0.01")
+                    ),
+                    "benchmark_price": (Decimal(price) * Decimal("1.1")).quantize(
+                        Decimal("0.01")
+                    ),
+                    "benchmark_low": (Decimal(price) * Decimal("0.85")).quantize(
+                        Decimal("0.01")
+                    ),
+                    "benchmark_high": (Decimal(price) * Decimal("1.25")).quantize(
+                        Decimal("0.01")
+                    ),
+                    "move_out_date": today + timedelta(days=move_out_days),
+                    "minimum_price": (Decimal(price) * Decimal("0.7")).quantize(
+                        Decimal("0.01")
+                    ),
+                    "bundle_eligible": True,
+                    "fulfillment_option": Listing.Fulfillment.PICKUP,
+                    "status": Listing.Status.ACTIVE,
                 },
             )
             listings[title] = listing
