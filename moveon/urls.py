@@ -55,6 +55,27 @@ urlpatterns = [
         views.ListingListView.as_view(),
         name="listing_cbv_generic",
     ),
+    path("seller/listings/", views.seller_listings_view, name="seller-listings"),
+    path("seller/insights/", views.seller_insights_view, name="seller-insights"),
+    path(
+        "seller/pricing-and-moveout/",
+        views.seller_pricing_view,
+        name="seller-pricing",
+    ),
+    path("seller/settings/", views.seller_settings_view, name="seller-settings"),
+    path("buyer/pickups/", views.buyer_pickups_view, name="buyer-pickups"),
+    path("buyer/saved-bundles/", views.buyer_bundles_view, name="buyer-bundles"),
+    path(
+        "buyer/purchase-history/",
+        views.buyer_purchase_history_view,
+        name="buyer-purchase-history",
+    ),
+    path(
+        "buyer/purchase-history/download/",
+        views.buyer_purchase_history_csv,
+        name="buyer-purchase-history-csv",
+    ),
+    path("buyer/watchlist/", views.buyer_watchlist_view, name="buyer-watchlist"),
 ]
 
 if settings.DEBUG:

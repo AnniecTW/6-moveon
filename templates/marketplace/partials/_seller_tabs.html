@@ -1,0 +1,6 @@
+<nav class="seller-tabs" aria-label="Seller workspace">
+  <a{% if active_seller_tab == 'listings' %} class="active" aria-current="page"{% endif %} href="{% url 'seller-listings' %}" data-dashboard-tab><span aria-hidden="true">&#9638;</span> My Listings</a>
+  <a{% if active_seller_tab == 'insights' %} class="active" aria-current="page"{% endif %} href="{% url 'seller-insights' %}" data-dashboard-tab><span aria-hidden="true">&#9646;</span> Insights</a>
+  <a{% if active_seller_tab == 'pricing' %} class="active" aria-current="page"{% endif %} href="{% url 'seller-pricing' %}" data-dashboard-tab><span aria-hidden="true">&#9670;</span> Pricing &amp; Move-Out</a>
+  <a{% if active_seller_tab == 'settings' %} class="active" aria-current="page"{% endif %} href="{% url 'seller-settings' %}" data-dashboard-tab><span aria-hidden="true">&#9881;</span> Settings</a>
+</nav>

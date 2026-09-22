@@ -1,0 +1,85 @@
+{% extends "marketplace/seller_base.html" %}
+{% block title %}Seller Insights | MoveOn{% endblock %}
+{% block seller_content %}
+<section class="insights-page" aria-labelledby="insights-title">
+  <header class="insights-heading">
+    <div>
+      <h2 id="insights-title">Insights</h2>
+      <p>Track how your listings are performing.</p>
+    </div>
+    <span class="insights-period">Last 7 days</span>
+  </header>
+
+  <div class="insights-summary" aria-label="Performance summary">
+    {% for metric in summary_metrics %}
+    <article class="insight-metric">
+      <strong>{{ metric.value }}</strong>
+      <span>{{ metric.label }}</span>
+      <small>{{ metric.change }}</small>
+    </article>
+    {% endfor %}
+    <article class="top-performer-card">
+      <div class="top-performer-copy">
+        <span class="insight-label">Top performer</span>
+        {% if top_performer %}
+        <strong>{{ top_performer.title }}</strong>
+        <small>Highest views this week</small>
+        <span class="top-badge">Top listing</span>
+        {% else %}
+        <strong>No active listings</strong>
+        <small>Performance will appear here.</small>
+        {% endif %}
+      </div>
+      <div class="top-performer-image">
+        {% if top_performer.display_image_url %}<img src="{{ top_performer.display_image_url }}" alt="{{ top_performer.title }}" />{% else %}<span aria-hidden="true">&#9633;</span>{% endif %}
+      </div>
+    </article>
+  </div>
+
+  <div class="insights-grid">
+    <article class="insight-card views-chart-card">
+      <div class="insight-card-heading">
+        <div><span class="insight-label">Listing activity</span><h3>Views over the last 7 days</h3></div>
+        <span class="insight-legend"><i></i> Views</span>
+      </div>
+      <div class="chart-frame chart-frame-line"><canvas id="seller-views-chart" aria-label="Views over the last seven days" role="img"></canvas></div>
+      <p class="chart-note">Price changes are marked on the dates they occurred.</p>
+    </article>
+
+    <article class="insight-card inquiries-card">
+      <div class="insight-card-heading">
+        <div><span class="insight-label">Buyer interest</span><h3>Inquiries by listing</h3></div>
+      </div>
+      <div class="chart-frame chart-frame-bars"><canvas id="seller-inquiries-chart" aria-label="Inquiries by listing" role="img"></canvas></div>
+    </article>
+
+    <article class="insight-card conversion-card">
+      <div class="insight-card-heading">
+        <div><span class="insight-label">Conversion</span><h3>Views to sales</h3></div>
+      </div>
+      <ol class="conversion-funnel" aria-label="Sales conversion funnel">
+        {% for stage in funnel %}
+        <li>
+          <span class="funnel-index">0{{ forloop.counter }}</span>
+          <div><strong>{{ stage.value }}</strong><span>{{ stage.label }}</span></div>
+          <small>{{ stage.rate }}</small>
+        </li>
+        {% endfor %}
+      </ol>
+    </article>
+
+    <article class="insight-card category-card">
+      <div class="insight-card-heading">
+        <div><span class="insight-label">Inventory mix</span><h3>Category performance</h3></div>
+      </div>
+      <div class="category-chart-layout">
+        <div class="chart-frame chart-frame-doughnut"><canvas id="seller-category-chart" aria-label="Active listings by category" role="img"></canvas></div>
+        <div id="seller-category-legend" class="category-legend" aria-label="Category legend"></div>
+      </div>
+    </article>
+  </div>
+
+  {% if analytics_uses_demo_views %}<p class="analytics-disclosure">View totals and seven-day trends are temporary demo analytics until listing-view events are added to the data model. Inquiries, sales, bundles, and listing data are live.</p>{% endif %}
+  {{ chart_data|json_script:"seller-insights-data" }}
+</section>
+{% endblock %}

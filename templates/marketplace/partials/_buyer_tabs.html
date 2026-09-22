@@ -1,0 +1,6 @@
+<nav class="seller-tabs buyer-tabs" aria-label="Buyer workspace">
+  <a{% if active_buyer_tab == 'pickups' %} class="active" aria-current="page"{% endif %} href="{% url 'buyer-pickups' %}" data-dashboard-tab><span aria-hidden="true">&#9679;</span> Active Pickups</a>
+  <a{% if active_buyer_tab == 'bundles' %} class="active" aria-current="page"{% endif %} href="{% url 'buyer-bundles' %}" data-dashboard-tab><span aria-hidden="true">&#9670;</span> Saved Bundles</a>
+  <a{% if active_buyer_tab == 'history' %} class="active" aria-current="page"{% endif %} href="{% url 'buyer-purchase-history' %}" data-dashboard-tab><span aria-hidden="true">&#9638;</span> Purchase History</a>
+  <a{% if active_buyer_tab == 'watchlist' %} class="active" aria-current="page"{% endif %} href="{% url 'buyer-watchlist' %}" data-dashboard-tab><span aria-hidden="true">&#9825;</span> Watchlist</a>
+</nav>

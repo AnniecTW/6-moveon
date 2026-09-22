@@ -1,0 +1,81 @@
+{% extends "marketplace/seller_base.html" %}
+{% block title %}Pricing & Move-Out | MoveOn{% endblock %}
+{% block seller_content %}
+<section class="seller-pricing-page" aria-labelledby="pricing-title">
+  <header class="pricing-page-heading">
+    <div><h2 id="pricing-title">Pricing &amp; Move-Out</h2><p>Manage pricing plans and move-out deadlines.</p></div>
+    <span>{{ pricing_rows|length }} active plan{{ pricing_rows|length|pluralize }}</span>
+  </header>
+
+  <div class="pricing-list">
+    {% for row in pricing_rows %}
+    <article class="pricing-listing-card">
+      <div class="pricing-listing-summary">
+        <div class="pricing-listing-image">{% if row.listing.display_image_url %}<img src="{{ row.listing.display_image_url }}" alt="{{ row.listing.title }}" />{% else %}<span aria-hidden="true">&#9633;</span>{% endif %}</div>
+        <div class="pricing-listing-name"><span class="pricing-field-label">Listing</span><h3>{{ row.listing.title }}</h3><p>{{ row.listing.item_type.category.category_name }} &middot; {{ row.listing.get_condition_display }}</p></div>
+        <div class="pricing-current pricing-detail">
+          <span class="pricing-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 13 11 22 2 13V3h10l8 8a1.4 1.4 0 0 1 0 2Z"/><circle cx="7" cy="8" r="1"/></svg></span>
+          <div><span class="pricing-field-label">Current price</span><strong>${{ row.current_price|floatformat:0 }}</strong><small>Similar listings: ${{ row.comparable_low|floatformat:0 }}&ndash;${{ row.comparable_high|floatformat:0 }}{% if row.comparable_is_temporary %} <abbr title="Temporary estimate until market-comparable data is available">Est.</abbr>{% endif %}</small></div>
+        </div>
+        <div class="pricing-deadline pricing-detail">
+          <span class="pricing-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>
+          <div><span class="pricing-field-label">Move-out</span>{% if row.listing.move_out_date %}<strong>{{ row.listing.move_out_date|date:"M d, Y" }}</strong><small>{{ row.days_remaining }} day{{ row.days_remaining|pluralize }} remaining</small>{% else %}<strong>Not set</strong><small>Add a date for deadline-aware pricing</small>{% endif %}</div>
+        </div>
+        <div class="pricing-strategy-summary pricing-detail">
+          <span class="pricing-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 7 7-7 11-7-11 7-7Z"/><path d="m5 10 7 3 7-3"/></svg></span>
+          <div><span class="pricing-field-label">Pricing plan</span><strong>{{ row.strategy }}</strong><small>{{ row.review_note }}</small></div>
+        </div>
+        <button class="button manage-plan-button" type="button" data-manage-plan data-listing-id="{{ row.listing.pk }}" data-listing-title="{{ row.listing.title }}" data-strategy="{{ row.strategy_key }}">Manage Pricing Plan</button>
+      </div>
+      <div class="recommendation-panel">
+        <div class="recommendation-copy">
+          <span class="pricing-field-label">Price recommendation</span>
+          <strong>{{ row.recommendation.state }}</strong>
+          <p>{{ row.recommendation.reason }}</p>
+        </div>
+        <div class="recommendation-price"><span>Proposed price</span><strong>${{ row.recommendation.suggested_price|floatformat:0 }}</strong>{% if row.recommendation.temporary %}<small>Temporary recommendation</small>{% endif %}</div>
+        <div class="recommendation-actions">
+          <button class="button primary" type="button" data-pricing-action="accept" data-listing-title="{{ row.listing.title }}">Accept recommendation</button>
+          <button class="button" type="button" data-pricing-action="keep" data-listing-title="{{ row.listing.title }}">Keep current price</button>
+        </div>
+      </div>
+    </article>
+    {% empty %}
+    <div class="empty-state"><h3>No active pricing plans</h3><p>Active listings will appear here when they are ready for pricing.</p></div>
+    {% endfor %}
+  </div>
+
+  <section class="default-preferences" aria-labelledby="preferences-title">
+    <div class="preferences-heading"><div><h2 id="preferences-title">Default selling preferences</h2><p>These settings will be applied to new listings and can be changed later for specific listings.</p></div><span class="temporary-badge">Defaults preview</span></div>
+    <form class="preferences-form" data-selling-preferences>
+      <fieldset class="strategy-options">
+        <legend>Default pricing strategy</legend>
+        <label><input type="radio" name="default_strategy" value="maximize"{% if default_preferences.strategy == 'maximize' %} checked{% endif %} /><span><strong>Maximize Value</strong><small>Hold closer to market value and reduce only when activity suggests a need.</small></span></label>
+        <label><input type="radio" name="default_strategy" value="balanced"{% if default_preferences.strategy == 'balanced' %} checked{% endif %} /><span><strong>Balanced</strong><small>Balance sale probability with fair value as your deadline approaches.</small></span></label>
+        <label><input type="radio" name="default_strategy" value="sell-before-move"{% if default_preferences.strategy == 'sell-before-move' %} checked{% endif %} /><span><strong>Sell Before I Move</strong><small>Prioritize completing the sale before move-out with seller-approved reductions.</small></span></label>
+      </fieldset>
+      <div class="preference-toggles">
+        <label><span><strong>Minimum price protection</strong><small>Respect a minimum threshold when recommending reductions.</small></span><input type="checkbox" name="protect_minimum"{% if default_preferences.protect_minimum %} checked{% endif %} /></label>
+        <label><span><strong>Sell No Matter What</strong><small>Allow recommendations below the normal minimum near move-out. You always approve changes.</small></span><input type="checkbox" name="sell_no_matter_what"{% if default_preferences.sell_no_matter_what %} checked{% endif %} /></label>
+        <label><span><strong>Move-In Bundle eligibility</strong><small>Include new listings in Move-In Bundles by default.</small></span><input type="checkbox" name="bundle_eligible"{% if default_preferences.bundle_eligible %} checked{% endif %} /></label>
+      </div>
+      <div class="preferences-footer"><p data-preferences-status aria-live="polite">{% if preferences_are_temporary %}Preview only &mdash; account-level defaults are not stored in the current data model.{% endif %}</p><button class="button primary" type="submit">Save defaults</button></div>
+    </form>
+  </section>
+
+  <dialog class="pricing-plan-dialog" data-pricing-plan-dialog aria-labelledby="plan-dialog-title">
+    <form method="dialog" data-plan-form>
+      <div class="plan-dialog-heading"><div><span class="pricing-field-label">Listing pricing</span><h2 id="plan-dialog-title">Manage Pricing Plan</h2><p data-plan-listing-name></p></div><button class="icon-button" value="cancel" aria-label="Close pricing plan">&times;</button></div>
+      <input type="hidden" name="listing_id" data-plan-listing-id />
+      <fieldset class="dialog-strategy-options">
+        <legend>Choose a seller goal</legend>
+        <label><input type="radio" name="strategy" value="maximize" /><span><strong>Maximize Value</strong><small>Stay close to market value.</small></span></label>
+        <label><input type="radio" name="strategy" value="balanced" /><span><strong>Balanced</strong><small>Balance time and fair value.</small></span></label>
+        <label><input type="radio" name="strategy" value="sell-before-move" /><span><strong>Sell Before I Move</strong><small>Prioritize selling before the deadline.</small></span></label>
+      </fieldset>
+      <p class="dialog-disclosure">Recommendations remain seller-controlled. This preview does not automatically change listing prices.</p>
+      <div class="plan-dialog-actions"><button class="button" value="cancel">Cancel</button><button class="button primary" value="save" data-save-plan>Update plan</button></div>
+    </form>
+  </dialog>
+</section>
+{% endblock %}
