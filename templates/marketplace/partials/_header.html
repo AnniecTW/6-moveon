@@ -61,17 +61,26 @@
           <path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg
         ><span data-saved-count>0</span>
       </button>
-      <button
-        class="icon-button"
-        type="button"
-        data-header-action="profile"
-        aria-label="Profile"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21a8 8 0 0 1 16 0" />
-        </svg>
-      </button>
+      {% if request.resolver_match.url_name == 'home' %}
+        {% if request.user.is_authenticated %}
+          <span class="account-identity">{{ request.user.username }}</span>
+          <form method="post" action="{% url 'account_logout' %}">
+            {% csrf_token %}
+            <button class="icon-button" type="submit" aria-label="Sign out">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10 4H5v16h5" /><path d="M14 8l4 4-4 4" /><path d="M9 12h9" />
+              </svg>
+            </button>
+          </form>
+        {% else %}
+          <a class="icon-button" href="{% url 'account' %}" aria-label="Sign in or create account">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
+          </a>
+        {% endif %}
+      {% endif %}
     </nav>
   </div>
 </header>

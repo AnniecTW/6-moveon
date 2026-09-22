@@ -1,0 +1,57 @@
+{% extends "marketplace/listing_list.html" %}
+{% load static %}
+{% block title %}{{ auth_mode|capfirst }} | MoveOn{% endblock %}
+{% block overlay_content %}
+<div class="account-backdrop">
+  <section class="account-card" role="dialog" aria-modal="true" aria-labelledby="account-title">
+    <a class="account-close" href="{% url 'home' %}" aria-label="Close sign in">×</a>
+    <div class="account-wordmark">MoveOn <span aria-hidden="true"></span></div>
+    <h1 id="account-title">{% if auth_mode == 'signup' %}Your next chapter starts here.{% else %}Welcome back.{% endif %}</h1>
+    <p class="account-intro">{% if auth_mode == 'signup' %}Join your campus community on MoveOn.{% else %}A little closer to your next chapter.{% endif %}</p>
+
+    <nav class="account-tabs" aria-label="Account access">
+      <a href="{% url 'account' %}"{% if auth_mode == 'login' %} aria-current="page"{% endif %}>Log in</a>
+      <a href="{% url 'account' %}?mode=signup"{% if auth_mode == 'signup' %} aria-current="page"{% endif %}>Create account</a>
+    </nav>
+
+    <form method="post" action="{% url 'account' %}" class="account-form">
+      {% csrf_token %}
+      <input type="hidden" name="mode" value="{{ auth_mode }}" />
+      {% if auth_form.non_field_errors %}<div class="account-errors" role="alert">{{ auth_form.non_field_errors }}</div>{% endif %}
+
+      <div class="account-field">
+        <label for="id_username">Username <small>Used to log in</small></label>
+        {{ auth_form.username }}
+        {% for error in auth_form.username.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+      </div>
+
+      {% if auth_mode == 'signup' %}
+        <div class="account-field">
+          <label for="id_email">Email Address</label>
+          {{ auth_form.email }}
+          {% for error in auth_form.email.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+          <p class="account-hint">Registration requires an @illinois.edu email address.</p>
+        </div>
+        <div class="account-field">
+          <label for="id_password1">Password</label>
+          <div class="account-password">{{ auth_form.password1 }}<button type="button" data-password-toggle="id_password1" aria-label="Show password" aria-pressed="false">◉</button></div>
+          {% for error in auth_form.password1.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="account-field">
+          <label for="id_password2">Confirm Password</label>
+          <div class="account-password">{{ auth_form.password2 }}<button type="button" data-password-toggle="id_password2" aria-label="Show password" aria-pressed="false">◉</button></div>
+          {% for error in auth_form.password2.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+        </div>
+      {% else %}
+        <div class="account-field">
+          <label for="id_password">Password</label>
+          <div class="account-password">{{ auth_form.password }}<button type="button" data-password-toggle="id_password" aria-label="Show password" aria-pressed="false">◉</button></div>
+          {% for error in auth_form.password.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+      <button class="account-submit" type="submit">{% if auth_mode == 'signup' %}Create account{% else %}Log in{% endif %}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}
+{% block extra_scripts %}{{ block.super }}<script type="module" src="{% static 'js/marketplace/account.js' %}"></script>{% endblock %}

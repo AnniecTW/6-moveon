@@ -21,6 +21,8 @@ from marketplace import views
 
 urlpatterns = [
     path("", views.listing_render_view, name="home"),
+    path("account/", views.account_view, name="account"),
+    path("account/logout/", views.account_logout_view, name="account_logout"),
     path("admin/", admin.site.urls),
     path("listings/manual/", views.listing_manual_view, name="listing_manual"),
     path("listings/render/", views.listing_render_view, name="listing_render"),

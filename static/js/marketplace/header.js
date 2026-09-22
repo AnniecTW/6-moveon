@@ -9,10 +9,6 @@ export function setupHeader() {
       "Messages",
       "Your buyer and seller conversations will appear here once account sign-in is connected.",
     ],
-    profile: [
-      "Your profile",
-      "Account sign-in and profile editing are coming next.",
-    ],
   };
   document.querySelectorAll("[data-header-action]").forEach((button) => {
     button.addEventListener("click", () => {
