@@ -62,3 +62,39 @@ class BrowseForm(forms.Form):
                 "max_price", "Maximum price must be at least the minimum price."
             )
         return data
+
+
+class SellerSettingsForm(forms.Form):
+    """Session-backed seller preferences until a profile model is introduced."""
+
+    PAYMENT_CHOICES = [
+        ("meetup", "Arrange payment at meet-up"),
+        ("external", "External payment app (not connected)"),
+    ]
+    DELIVERY_CHOICES = [
+        ("pickup", "Pickup only"),
+        ("local", "Local delivery available"),
+        ("either", "Pickup or local delivery"),
+    ]
+
+    payment_preference = forms.ChoiceField(choices=PAYMENT_CHOICES)
+    primary_meetup = forms.CharField(max_length=120, required=False)
+    alternate_meetup = forms.CharField(max_length=120, required=False)
+    delivery_preference = forms.ChoiceField(choices=DELIVERY_CHOICES)
+    delivery_notes = forms.CharField(max_length=240, required=False)
+    notify_inquiries = forms.BooleanField(required=False)
+    notify_bundles = forms.BooleanField(required=False)
+    notify_pricing = forms.BooleanField(required=False)
+    notify_moveout = forms.BooleanField(required=False)
+    notify_transactions = forms.BooleanField(required=False)
+
+    def clean(self):
+        data = super().clean()
+        if data.get("delivery_preference") != "pickup" and not data.get(
+            "delivery_notes"
+        ):
+            self.add_error(
+                "delivery_notes",
+                "Add a short delivery area or availability note.",
+            )
+        return data

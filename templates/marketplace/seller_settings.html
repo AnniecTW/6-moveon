@@ -1,0 +1,56 @@
+{% extends "marketplace/seller_base.html" %}
+{% block title %}Seller Settings | MoveOn{% endblock %}
+{% block seller_content %}
+<section class="seller-settings-page" aria-labelledby="settings-title">
+  <header class="settings-page-heading">
+    <div><h2 id="settings-title">Settings</h2><p>Manage seller preferences and account defaults.</p></div>
+    {% if settings_are_temporary %}<span>Session preferences</span>{% endif %}
+  </header>
+
+  {% for message in messages %}<p class="settings-message" role="status">{{ message }}</p>{% endfor %}
+  {% if settings_form.non_field_errors %}<div class="settings-errors" role="alert">{{ settings_form.non_field_errors }}</div>{% endif %}
+
+  <form class="seller-settings-form" method="post" data-seller-settings-form>
+    {% csrf_token %}
+    <div class="settings-grid">
+      <section class="settings-card" aria-labelledby="payment-title">
+        <header class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">$</span><div><h3 id="payment-title">Payment details</h3><p>Choose how you prefer to arrange payment with buyers.</p></div></header>
+        <label class="settings-field" for="{{ settings_form.payment_preference.id_for_label }}"><span>Preferred payment method</span>{{ settings_form.payment_preference }}</label>
+        {{ settings_form.payment_preference.errors }}
+        <p class="settings-note">MoveOn does not currently process or store payment-account information.</p>
+      </section>
+
+      <section class="settings-card" aria-labelledby="meetup-title">
+        <header class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">&#9679;</span><div><h3 id="meetup-title">Default meet-up locations</h3><p>Save convenient public locations for future transactions.</p></div></header>
+        <div class="settings-field-row">
+          <label class="settings-field" for="{{ settings_form.primary_meetup.id_for_label }}"><span>Primary location</span>{{ settings_form.primary_meetup }}</label>
+          <label class="settings-field" for="{{ settings_form.alternate_meetup.id_for_label }}"><span>Alternate location <small>Optional</small></span>{{ settings_form.alternate_meetup }}</label>
+        </div>
+        {{ settings_form.primary_meetup.errors }}{{ settings_form.alternate_meetup.errors }}
+      </section>
+
+      <section class="settings-card" aria-labelledby="delivery-title">
+        <header class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">&#9638;</span><div><h3 id="delivery-title">Delivery preferences</h3><p>Set the default fulfillment option for new listings.</p></div></header>
+        <label class="settings-field" for="{{ settings_form.delivery_preference.id_for_label }}"><span>Default availability</span>{{ settings_form.delivery_preference }}</label>
+        <label class="settings-field" for="{{ settings_form.delivery_notes.id_for_label }}"><span>Delivery area or notes <small>Required when delivery is offered</small></span>{{ settings_form.delivery_notes }}</label>
+        {{ settings_form.delivery_preference.errors }}{{ settings_form.delivery_notes.errors }}
+        <p class="settings-note">Individual listings can use a different fulfillment option.</p>
+      </section>
+
+      <section class="settings-card notification-settings" aria-labelledby="notifications-title">
+        <header class="settings-card-heading"><span class="settings-card-icon" aria-hidden="true">&#9675;</span><div><h3 id="notifications-title">Notifications</h3><p>Choose the seller activity you want to hear about.</p></div></header>
+        <div class="settings-toggle-list">
+          <label><span><strong>New buyer inquiry</strong><small>Messages and questions about your listings.</small></span>{{ settings_form.notify_inquiries }}</label>
+          <label><span><strong>Bundle activity</strong><small>Bundle requests and listing inclusion.</small></span>{{ settings_form.notify_bundles }}</label>
+          <label><span><strong>Pricing recommendation</strong><small>Suggested adjustments based on activity.</small></span>{{ settings_form.notify_pricing }}</label>
+          <label><span><strong>Move-out deadline</strong><small>Reminders as listing deadlines approach.</small></span>{{ settings_form.notify_moveout }}</label>
+          <label><span><strong>Transaction updates</strong><small>Pickup, sale, and completion updates.</small></span>{{ settings_form.notify_transactions }}</label>
+        </div>
+      </section>
+
+    </div>
+
+    <footer class="settings-save-bar"><p data-settings-status aria-live="polite">{% if settings_are_temporary %}These preferences are stored only for this signed-in browser session until profile settings are modeled.{% endif %}</p><button class="button primary" type="submit">Save seller settings</button></footer>
+  </form>
+</section>
+{% endblock %}

@@ -48,6 +48,16 @@
           <path d="m3 6 9 7 9-7" />
         </svg>
       </button>
+      {% if request.user.is_authenticated %}
+      <div class="mode-switch" aria-label="Account mode">
+        <a{% if request.path|slice:':7' == '/buyer/' %} class="active" aria-current="page"{% endif %} href="{% url 'buyer-pickups' %}" data-dashboard-route>Buyer</a>
+        <a{% if request.path|slice:':8' == '/seller/' %} class="active" aria-current="page"{% endif %} href="{% url 'seller-listings' %}" data-dashboard-route>Seller</a>
+      </div>
+      <a class="header-user" href="{% if request.path|slice:':7' == '/buyer/' %}{% url 'buyer-pickups' %}{% else %}{% url 'seller-listings' %}{% endif %}">
+        <span class="header-avatar">{{ request.user.display_name|default:request.user.username|slice:":1"|upper }}</span>
+        <span>{{ request.user.display_name|default:request.user.username }}</span>
+      </a>
+      {% endif %}
       <button
         class="icon-button shopping-bag"
         type="button"
