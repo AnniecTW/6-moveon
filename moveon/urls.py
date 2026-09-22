@@ -16,7 +16,9 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import include, path
 from marketplace import views
 from messaging import api as messaging_api
 from bundles import messaging as bundle_messaging
@@ -42,6 +44,7 @@ urlpatterns = [
     path("account/reset/<uidb64>/<token>/", views.CampusPasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("account/google/", views.account_google_view, name="account_google"),
     path("admin/", admin.site.urls),
+    path("", include("marketplace.urls")),
     path("listings/manual/", views.listing_manual_view, name="listing_manual"),
     path("listings/render/", views.listing_render_view, name="listing_render"),
     path(
@@ -53,3 +56,8 @@ urlpatterns = [
         name="listing_cbv_generic",
     ),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.STATIC_URL, document_root=settings.BASE_DIR / "static"
+    )
