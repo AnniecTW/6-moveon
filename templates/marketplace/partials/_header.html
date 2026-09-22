@@ -27,16 +27,15 @@
       </button>
     </form>
     <nav class="header-actions" aria-label="Marketplace actions">
-      <button
+      <a
         class="button primary sell-button"
-        type="button"
-        data-header-action="sell"
+        href="{% url 'listing-create-url' %}"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M20 13 11 22 2 13V3h10l8 8a1.4 1.4 0 0 1 0 2Z" />
           <circle cx="7" cy="8" r="1" /></svg
         ><span>Sell Item</span>
-      </button>
+      </a>
       <a class="button header-bundle-link" href="{% url 'home' %}?bundle=on#listings-heading">Bundle</a>
       <a class="icon-button messages-link{% if request.resolver_match.url_name == 'messages' %} is-active{% endif %}"
         href="{% url 'messages' %}" aria-label="Messages"{% if campus_access %} data-unread-url="{% url 'messaging_unread' %}"{% endif %}{% if request.resolver_match.url_name == 'messages' %} aria-current="page"{% endif %}>
