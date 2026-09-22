@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 
 from .validation import ValidatedSaveModel, database_for, participant_errors
 
@@ -195,6 +196,8 @@ class Listing(ValidatedSaveModel):
                         "seller": "The owner cannot change after a transaction or conversation references this listing."
                     }
                 )
+    def get_absolute_url(self):
+        return reverse("listing-detail-url", kwargs={"primary_key": self.pk})
 
     def __str__(self):
         return self.title

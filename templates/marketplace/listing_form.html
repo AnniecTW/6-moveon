@@ -1,0 +1,172 @@
+{% extends "marketplace/base.html" %}
+
+{% block title %}Create New Listing | MoveOn{% endblock %}
+
+{% block listing_content %}
+<section class="listing-form-page" aria-labelledby="listing-form-title">
+  <header class="listing-form-header">
+    <div>
+      <h1 id="listing-form-title">Create New Listing</h1>
+      <p class="listing-form-subtitle">Fill in a few details and list your item in minutes.</p>
+    </div>
+    <div class="listing-form-header-actions">
+      <button class="button" type="submit" form="listing-form">Save Draft</button>
+      <a class="form-close-button" href="{% url 'home' %}" aria-label="Close create listing">×</a>
+    </div>
+  </header>
+
+  {% if form.non_field_errors %}
+    <div class="form-errors" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <form id="listing-form" method="post" novalidate>
+    {% csrf_token %}
+    <div class="listing-form-grid">
+      <section class="form-panel photo-panel" aria-labelledby="photos-heading">
+        <h2 id="photos-heading"><span>1.</span> Photos</h2>
+        <div class="photo-url-dropzone">
+          <span class="photo-upload-icon" aria-hidden="true">▧</span>
+          <strong>Add a photo URL</strong>
+          <span>Use a hosted image URL for now</span>
+          {{ form.image_url }}
+          {% for error in form.image_url.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="photo-placeholder-list" aria-label="Photo placeholders">
+          <span class="photo-placeholder-tile" aria-hidden="true">▧</span>
+          <span class="photo-placeholder-tile" aria-hidden="true">▧</span>
+          <span class="photo-placeholder-tile" aria-hidden="true">▧</span>
+          <span class="photo-placeholder-tile" aria-hidden="true">▧</span>
+          <button class="photo-add-button" type="button">
+            <span aria-hidden="true">+</span> Add more
+          </button>
+        </div>
+        <p class="form-help">The current Listing model supports one image URL.</p>
+      </section>
+
+      <section class="form-panel title-panel" aria-labelledby="title-heading">
+        <h2 id="title-heading"><span>2.</span> Title</h2>
+        {{ form.title }}
+        {% for error in form.title.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        <div class="field-counter" data-character-count="title">0 / 80</div>
+      </section>
+
+      <section class="form-panel price-panel" aria-labelledby="price-heading">
+        <h2 id="price-heading"><span>3.</span> Price</h2>
+        <div class="currency-field">
+          <span aria-hidden="true">$</span>
+          {{ form.listing_price }}
+        </div>
+        {% for error in form.listing_price.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        <div class="ai-suggestion">
+          <div>
+            <span class="ai-label">AI suggested price</span>
+            <strong>$45 – $60</strong>
+          </div>
+          <button class="info-button" type="button" aria-label="About AI suggested price">i</button>
+        </div>
+      </section>
+
+      <section class="form-panel condition-panel" aria-labelledby="condition-heading">
+        <h2 id="condition-heading"><span>4.</span> Condition</h2>
+        {{ form.condition }}
+        {% for error in form.condition.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </section>
+
+      <section class="form-panel category-panel" aria-labelledby="category-heading">
+        <h2 id="category-heading"><span>5.</span> Category</h2>
+        {{ form.item_type }}
+        {% for error in form.item_type.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </section>
+
+      <section class="form-panel fulfillment-panel" aria-labelledby="fulfillment-heading">
+        <h2 id="fulfillment-heading"><span>6.</span> Delivery Options</h2>
+        {{ form.fulfillment_option }}
+        {% for error in form.fulfillment_option.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </section>
+
+      <section class="form-panel description-panel" aria-labelledby="description-heading">
+        <h2 id="description-heading"><span>7.</span> Description <small>(Auto-generated)</small> <button class="info-button" type="button" aria-label="About auto-generated descriptions">i</button></h2>
+        {{ form.description }}
+        {% for error in form.description.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        <div class="description-prompts" aria-label="Description prompts">
+          <span>Add details about condition</span>
+          <span>Add dimensions / size</span>
+          <span>Mention flaws or imperfections</span>
+          <span>Why are you selling this item?</span>
+          <span>Include brand or model</span>
+        </div>
+        <div class="field-counter" data-character-count="description">0 / 1000</div>
+      </section>
+
+      <section class="form-panel moveout-panel" aria-labelledby="moveout-heading">
+        <h2 id="moveout-heading"><span>8.</span> Move Out Features</h2>
+        <div class="form-two-column">
+          <div class="field-group">
+            <label for="{{ form.minimum_price.id_for_label }}">Minimum Price</label>
+            <div class="currency-field">
+              <span aria-hidden="true">$</span>
+              {{ form.minimum_price }}
+            </div>
+            {% for error in form.minimum_price.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+          </div>
+          <div class="field-group">
+            <label for="{{ form.move_out_date.id_for_label }}">Move Out Date</label>
+            {{ form.move_out_date }}
+            {% for error in form.move_out_date.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+          </div>
+          <div class="ai-benchmark">
+            <div>
+              <span class="ai-label">AI benchmark</span>
+              <strong>$30 – $40</strong>
+            </div>
+            <button class="info-button" type="button" aria-label="About AI benchmark">i</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-panel consent-panel" aria-labelledby="consent-heading">
+        <h2 id="consent-heading"><span>9.</span> Consent <small>(Optional)</small></h2>
+        <label class="consent-choice">
+          {{ form.bundle_eligible }}
+          <span class="consent-icon bundle-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M5 8h14l1 12H4L5 8Z" />
+              <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+            </svg>
+          </span>
+          <span><strong>Participation in bundle sale</strong><small>Allow buyers to include this item in discounted bundles.</small></span>
+        </label>
+        <label class="consent-choice">
+          {{ form.sell_no_matter_what }}
+          <span class="consent-icon price-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="m13 4 7 7-9 9H4v-7l9-9Z" />
+              <circle cx="8" cy="16" r="1" />
+            </svg>
+          </span>
+          <span><strong>Sell no matter what</strong><small>Allow MoveOn to suggest prices below your minimum as your move-out date approaches. <button class="info-button" type="button" aria-label="About sell no matter what">i</button></small></span>
+        </label>
+      </section>
+    </div>
+
+    <div class="listing-form-footer">
+      <a class="button" href="{% url 'home' %}">Cancel</a>
+      <button class="button primary" type="submit">Preview Listing <span aria-hidden="true">→</span></button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll("[data-character-count]").forEach((counter) => {
+    const field = document.getElementById(`id_${counter.dataset.characterCount}`);
+    if (!field) return;
+    const updateCount = () => {
+      counter.textContent = `${field.value.length} / ${field.maxLength}`;
+    };
+    field.addEventListener("input", updateCount);
+    updateCount();
+  });
+</script>
+{% endblock %}

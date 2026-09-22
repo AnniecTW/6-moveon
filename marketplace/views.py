@@ -9,6 +9,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.shortcuts import redirect, render
 from django.template import loader
+from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView
 from google.auth.exceptions import GoogleAuthError
@@ -17,7 +18,12 @@ from .auth_backend import credential_user, has_campus_access
 from .email_verification import EmailDeliveryError, consume_code, issue_code
 from . import google_auth
 from .models import Listing, User
+from django.views.generic import CreateView, DetailView, ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .featured import decorate_listing
+from .models import Listing
 from .browse import browse_context
+from .forms import ListingCreateForm
 
 
 def _safe_return(request):
@@ -282,3 +288,41 @@ class ListingListView(ListView):  # Naming Pattern: <Model><Purpose>View
         context = super().get_context_data(**kwargs)
         context.update(self.browse)
         return context
+
+
+class ListingDetailView(DetailView):
+    model = Listing
+    template_name = "marketplace/listing_detail.html"
+    context_object_name = "listing"
+    pk_url_kwarg = "primary_key"
+
+    def get_queryset(self):
+        return (
+            Listing.objects.filter(status=Listing.Status.ACTIVE)
+            .select_related("seller", "item_type__category")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["listing"] = decorate_listing(context["listing"])
+        context["similar_listings"] = [
+            decorate_listing(item)
+            for item in (
+                self.get_queryset()
+                .filter(item_type__category_id=self.object.item_type.category_id)
+                .exclude(pk=self.object.pk)[:4]
+            )
+        ]
+        return context
+
+
+class ListingCreateView(LoginRequiredMixin, CreateView):
+    model = Listing
+    form_class = ListingCreateForm
+    template_name = "marketplace/listing_form.html"
+    success_url = reverse_lazy("home")
+
+    def form_valid(self, form):
+        form.instance.seller = self.request.user
+        form.instance.status = Listing.Status.DRAFT
+        return super().form_valid(form)

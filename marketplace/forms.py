@@ -1,4 +1,4 @@
-"""Validated GET parameters shared by every browse view."""
+"""Forms used by the marketplace browse and listing workflows."""
 
 from django import forms
 from .models import ItemCategory, ItemType, Listing
@@ -62,3 +62,42 @@ class BrowseForm(forms.Form):
                 "max_price", "Maximum price must be at least the minimum price."
             )
         return data
+
+
+class ListingCreateForm(forms.ModelForm):
+    """Validate the seller-facing fields used to create a listing."""
+
+    title = forms.CharField(max_length=80)
+    description = forms.CharField(
+        max_length=1000,
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 5}),
+    )
+
+    class Meta:
+        model = Listing
+        fields = [
+            "image_url",
+            "title",
+            "listing_price",
+            "condition",
+            "item_type",
+            "fulfillment_option",
+            "description",
+            "minimum_price",
+            "move_out_date",
+            "bundle_eligible",
+            "sell_no_matter_what",
+        ]
+        widgets = {
+            "image_url": forms.URLInput(
+                attrs={"placeholder": "Paste a photo URL", "type": "url"}
+            ),
+            "listing_price": forms.NumberInput(
+                attrs={"min": "0", "step": "0.01", "placeholder": "Enter your price"}
+            ),
+            "minimum_price": forms.NumberInput(
+                attrs={"min": "0", "step": "0.01", "placeholder": "Enter minimum price"}
+            ),
+            "move_out_date": forms.DateInput(attrs={"type": "date"}),
+        }
