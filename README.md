@@ -128,3 +128,23 @@ python manage.py test
 
 See [Week 3 authentication details](docs/notes/weekly_progress_updates/wk3_authentication.md)
 for account rules, configuration, test coverage, and remaining external checks.
+
+## Messages
+
+The desktop [Messages page](http://127.0.0.1:8000/messages/) supports protected
+conversations, unread counts, Bundle requests, and image messages. For a local
+preview in PowerShell, run these commands from the repository root (seed only
+once if you want to keep existing preview passwords):
+
+```powershell
+& .\.venv\Scripts\python.exe manage.py migrate --settings=moveon.settings.messaging_preview
+& .\.venv\Scripts\python.exe manage.py seed_messaging_preview --settings=moveon.settings.messaging_preview
+& .\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000 --settings=moveon.settings.messaging_preview
+```
+
+To run the focused Messaging tests, use
+`& .\.venv\Scripts\python.exe manage.py test tests.messaging --settings=moveon.settings.development`.
+For a quick manual check, sign in as one preview user, send a message to the
+other, then confirm the recipient's unread badge and reply.
+See [Messaging implementation and local setup](docs/notes/weekly_progress_updates/wk3_messaging.md)
+or jump directly to the [10-minute manual test](docs/notes/weekly_progress_updates/wk3_messaging.md#manual-testing).
