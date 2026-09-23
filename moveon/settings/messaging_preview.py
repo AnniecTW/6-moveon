@@ -4,4 +4,4 @@ from .development import *
 
 DATABASES["default"]["NAME"] = BASE_DIR / "data" / "messaging_preview.sqlite3"
 MEDIA_ROOT = BASE_DIR / "data" / "messaging_preview_media"
-EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+EMAIL_BACKEND = "marketplace.mail_backends.ReadableConsoleEmailBackend"

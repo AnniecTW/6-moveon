@@ -13,7 +13,9 @@ From the repository root in PowerShell:
 & .\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000 --settings=moveon.settings.messaging_preview
 ```
 
-The seed command prints temporary passwords for `alex` and `maya`. Visit `http://127.0.0.1:8000/messages/`. This settings module uses `data/messaging_preview.sqlite3`, private media in `data/messaging_preview_media`, and an in-memory email backend. It does not touch `data/db.sqlite3`.
+The seed command prints temporary passwords for `alex` and `maya`. Visit `http://127.0.0.1:8000/messages/`. This settings module uses `data/messaging_preview.sqlite3` and private media in `data/messaging_preview_media`. Registration and Google sign-in still require MoveOn's campus email verification; the local preview prints the verification code in the runserver terminal without sending real mail. It does not touch `data/db.sqlite3`.
+
+You can also register a new `@illinois.edu` account in this preview, enter the code printed by runserver, and sign in to use the same Messages page and APIs. Google sign-in requires the configured Google client ID and an authorized local origin; its first successful token creates a separate account that also needs MoveOn email verification. The current authentication flow does not automatically link a pre-existing password account with the same email to Google.
 
 Run tests with:
 
