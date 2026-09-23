@@ -38,12 +38,13 @@
         ><span>Sell Item</span>
       </button>
       <a class="button header-bundle-link" href="{% url 'home' %}?bundle=on#listings-heading">Bundle</a>
-      <a class="icon-button{% if request.resolver_match.url_name == 'messages' %} is-active{% endif %}"
-        href="{% url 'messages' %}" aria-label="Messages"{% if request.resolver_match.url_name == 'messages' %} aria-current="page"{% endif %}>
+      <a class="icon-button messages-link{% if request.resolver_match.url_name == 'messages' %} is-active{% endif %}"
+        href="{% url 'messages' %}" aria-label="Messages"{% if campus_access %} data-unread-url="{% url 'messaging_unread' %}"{% endif %}{% if request.resolver_match.url_name == 'messages' %} aria-current="page"{% endif %}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3" y="5" width="18" height="14" rx="2" />
           <path d="m3 6 9 7 9-7" />
         </svg>
+        {% if campus_access %}<span data-message-count hidden>0</span>{% endif %}
       </a>
       <button
         class="icon-button shopping-bag"

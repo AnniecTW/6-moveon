@@ -1,8 +1,11 @@
 import io
 import json
+import os
+import re
 import tempfile
 import uuid
 
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -11,7 +14,7 @@ from PIL import Image
 
 from bundles.models import Bundle, BundleItem
 from marketplace.models import ItemCategory, ItemType, Listing, Transaction, User
-from .models import Conversation, Message, MessageImage
+from messaging.models import Conversation, Message, MessageImage
 
 
 class MessagingApiTests(TestCase):
@@ -55,6 +58,54 @@ class MessagingApiTests(TestCase):
         staff.email_verified = False
         staff.save(update_fields=["email_verified"])
         self.assertEqual(self.client.get(reverse("messaging_conversations")).status_code, 403)
+
+    def test_unread_total_counts_only_other_people_messages(self):
+        first = Message.objects.create(conversation=self.conversation, sender=self.seller,
+                                       body_text="Please reply")
+        Message.objects.create(conversation=self.conversation, sender=self.buyer,
+                               body_text="My own message")
+        self.assertEqual(self.client.get(reverse("messaging_unread")).status_code, 401)
+        self.login(self.other)
+        self.assertEqual(self.client.get(reverse("messaging_unread")).json()["unreadCount"], 0)
+        self.login(self.buyer)
+        self.assertEqual(self.client.get(reverse("messaging_unread")).json()["unreadCount"], 1)
+        self.post_json("messaging_read", self.conversation.pk, data={"messageIds": [first.pk]})
+        self.assertEqual(self.client.get(reverse("messaging_unread")).json()["unreadCount"], 0)
+
+    def test_new_login_entry_replaces_previous_message_destination(self):
+        response = self.client.get(reverse("messages"))
+        self.assertEqual(response.status_code, 302)
+        self.client.get(response.url)
+        self.assertEqual(self.client.session["account_next"], reverse("messages"))
+        self.client.post(reverse("account"), {"mode": "login", "username": "buyer",
+                                                   "password": "wrong"})
+        self.client.get(reverse("account"))
+        self.assertEqual(self.client.session["account_next"], reverse("home"))
+        response = self.client.post(reverse("account"), {"mode": "login",
+            "username": "buyer", "password": "pass12345"})
+        self.assertRedirects(response, reverse("home"))
+
+    def test_signup_tab_keeps_explicit_message_destination(self):
+        self.client.get(reverse("account") + "?next=%2Fmessages%2F")
+        response = self.client.get(reverse("account") + "?mode=signup&next=%2Fmessages%2F")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.session["account_next"], reverse("messages"))
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_signup_verification_from_messages_keeps_destination(self):
+        self.client.get(reverse("account") + "?next=%2Fmessages%2F")
+        self.client.post(reverse("account"), {
+            "mode": "signup", "username": "newbuyer", "email": "newbuyer@illinois.edu",
+            "password1": "A-strong-password-2026", "password2": "A-strong-password-2026",
+        })
+        code = re.search(r"\b\d{6}\b", mail.outbox[-1].body).group()
+        response = self.client.post(reverse("account_verify"), {"code": code})
+        self.assertEqual(response.status_code, 302)
+        self.client.get(response.url)
+        response = self.client.post(reverse("account"), {
+            "mode": "login", "username": "newbuyer", "password": "A-strong-password-2026",
+        })
+        self.assertRedirects(response, reverse("messages"))
 
     def test_participant_scope_search_and_history(self):
         Message.objects.create(conversation=self.conversation, sender=self.seller, body_text="secret")
@@ -213,11 +264,25 @@ class MessagingApiTests(TestCase):
         self.login(self.buyer)
         response = self.client.post(reverse("messaging_upload"), {
             "conversationId": self.conversation.pk,
-            "file": SimpleUploadedFile("large.png", b"x" * (5 * 1024 * 1024 + 1),
+            "file": SimpleUploadedFile("large.png", b"x" * (10 * 1024 * 1024 + 1),
                                        content_type="image/png"),
         })
         self.assertEqual(response.status_code, 400)
         self.assertEqual(MessageImage.objects.count(), 0)
+
+    def test_valid_image_between_five_and_ten_megabytes_is_accepted(self):
+        raw = os.urandom(1500 * 1500 * 3)
+        data = io.BytesIO()
+        Image.frombytes("RGB", (1500, 1500), raw).save(data, format="PNG")
+        self.assertGreater(len(data.getvalue()), 5 * 1024 * 1024)
+        self.assertLess(len(data.getvalue()), 10 * 1024 * 1024)
+        with tempfile.TemporaryDirectory() as directory, override_settings(MEDIA_ROOT=directory):
+            self.login(self.buyer)
+            response = self.client.post(reverse("messaging_upload"), {
+                "conversationId": self.conversation.pk,
+                "file": SimpleUploadedFile("large-valid.png", data.getvalue(), content_type="image/png"),
+            })
+            self.assertEqual(response.status_code, 201)
 
     def test_image_cannot_bind_to_another_conversation_or_exceed_three(self):
         with tempfile.TemporaryDirectory() as directory, override_settings(MEDIA_ROOT=directory):

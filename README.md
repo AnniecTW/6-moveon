@@ -122,7 +122,7 @@ require campus email verification.
 
 ```bash
 python manage.py createsuperuser
-python manage.py test marketplace.test_auth
+python manage.py test tests.marketplace.test_auth
 python manage.py test
 ```
 

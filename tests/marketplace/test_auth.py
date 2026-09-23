@@ -387,7 +387,7 @@ class AdminAccessTests(TestCase):
         self.assertIsNone(user.email_verified_at)
 
 
-@override_settings(ROOT_URLCONF="marketplace.test_auth_urls")
+@override_settings(ROOT_URLCONF="tests.marketplace.test_auth_urls")
 class CampusRouteAccessTests(TestCase):
     def assert_sent_to_account(self, response):
         self.assertEqual(response.status_code, 302)

@@ -98,7 +98,7 @@
             <button
               class="messaging__attach"
               type="button"
-              aria-label="Attach images (max 3, 5MB each)"
+              aria-label="Attach images (max 3, 10MB each)"
               data-attach-btn
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -134,3 +134,9 @@
 
   </div><!-- /.messaging__body -->
 </main><!-- /.messaging -->
+<dialog class="messaging__image-viewer" data-image-viewer aria-label="Image preview">
+  <button type="button" class="messaging__image-viewer-close" data-image-viewer-close aria-label="Close image preview">×</button>
+  <div class="messaging__image-viewer-stage">
+    <img data-image-viewer-image alt="Full-size message attachment" />
+  </div>
+</dialog>

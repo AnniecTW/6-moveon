@@ -3,7 +3,7 @@ import { setupDrawer } from "./marketplace/drawer.js";
 import { setupFavorites } from "./marketplace/favorites.js";
 import { setupBrowse } from "./marketplace/browse.js";
 import { setupHotspots } from "./marketplace/hotspots.js";
-import { setupHeader } from "./marketplace/header.js";
+import { setupHeader } from "./marketplace/header.js?v=2";
 
 setupCarousel();
 setupHotspots();

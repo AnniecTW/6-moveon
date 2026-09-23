@@ -497,6 +497,60 @@
   border-radius: 8px;
   border: 1px solid var(--border);
 }
+.messaging__bubble-images button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+.messaging__bubble-images button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.messaging__image-viewer {
+  position: fixed;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  max-width: 95vw;
+  max-height: 95vh;
+  background: var(--canvas);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 24%);
+}
+.messaging__image-viewer::backdrop {
+  background: rgb(25 21 17 / 50%);
+  backdrop-filter: blur(8px);
+}
+.messaging__image-viewer-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(80vw, 1000px);
+  height: min(80vh, 760px);
+  overflow: auto;
+}
+.messaging__image-viewer-stage img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transform-origin: center;
+}
+.messaging__image-viewer-close {
+  position: absolute;
+  z-index: 1;
+  top: 4px;
+  right: 6px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 24px;
+  cursor: pointer;
+}
 
 /* ============================================================
    BUNDLE REQUEST CARD

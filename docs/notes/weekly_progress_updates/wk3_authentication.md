@@ -87,7 +87,7 @@ email. School SSO remains a future integration.
 ## Test evidence and remaining checks
 
 ```bash
-python manage.py test marketplace.test_auth
+python manage.py test tests.marketplace.test_auth
 python manage.py test
 python manage.py check
 python manage.py makemigrations --check --dry-run

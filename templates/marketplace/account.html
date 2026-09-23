@@ -41,14 +41,15 @@
 
     {% if auth_mode == 'login' or auth_mode == 'signup' %}
       <nav class="account-tabs" aria-label="Account access">
-        <a href="{% url 'account' %}"{% if auth_mode == 'login' %} aria-current="page"{% endif %}>Log in</a>
-        <a href="{% url 'account' %}?mode=signup"{% if auth_mode == 'signup' %} aria-current="page"{% endif %}>Create account</a>
+        <a href="{% url 'account' %}?next={{ account_next|urlencode }}"{% if auth_mode == 'login' %} aria-current="page"{% endif %}>Log in</a>
+        <a href="{% url 'account' %}?mode=signup&amp;next={{ account_next|urlencode }}"{% if auth_mode == 'signup' %} aria-current="page"{% endif %}>Create account</a>
       </nav>
       {% if reset_done %}<p class="account-notice" role="status">Password updated. Log in with your new password.</p>{% endif %}
       {% if google_error %}<div class="account-errors" role="alert">{{ google_error }}</div>{% endif %}
       <form method="post" action="{% url 'account' %}" class="account-form">
         {% csrf_token %}
         <input type="hidden" name="mode" value="{{ auth_mode }}" />
+        <input type="hidden" name="next" value="{{ account_next }}" />
         {% if auth_form.non_field_errors %}<div class="account-errors" role="alert">{{ auth_form.non_field_errors }}</div>{% endif %}
         <div class="account-field">
           <label for="id_username">{% if auth_mode == 'login' %}Username or campus email{% else %}Username{% endif %}</label>
@@ -91,8 +92,8 @@
         <p class="account-hint account-center">Google sign-in needs app configuration.</p>
       {% endif %}
       {% if auth_mode == 'login' %}
-        <p class="account-return">After logging in, you'll return to the main page.</p>
-        <p class="account-switch">Don't have an account? <a href="{% url 'account' %}?mode=signup">Create one</a></p>
+        <p class="account-return">After logging in, you'll return to {% if return_to_messages %}Messages{% else %}the main page{% endif %}.</p>
+        <p class="account-switch">Don't have an account? <a href="{% url 'account' %}?mode=signup&amp;next={{ account_next|urlencode }}">Create one</a></p>
       {% endif %}
     {% elif auth_mode == 'restricted' %}
       {% if restricted_admin %}<p class="account-switch"><a href="{% url 'admin:index' %}">Open Django administration</a></p>{% endif %}

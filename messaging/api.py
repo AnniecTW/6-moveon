@@ -21,7 +21,7 @@ from marketplace.models import Listing, Transaction
 from .models import Conversation, Message, MessageImage
 
 PAGE_SIZE = 30
-MAX_IMAGE_BYTES = 5 * 1024 * 1024
+MAX_IMAGE_BYTES = 10 * 1024 * 1024
 IMAGE_FORMATS = {"JPEG": ("image/jpeg", ".jpg"), "PNG": ("image/png", ".png"),
                  "WEBP": ("image/webp", ".webp"), "GIF": ("image/gif", ".gif")}
 
@@ -158,6 +158,17 @@ def conversations(request):
     return JsonResponse({"conversations": [conversation_data(c, request.user) for c in qs]})
 
 
+@require_GET
+def unread(request):
+    count = Message.objects.filter(
+        Q(conversation__buyer=request.user) | Q(conversation__seller=request.user),
+        is_read=False,
+    ).exclude(sender=request.user).count()
+    response = JsonResponse({"unreadCount": count})
+    response["Cache-Control"] = "private, no-store"
+    return response
+
+
 @require_POST
 def create(request):
     payload = data(request)
@@ -255,7 +266,7 @@ def upload(request):
     conversation = participant(request, request.POST.get("conversationId"))
     file = request.FILES.get("file")
     if not file or file.size > MAX_IMAGE_BYTES or file.size == 0:
-        return error("Choose an image of 5MB or less.")
+        return error("Choose an image of 10MB or less.")
     try:
         file.seek(0)
         with Image.open(file) as image:

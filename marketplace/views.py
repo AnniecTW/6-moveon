@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.http import HttpResponse
 from django.contrib.auth import login, logout
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
@@ -30,6 +32,8 @@ def _account_context(request, **extra):
     context.update(extra)
     context["auth_overlay"] = True
     context["google_client_id"] = settings.GOOGLE_CLIENT_ID
+    context["account_next"] = request.session.get("account_next", reverse("home"))
+    context["return_to_messages"] = context["account_next"].startswith(reverse("messages"))
     context["console_email_backend"] = settings.EMAIL_BACKEND in (
         "marketplace.mail_backends.ReadableConsoleEmailBackend",
         "django.core.mail.backends.console.EmailBackend",
@@ -42,6 +46,13 @@ def _pending_user(request):
     return User.objects.filter(pk=uid).first() if uid else None
 
 
+def _account_after_verification(request):
+    target = _safe_return(request)
+    if target == reverse("home"):
+        return redirect("account")
+    return redirect(reverse("account") + "?" + urlencode({"next": target}))
+
+
 def account_view(request):
     if request.user.is_authenticated:
         if has_campus_access(request.user):
@@ -52,7 +63,12 @@ def account_view(request):
         ))
 
     if request.method == "GET":
-        request.session["account_next"] = _safe_return(request)
+        target = request.GET.get("next")
+        request.session["account_next"] = (
+            target if target and url_has_allowed_host_and_scheme(
+                target, {request.get_host()}, require_https=request.is_secure()
+            ) else reverse("home")
+        )
     mode = request.POST.get("mode") if request.method == "POST" else request.GET.get("mode")
     mode = "signup" if mode == "signup" else "login"
     data = request.POST if request.method == "POST" else None
@@ -101,7 +117,7 @@ def account_verify_view(request):
         return redirect("account")
     if has_campus_access(user):
         request.session.pop("pending_verification_user_id", None)
-        return redirect("account")
+        return _account_after_verification(request)
     error = None
     if request.method == "POST":
         code = request.POST.get("code", "").strip()
@@ -111,7 +127,7 @@ def account_verify_view(request):
             error = consume_code(user, code)
             if error is None:
                 request.session.pop("pending_verification_user_id", None)
-                return redirect("account")
+                return _account_after_verification(request)
     delivery_error = request.session.pop("verification_delivery_error", False)
     cooldown = request.session.pop("verification_cooldown", False)
     resent = request.session.pop("verification_resent", False)

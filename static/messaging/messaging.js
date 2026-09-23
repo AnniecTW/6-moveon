@@ -5,7 +5,7 @@
   /* ==========================================================
      1. CONSTANTS & CONFIG
      ========================================================== */
-  const ATTACH_LIMITS = { maxCount: 3, maxBytes: 5 * 1024 * 1024 };
+  const ATTACH_LIMITS = { maxCount: 3, maxBytes: 10 * 1024 * 1024 };
   const config = JSON.parse(document.getElementById("messaging-config").textContent);
   const endpoint = (template, id) => template.replace("__id__", encodeURIComponent(id));
   const csrf = () => document.cookie.split("; ").find((part) => part.startsWith("csrftoken="))?.split("=")[1] || "";
@@ -45,6 +45,14 @@
 
   // Root + cached DOM references (filled in bootstrap()).
   const dom = {};
+  let imageScale = 1;
+  function openImage(src) {
+    if (!dom.imageViewer || !dom.imageViewerImage) return;
+    imageScale = 1;
+    dom.imageViewerImage.style.transform = "scale(1)";
+    dom.imageViewerImage.src = src;
+    dom.imageViewer.showModal();
+  }
   function showError(message) {
     if (!dom.notice) return;
     dom.notice.hidden = false;
@@ -367,10 +375,15 @@
     if (msg.images && msg.images.length) {
       const imgs = el("div", "messaging__bubble-images");
       msg.images.forEach((src) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.setAttribute("aria-label", "Enlarge image attachment");
         const im = document.createElement("img");
         im.src = src;
         im.alt = "attachment";
-        imgs.appendChild(im);
+        button.appendChild(im);
+        button.addEventListener("click", () => openImage(src));
+        imgs.appendChild(button);
       });
       bubble.appendChild(imgs);
     }
@@ -379,7 +392,9 @@
     // Meta row: time + sending/failed status + retry.
     const meta = el("div", "messaging__meta");
     meta.appendChild(el("span", "messaging__meta-time", esc(timeLabel(msg.timestamp))));
-    if (msg.mine && msg.status === "sending") {
+    if (msg.mine && msg.status === "waiting") {
+      meta.appendChild(el("span", "messaging__meta-sending", "· Waiting for image…"));
+    } else if (msg.mine && msg.status === "sending") {
       meta.appendChild(el("span", "messaging__meta-sending", "· Sending…"));
     } else if (msg.mine && msg.status === "failed") {
       meta.appendChild(el("span", "messaging__meta-failed", ICON.alert + " Not sent"));
@@ -552,7 +567,7 @@
         break;
       }
       if (file.size > ATTACH_LIMITS.maxBytes) {
-        alert('"' + file.name + '" is larger than 5MB and was skipped.');
+        alert('"' + file.name + '" is larger than 10MB and was skipped.');
         continue;
       }
       if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
@@ -743,11 +758,37 @@
       ids.forEach((id) => state.readDone.add(id));
       conv.unreadCount = result.unreadCount;
       renderList();
+      window.dispatchEvent(new Event("messaging:unread-changed"));
     } catch (e) {
       if (e.code === "auth") showError(e.message);
     } finally {
       ids.forEach((id) => state.readInFlight.delete(id));
     }
+  }
+
+  async function sendOptimistic(conv, msg) {
+    if (!conv || !msg || msg.status === "sending" || msg.status === "sent") return;
+    msg.status = "sending";
+    if (state.activeId === conv.id) renderThread(conv);
+    try {
+      const res = await Adapter.sendMessage(conv.id, msg.text, msg._uploadedIds || [], msg.clientRequestId);
+      const current = getConversation(conv.id) || conv;
+      Object.assign(msg, res);
+      current.messages = current.messages.filter((other) => other === msg || other.id !== res.id);
+      current.lastActivity = res.timestamp;
+      const followup = current.messages.find((other) => other.id === msg._followupId);
+      if (followup?.status === "waiting") {
+        if (state.activeId === conv.id) renderThread(current);
+        renderList();
+        await sendOptimistic(current, followup);
+        return;
+      }
+    } catch (e) {
+      msg.status = "failed";
+      msg.error = e.message;
+    }
+    if (state.activeId === conv.id) renderThread(getConversation(conv.id) || conv);
+    renderList();
   }
 
   async function sendCurrentMessage() {
@@ -762,18 +803,20 @@
     const images = attachments;
     if (!text && !images.length) return;
 
-    const optimistic = {
-      id: "m-local-" + crypto.randomUUID(),
-      clientRequestId: crypto.randomUUID(),
-      mine: true,
-      text: text,
-      images: images.map((a) => a.url),
-      _uploadedIds: images.map((a) => a.uploadedId),
-      timestamp: new Date().toISOString(),
-      status: "sending",
-    };
-    conv.messages.push(optimistic);
-    conv.lastActivity = optimistic.timestamp;
+    const outgoing = [];
+    function queue(body, imageAttachments) {
+      outgoing.push({
+        id: "m-local-" + crypto.randomUUID(), clientRequestId: crypto.randomUUID(),
+        mine: true, text: body, images: imageAttachments.map((a) => a.url),
+        _uploadedIds: imageAttachments.map((a) => a.uploadedId),
+        timestamp: new Date().toISOString(), status: "waiting",
+      });
+    }
+    if (images.length) queue("", images);
+    if (text) queue(text, []);
+    if (outgoing.length === 2) outgoing[0]._followupId = outgoing[1].id;
+    conv.messages.push(...outgoing);
+    conv.lastActivity = outgoing[outgoing.length - 1].timestamp;
 
     // Clear composer immediately (optimistic UI).
     dom.messageInput.value = "";
@@ -783,37 +826,15 @@
     if (state.activeId === conv.id) renderThread(conv, true);
     renderList();
 
-    try {
-      const res = await Adapter.sendMessage(conv.id, text, optimistic._uploadedIds, optimistic.clientRequestId);
-      Object.assign(optimistic, res);
-      conv.messages = conv.messages.filter((m) => m === optimistic || m.id !== res.id);
-      conv.lastActivity = res.timestamp;
-    } catch (e) {
-      optimistic.status = "failed";
-      optimistic.error = e.message;
-    }
-    if (state.activeId === conv.id) renderThread(conv);
-    renderList();
+    await sendOptimistic(conv, outgoing[0]);
   }
 
   async function retrySend(convId, msgId) {
     const conv = getConversation(convId);
     if (!conv) return;
     const msg = conv.messages.find((m) => m.id === msgId);
-    if (!msg || msg.status === "sending") return;
-    msg.status = "sending";
-    if (state.activeId === conv.id) renderThread(conv);
-    try {
-      const res = await Adapter.sendMessage(conv.id, msg.text, msg._uploadedIds || [], msg.clientRequestId);
-      Object.assign(msg, res);
-      conv.messages = conv.messages.filter((m) => m === msg || m.id !== res.id);
-      conv.lastActivity = res.timestamp;
-    } catch (e) {
-      msg.status = "failed";
-      msg.error = e.message;
-    }
-    if (state.activeId === conv.id) renderThread(conv);
-    renderList();
+    if (!msg || msg.status !== "failed") return;
+    await sendOptimistic(conv, msg);
   }
 
   function wireEvents() {
@@ -897,7 +918,11 @@
           for (const message of page.messages) {
             if (seen.has(message.id)) continue;
             const optimistic = conv.messages.find((oldMessage) => oldMessage.clientRequestId && oldMessage.clientRequestId === message.clientRequestId);
-            if (optimistic) Object.assign(optimistic, message);
+            if (optimistic) {
+              Object.assign(optimistic, message);
+              const followup = conv.messages.find((oldMessage) => oldMessage.id === optimistic._followupId);
+              if (followup?.status === "waiting") queueMicrotask(() => sendOptimistic(conv, followup));
+            }
             else conv.messages.push(message);
             seen.add(message.id);
             changed = true;
@@ -939,6 +964,18 @@
     dom.messageInput = root.querySelector("[data-message-input]");
     dom.sendBtn = root.querySelector("[data-send-btn]");
     dom.notice = root.querySelector("[data-messaging-notice]");
+    dom.imageViewer = document.querySelector("[data-image-viewer]");
+    dom.imageViewerImage = dom.imageViewer?.querySelector("[data-image-viewer-image]");
+    dom.imageViewer?.querySelector("[data-image-viewer-close]")?.addEventListener("click", () => dom.imageViewer.close());
+    dom.imageViewer?.addEventListener("close", () => {
+      dom.imageViewerImage.removeAttribute("src");
+      imageScale = 1;
+    });
+    dom.imageViewer?.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      imageScale = Math.max(0.5, Math.min(4, imageScale * (event.deltaY < 0 ? 1.15 : 1 / 1.15)));
+      dom.imageViewerImage.style.transform = `scale(${imageScale})`;
+    }, { passive: false });
     dom.thread.addEventListener("scroll", () => requestAnimationFrame(markVisibleRead), { passive: true });
 
     if (dom.list) dom.list.innerHTML = '<li class="messaging__list-empty"><div class="messaging__list-empty-body">Loading…</div></li>';

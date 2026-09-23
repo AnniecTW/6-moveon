@@ -25,6 +25,7 @@ urlpatterns = [
     path("messages/", messaging_api.page, name="messages"),
     path("api/messaging/bundles/<int:bundle_id>/send-requests/", messaging_api.api_guard(bundle_messaging.send_requests), name="bundle_send_requests"),
     path("api/messaging/conversations/", messaging_api.api_guard(messaging_api.conversations), name="messaging_conversations"),
+    path("api/messaging/unread/", messaging_api.api_guard(messaging_api.unread), name="messaging_unread"),
     path("api/messaging/conversations/create/", messaging_api.api_guard(messaging_api.create), name="messaging_create"),
     path("api/messaging/conversations/<str:conversation_id>/messages/", messaging_api.api_guard(messaging_api.messages), name="messaging_messages"),
     path("api/messaging/conversations/<str:conversation_id>/read/", messaging_api.api_guard(messaging_api.mark_read), name="messaging_read"),
