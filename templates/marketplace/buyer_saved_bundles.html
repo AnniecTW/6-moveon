@@ -12,9 +12,8 @@
       </header>
 
       <div class="bundle-financials" aria-label="Bundle financial summary">
-        <div><span>Target budget</span><strong>${{ row.target_budget|floatformat:0 }}</strong></div>
         <div><span>Current total</span><strong>${{ row.current_total|floatformat:0 }}</strong></div>
-        <div class="bundle-saved"><span>Saved</span><strong>${{ row.saved_amount|floatformat:0 }}</strong></div>
+        <div class="bundle-saved"><span>Saved</span><strong>{% if row.saved_amount is not None %}${{ row.saved_amount|floatformat:0 }}{% endif %}</strong></div>
         <div class="bundle-confirmation-progress"><span>Seller confirmations</span><strong>{{ row.confirmed_count }} of {{ row.total_items }} confirmed</strong><progress value="{{ row.confirmed_count }}" max="{{ row.total_items|default:1 }}">{{ row.progress_percent }}%</progress></div>
       </div>
 

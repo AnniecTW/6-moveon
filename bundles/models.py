@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
+import uuid
 
 from marketplace.models import ItemType, Listing
 from marketplace.validation import ValidatedSaveModel, database_for
@@ -34,6 +35,7 @@ class Bundle(models.Model):
         CONFIRMED = "CONFIRMED", "Confirmed"
         CANCELLED = "CANCELLED", "Cancelled"
 
+    bundle_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     buyer = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bundles"
     )
@@ -68,8 +70,16 @@ class BundleCategory(models.Model):
     item_type = models.ForeignKey(
         ItemType, on_delete=models.PROTECT, related_name="bundle_categories"
     )
+    bundle_item = models.ForeignKey(
+        "BundleItem",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="category_requirements",
+    )
 
     class Meta:
+        verbose_name_plural = "Bundle categories"
         ordering = ["bundle", "item_type"]
         constraints = [
             models.UniqueConstraint(
@@ -79,6 +89,18 @@ class BundleCategory(models.Model):
 
     def __str__(self):
         return f"{self.bundle}: wants {self.item_type.item_type_name}"
+
+    def clean(self):
+        super().clean()
+        if self.bundle_item_id:
+            if self.bundle_item.bundle_id != self.bundle_id:
+                raise ValidationError(
+                    {"bundle_item": "The bundle item must belong to this bundle."}
+                )
+            if self.bundle_item.listing.item_type_id != self.item_type_id:
+                raise ValidationError(
+                    {"bundle_item": "The bundle item must match this requested item type."}
+                )
 
 
 class BundleItem(ValidatedSaveModel):

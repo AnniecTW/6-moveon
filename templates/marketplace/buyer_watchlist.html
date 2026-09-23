@@ -13,15 +13,15 @@
 
   <div class="watchlist-items" data-watchlist-items>
     {% for listing in watchlist_candidates %}
-    <article class="watchlist-row" data-watchlist-row data-listing-id="{{ listing.pk }}" data-watchlist-category-value="{{ listing.item_type.category.category_name|lower }}" data-watchlist-price="{{ listing.listing_price }}" data-watchlist-created="{{ listing.created_at|date:'U' }}">
+    <article class="watchlist-row" data-watchlist-row data-listing-id="{{ listing.pk }}" data-watchlist-category-value="{{ listing.item_type.category.category_name|lower }}" data-watchlist-price="{{ listing.listing_price }}" data-watchlist-created="{{ listing.watchlisted_at|date:'U' }}">
       <div class="watchlist-item">
         <div class="watchlist-image">{% if listing.display_image_url %}<img src="{{ listing.display_image_url }}" alt="{{ listing.title }}" />{% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM7 7l2-3h6l2 3M8 12h8M8 16h5"/></svg>{% endif %}<button class="watchlist-heart" type="button" data-watchlist-action="remove" aria-label="Remove {{ listing.title }} from watchlist"><span aria-hidden="true">&#9829;</span></button></div>
-        <div><span class="pickup-label">Item</span><h3>{{ listing.title }}</h3><small>{{ listing.item_type.category.category_name }} &middot; {{ listing.item_type.item_type_name }}</small>{% if listing.bundle_eligible %}<span class="watchlist-bundle-tag">Bundle eligible</span>{% endif %}</div>
+        <div><span class="pickup-label">Item</span><h3>{{ listing.title }}</h3><small>{{ listing.item_type.category.category_name }} &middot; {{ listing.item_type.item_type_name }}</small><span class="watchlist-bundle-tag{% if not listing.bundle_eligible %} not-eligible{% endif %}">{% if listing.bundle_eligible %}Bundle eligible{% else %}Not bundle eligible{% endif %}</span></div>
       </div>
-      <div class="watchlist-price"><span class="pickup-label">Current price</span><strong>${{ listing.listing_price|floatformat:0 }}</strong><small>Estimated retail ${{ listing.reference_value|floatformat:0 }}</small>{% if listing.discount_percent %}<b>{{ listing.discount_percent|floatformat:0 }}% savings</b>{% endif %}</div>
+      <div class="watchlist-price"><span class="pickup-label">Current price</span><strong>${{ listing.listing_price|floatformat:0 }}</strong></div>
       <div class="watchlist-seller"><span class="pickup-label">Seller</span><strong>{{ listing.seller.display_name|default:listing.seller.username }}</strong><small>{% if listing.seller.email_verified %}&#10003; Verified seller{% else %}Verification pending{% endif %}</small></div>
       <div class="watchlist-actions">
-        <button class="button" type="button" data-watchlist-action="message">Message Seller</button>
+        <a class="button" href="{% url 'messages' %}?listing={{ listing.pk }}">Message Seller</a>
         <button class="button" type="button" data-watchlist-action="bundle"{% if not listing.bundle_eligible %} disabled{% endif %}>Add to Bundle</button>
         <button class="button watchlist-remove" type="button" data-watchlist-action="remove">Remove from Watchlist</button>
       </div>

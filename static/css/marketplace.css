@@ -2,6 +2,6 @@
 @import url("./marketplace/layout.css");
 @import url("./marketplace/components.css");
 @import url("./marketplace/featured.css");
-
-
-@import url("./marketplace/seller.css");
+@import url("./marketplace/account.css");
+@import url("./marketplace/detail.css");
+@import url("./marketplace/listing-form.css");

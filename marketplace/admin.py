@@ -9,6 +9,7 @@ from .models import (
     PriceRecommendation,
     Transaction,
     User,
+    WatchlistItem,
 )
 
 
@@ -50,6 +51,7 @@ class ItemTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Listing)
 class ListingAdmin(admin.ModelAdmin):
+    readonly_fields = ("views",)
     class ListingImageInline(admin.TabularInline):
         model = ListingImage
         extra = 0
@@ -58,6 +60,7 @@ class ListingAdmin(admin.ModelAdmin):
 
     list_display = (
         "title",
+        "views",
         "seller",
         "item_type",
         "listing_price",
@@ -93,3 +96,9 @@ class TransactionAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("status",)
+
+
+@admin.register(WatchlistItem)
+class WatchlistItemAdmin(admin.ModelAdmin):
+    list_display = ("user", "listing", "created_at")
+    search_fields = ("user__username", "listing__title")

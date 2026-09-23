@@ -20,6 +20,7 @@ class Conversation(ValidatedSaveModel):
     separate participant roles.
     """
 
+    conversation_uid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     listing = models.ForeignKey(
         Listing,
         on_delete=models.SET_NULL,

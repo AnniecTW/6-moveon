@@ -29,11 +29,6 @@ async function swapDashboard(url, { push = true } = {}) {
 
     document.dispatchEvent(new CustomEvent("dashboard:before-swap"));
     current.replaceWith(replacement);
-    const nextModeSwitch = documentCopy.querySelector(".mode-switch");
-    const currentModeSwitch = document.querySelector(".mode-switch");
-    if (nextModeSwitch && currentModeSwitch) {
-      currentModeSwitch.replaceWith(nextModeSwitch);
-    }
     document.title = documentCopy.title;
     if (push) history.pushState({ dashboard: true }, "", url);
     document.dispatchEvent(new CustomEvent("dashboard:content-loaded", { detail: { url } }));

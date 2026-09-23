@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -137,7 +139,14 @@ class Listing(ValidatedSaveModel):
         SOLD = "SOLD", "Sold"
         INACTIVE = "INACTIVE", "Inactive"
 
+    class PricingPlan(models.TextChoices):
+        BALANCED = "BALANCED", "Balanced"
+        MAXIMIZE_VALUE = "MAXIMIZE_VALUE", "Maximize Value"
+        SELL_BEFORE_MOVE = "SELL_BEFORE_MOVE", "Sell Before I Move"
+
+    listing_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     MAX_IMAGES = 8
+
 
     seller = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="listings"
@@ -172,6 +181,8 @@ class Listing(ValidatedSaveModel):
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.DRAFT
     )
+    pricing_plan = models.CharField(max_length=20, choices=PricingPlan.choices, blank=True, default="")
+    views = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -264,6 +275,34 @@ def delete_listing_image_file(sender, instance, **kwargs):
         instance.image.storage.delete(instance.image.name)
 
 
+class WatchlistItem(models.Model):
+    """A listing saved to a user's persistent marketplace watchlist."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="watchlist_items",
+    )
+    listing = models.ForeignKey(
+        Listing,
+        on_delete=models.CASCADE,
+        related_name="watchlist_entries",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "listing"],
+                name="unique_listing_per_user_watchlist",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user}: {self.listing.title}"
+
+
 class PriceRecommendation(models.Model):
     """
     Represents one AI-generated price-change suggestion for a listing,
@@ -315,6 +354,8 @@ class Transaction(ValidatedSaveModel):
         COMPLETED = "COMPLETED", "Completed"
         CANCELLED = "CANCELLED", "Cancelled"
 
+    transaction_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    conversation = models.ForeignKey("messaging.Conversation", on_delete=models.SET_NULL, null=True, blank=True, related_name="transactions")
     listing = models.ForeignKey(
         Listing, on_delete=models.PROTECT, related_name="transactions"
     )
@@ -370,6 +411,14 @@ class Transaction(ValidatedSaveModel):
             else None
         )
         errors = participant_errors(self.buyer_id, self.seller_id, owner_id)
+        if self.conversation_id:
+            conversation = self.conversation
+            if conversation.listing_id != self.listing_id:
+                errors["conversation"] = "The conversation must reference this listing."
+            elif conversation.buyer_id != self.buyer_id:
+                errors["conversation"] = "The conversation must reference this buyer."
+            elif conversation.seller_id != self.seller_id:
+                errors["conversation"] = "The conversation must reference this seller."
         if errors:
             raise ValidationError(errors)
 

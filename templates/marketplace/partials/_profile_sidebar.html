@@ -3,9 +3,6 @@
   <h2>{{ profile.name }}</h2>
   <ul class="profile-facts">
     <li><span aria-hidden="true">&#10003;</span> {% if profile.verified %}Verified email{% else %}Verification pending{% endif %}</li>
-    <li><span aria-hidden="true">&#9670;</span> {{ profile.program }}</li>
-    <li><span aria-hidden="true">&#9733;</span> {{ profile.rating }} <small>({{ profile.review_count }} reviews)</small></li>
-    <li><span aria-hidden="true">&#9679;</span> {{ profile.meetup }}</li>
   </ul>
-  <a class="button profile-button" href="#profile-settings">Edit Profile / Notification Preferences</a>
+  <a class="button profile-button" href="#profile-settings">Edit Profile</a>
 </aside>

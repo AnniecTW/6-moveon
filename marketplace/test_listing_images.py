@@ -208,6 +208,49 @@ class ListingImageFormTests(ListingImageTestMixin, TestCase):
 class LegacyListingImageMigrationTests(TransactionTestCase):
     reset_sequences = True
 
+    def test_profile_upload_is_preserved_without_replacing_week3_cover(self):
+        from django.db.migrations.executor import MigrationExecutor
+        from django.core.files.base import ContentFile
+        from tempfile import TemporaryDirectory
+
+        before = [("marketplace", "0015_merge_20260923_2310")]
+        after = [("marketplace", "0016_consolidate_profile_images")]
+        self.addCleanup(self.restore_latest_migrations)
+        executor = MigrationExecutor(connection)
+        executor.migrate(before)
+        apps = executor.loader.project_state(before).apps
+        User = apps.get_model("marketplace", "User")
+        Category = apps.get_model("marketplace", "ItemCategory")
+        ItemType = apps.get_model("marketplace", "ItemType")
+        Listing = apps.get_model("marketplace", "Listing")
+        ListingImage = apps.get_model("marketplace", "ListingImage")
+        user = User.objects.create(username="profile-migration", email="migration@illinois.edu")
+        category = Category.objects.create(category_name="Migration")
+        item_type = ItemType.objects.create(category=category, item_type_name="Chair")
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            listing = Listing.objects.create(
+                seller=user, item_type=item_type, title="Preserved chair", listing_price=10,
+                condition="GOOD", fulfillment_option="BOTH", status="ACTIVE",
+            )
+            listing.image.save("legacy.jpg", ContentFile(b"preserved-upload"))
+            legacy_name = listing.image.name
+            cover = ListingImage.objects.create(
+                listing=listing, uploaded_by=user, external_url="https://example.invalid/current.jpg", position=0,
+            )
+            executor = MigrationExecutor(connection)
+            executor.migrate(after)
+            current = executor.loader.project_state(after).apps
+            CurrentListing = current.get_model("marketplace", "Listing")
+            CurrentImage = current.get_model("marketplace", "ListingImage")
+            images = CurrentImage.objects.filter(listing_id=listing.pk).order_by("position", "pk")
+            self.assertEqual(images.count(), 2)
+            self.assertEqual(images[0].pk, cover.pk)
+            self.assertEqual(images[1].image.name, legacy_name)
+            with images[1].image.open("rb") as image:
+                self.assertEqual(image.read(), b"preserved-upload")
+            self.assertEqual(CurrentListing.objects.get(pk=listing.pk).fulfillment_option, "BOTH")
+            self.assertNotIn("image", [field.name for field in CurrentListing._meta.fields])
+
     def restore_latest_migrations(self):
         from django.db.migrations.executor import MigrationExecutor
 
@@ -221,6 +264,9 @@ class LegacyListingImageMigrationTests(TransactionTestCase):
         migrate_to = [("marketplace", "0010_listingimage")]
         executor = MigrationExecutor(connection)
         self.addCleanup(self.restore_latest_migrations)
+        # Roll both marketplace branches back to their common ancestor first.
+        executor.migrate([("marketplace", "0006_remove_either_fulfillment")])
+        executor = MigrationExecutor(connection)
         executor.migrate(migrate_from)
         old_apps = executor.loader.project_state(migrate_from).apps
         User = old_apps.get_model("marketplace", "User")

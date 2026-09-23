@@ -1,19 +1,8 @@
 let pendingCancelCard;
-const WATCHLIST_KEY = "moveon:favorites";
-
-function readWatchlist() {
-  try {
-    const value = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || "[]");
-    return new Set(Array.isArray(value) ? value.map(String) : []);
-  } catch {
-    return new Set();
-  }
-}
 
 function paintWatchlist() {
   const page = document.querySelector("[data-watchlist-page]");
   if (!page) return;
-  const saved = readWatchlist();
   const category = page.querySelector("[data-watchlist-category]")?.value || "all";
   const sort = page.querySelector("[data-watchlist-sort]")?.value || "recent";
   let visible = 0;
@@ -24,9 +13,8 @@ function paintWatchlist() {
     return Number(b.dataset.watchlistCreated) - Number(a.dataset.watchlistCreated);
   }).forEach((row) => page.querySelector("[data-watchlist-items]")?.append(row));
   rows.forEach((row) => {
-    const active = saved.has(row.dataset.listingId) && (
-      category === "all" || row.dataset.watchlistCategoryValue === category
-    );
+    const active = category === "all" || row.dataset.watchlistCategoryValue === category;
+    row.hidden = !active;
     row.classList.toggle("is-saved", active);
     visible += Number(active);
   });
@@ -50,11 +38,11 @@ function updateBuyerChart() {
     selectedTypes.has(point.type) && (!start || point.date >= start) && (!end || point.date <= end)
   ));
   const spent = filtered.reduce((sum, point) => sum + Number(point.spent || 0), 0);
-  const saved = filtered.reduce((sum, point) => sum + Number(point.saved || 0), 0);
-  const scale = Math.max(spent, saved, 1);
+  const earned = filtered.reduce((sum, point) => sum + Number(point.earned || 0), 0);
+  const scale = Math.max(spent, earned, 1);
   const money = (value) => `$${Math.round(value).toLocaleString()}`;
-  for (const key of ["spent", "saved"]) {
-    const value = key === "spent" ? spent : saved;
+  for (const key of ["spent", "earned"]) {
+    const value = key === "spent" ? spent : earned;
     const height = Math.round(value / scale * 100);
     const bar = card.querySelector(`[data-chart-bar="${key}"]`);
     bar?.setAttribute("height", String(height));
@@ -65,13 +53,13 @@ function updateBuyerChart() {
     if (legend) legend.textContent = money(value);
   }
   const maxLabel = card.querySelector("[data-chart-max]");
-  if (maxLabel) maxLabel.textContent = money(Math.max(spent, saved));
+  if (maxLabel) maxLabel.textContent = money(Math.max(spent, earned));
   const summary = card.querySelector("[data-chart-summary]");
-  if (summary) summary.textContent = `You’ve saved ${money(saved)} across the selected activity.`;
+  if (summary) summary.textContent = `${money(earned)} earned and ${money(spent)} spent across the selected activity.`;
   const count = card.querySelector("[data-chart-type-count]");
   if (count) count.textContent = `${selectedTypes.size} selected`;
   card.querySelector(".buyer-bar-chart")?.setAttribute(
-    "aria-label", `Total spent ${money(spent)} and estimated retail savings ${money(saved)}`,
+    "aria-label", `Total spent ${money(spent)} and total earned ${money(earned)}`,
   );
 }
 
@@ -164,10 +152,7 @@ export function setupBuyerPickups() {
     const status = row?.querySelector("[data-watchlist-status]");
     if (!row || !status) return;
     if (button.dataset.watchlistAction === "remove") {
-      const saved = readWatchlist();
-      saved.delete(row.dataset.listingId);
-      try { localStorage.setItem(WATCHLIST_KEY, JSON.stringify([...saved])); } catch { /* Session-only fallback. */ }
-      paintWatchlist();
+      status.textContent = "This watchlist entry is stored in your profile and was not changed.";
     } else if (button.dataset.watchlistAction === "message") {
       status.textContent = "Messaging UI is not connected yet. The existing conversation model will power this action.";
     } else {
@@ -178,9 +163,6 @@ export function setupBuyerPickups() {
   document.addEventListener("dashboard:content-loaded", () => {
     paintWatchlist();
     updateBuyerChart();
-  });
-  window.addEventListener("storage", (event) => {
-    if (event.key === WATCHLIST_KEY || event.key === null) paintWatchlist();
   });
   paintWatchlist();
   updateBuyerChart();

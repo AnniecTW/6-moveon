@@ -3,14 +3,8 @@
 {% block buyer_content %}
 <section class="purchase-history-page" aria-labelledby="purchase-history-title">
   <header class="history-heading">
-    <div><h2 id="purchase-history-title">Purchase History</h2><p>Review completed purchases and receipts.</p></div>
-    <a class="button history-export" href="{% url 'buyer-purchase-history-csv' %}" download>Download Purchase Receipts (CSV)</a>
+    <div><h2 id="purchase-history-title">Purchase History</h2><p>Review your completed purchases.</p></div>
   </header>
-
-  <div class="history-totals" aria-label="Purchase history totals">
-    <article><span>All-time Spend</span><strong>${{ history_totals.spent|floatformat:0 }}</strong></article>
-    <article class="history-total-savings"><span>All-time Savings</span><strong>${{ history_totals.saved|floatformat:0 }}</strong></article>
-  </div>
 
   <div class="history-controls">
     <label class="history-search"><span class="sr-only">Search purchase history</span><input type="search" placeholder="Search purchase history..." data-history-search /></label>
@@ -25,12 +19,10 @@
         <div><span class="pickup-label">Item</span><h3>{{ row.transaction.listing.title }}</h3><small>Purchased {{ row.purchase_date|date:"M d, Y" }}</small></div>
       </div>
       <div class="history-seller"><span class="pickup-label">Seller</span><strong>{{ row.transaction.seller.display_name|default:row.transaction.seller.username }}</strong><small>{% if row.transaction.seller.email_verified %}&#10003; Verified seller{% else %}Verification pending{% endif %}</small></div>
-      <div class="history-price"><span class="pickup-label">Final price</span><strong>${{ row.transaction.agreed_price|floatformat:0 }}</strong><small>${{ row.savings|floatformat:0 }} saved vs. retail</small></div>
+      <div class="history-price"><span class="pickup-label">Final price</span><strong>${{ row.transaction.agreed_price|floatformat:0 }}</strong></div>
       <div class="history-status"><span class="pickup-label">Status</span><strong>{{ row.transaction.get_status_display }}</strong></div>
       <div class="history-actions">
-        <button class="button" type="button" data-history-action="receipt">View Receipt</button>
         <button class="button" type="button" data-history-action="rate">Rate Seller</button>
-        <a class="button" href="/?item_type={{ row.transaction.listing.item_type_id }}">Browse Similar</a>
       </div>
       <p class="history-action-status" data-history-status aria-live="polite"></p>
     </article>

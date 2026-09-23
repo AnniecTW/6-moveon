@@ -1,3 +1,543 @@
+import csv
+from datetime import date, timedelta
+from decimal import Decimal
+from django.db.models import Count, F, Sum
+from messaging.models import Conversation
+from bundles.models import Bundle
+
+from urllib.parse import urlencode
+from urllib.parse import urlparse
+from uuid import uuid4
+
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.validators import URLValidator
+from django.http import HttpResponse, JsonResponse
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
+from django.conf import settings
+from django.urls import reverse, reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template import loader
+from django.views import View
+from django.views.generic import ListView, UpdateView
+from PIL import Image, UnidentifiedImageError
+from google.auth.exceptions import GoogleAuthError
+from .auth_forms import CampusAuthenticationForm, ListingSignupForm
+from .auth_backend import credential_user, has_campus_access
+from .email_verification import EmailDeliveryError, consume_code, issue_code
+from . import google_auth
+from .models import ItemCategory, Listing, ListingImage, Transaction, User, WatchlistItem
+from django.views.generic import CreateView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .featured import decorate_listing, discount_percent
+from .browse import browse_context
+from .forms import ListingCreateForm, SellerSettingsForm
+from .validation import database_for
+
+
+def _safe_return(request):
+    target = request.POST.get("next") or request.GET.get("next") or request.session.get("account_next")
+    if target and url_has_allowed_host_and_scheme(target, {request.get_host()}, require_https=request.is_secure()):
+        return target
+    return reverse("home")
+
+
+def _account_context(request, **extra):
+    context = browse_context(request)
+    context.update(extra)
+    context["auth_overlay"] = True
+    context["google_client_id"] = settings.GOOGLE_CLIENT_ID
+    context["account_next"] = request.session.get("account_next", reverse("home"))
+    context["return_to_messages"] = context["account_next"].startswith(reverse("messages"))
+    context["console_email_backend"] = settings.EMAIL_BACKEND in (
+        "marketplace.mail_backends.ReadableConsoleEmailBackend",
+        "django.core.mail.backends.console.EmailBackend",
+    )
+    return context
+
+
+def _pending_user(request):
+    uid = request.session.get("pending_verification_user_id")
+    return User.objects.filter(pk=uid).first() if uid else None
+
+
+def _account_after_verification(request):
+    target = _safe_return(request)
+    if target == reverse("home"):
+        return redirect("account")
+    return redirect(reverse("account") + "?" + urlencode({"next": target}))
+
+
+def account_view(request):
+    if request.user.is_authenticated:
+        if has_campus_access(request.user):
+            return redirect("home")
+        return render(request, "marketplace/account.html", _account_context(
+            request, auth_mode="restricted", restricted_admin=request.user.is_staff,
+            restricted_campus_email=request.user.email.lower().endswith("@illinois.edu"),
+        ))
+
+    if request.method == "GET":
+        target = request.GET.get("next")
+        request.session["account_next"] = (
+            target if target and url_has_allowed_host_and_scheme(
+                target, {request.get_host()}, require_https=request.is_secure()
+            ) else reverse("home")
+        )
+    mode = request.POST.get("mode") if request.method == "POST" else request.GET.get("mode")
+    mode = "signup" if mode == "signup" else "login"
+    data = request.POST if request.method == "POST" else None
+    form = (
+        ListingSignupForm(data)
+        if mode == "signup"
+        else CampusAuthenticationForm(request, data=data)
+    )
+    if request.method == "POST":
+        if form.is_valid():
+            if mode == "signup":
+                user = form.save()
+                request.session["pending_verification_user_id"] = user.pk
+                try:
+                    issue_code(user)
+                except EmailDeliveryError:
+                    request.session["verification_delivery_error"] = True
+                return redirect("account_verify")
+            login(request, form.get_user())
+            return redirect(_safe_return(request))
+        if mode == "login":
+            candidate = credential_user(request.POST.get("username", "").strip(), request.POST.get("password", ""))
+            if candidate:
+                if candidate.is_active and candidate.account_status == User.AccountStatus.ACTIVE and not has_campus_access(candidate) and candidate.email.lower().endswith("@illinois.edu"):
+                    candidate.email_verified = False
+                    candidate.email_verified_at = None
+                    candidate.save(update_fields=["email_verified", "email_verified_at"])
+                    request.session["pending_verification_user_id"] = candidate.pk
+                    try:
+                        issue_code(candidate)
+                    except EmailDeliveryError:
+                        request.session["verification_delivery_error"] = True
+                    return redirect("account_verify")
+    response = render(request, "marketplace/account.html", _account_context(
+        request, auth_form=form, auth_mode=mode,
+        reset_done=request.GET.get("reset") == "done",
+    ))
+    if settings.GOOGLE_CLIENT_ID:
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+    return response
+
+
+def account_verify_view(request):
+    user = _pending_user(request)
+    if not user:
+        return redirect("account")
+    if has_campus_access(user):
+        request.session.pop("pending_verification_user_id", None)
+        return _account_after_verification(request)
+    error = None
+    if request.method == "POST":
+        code = request.POST.get("code", "").strip()
+        if not (len(code) == 6 and code.isascii() and code.isdigit()):
+            error = "Enter the six-digit verification code."
+        else:
+            error = consume_code(user, code)
+            if error is None:
+                request.session.pop("pending_verification_user_id", None)
+                return _account_after_verification(request)
+    delivery_error = request.session.pop("verification_delivery_error", False)
+    cooldown = request.session.pop("verification_cooldown", False)
+    resent = request.session.pop("verification_resent", False)
+    return render(request, "marketplace/account.html", _account_context(
+        request, auth_mode="verify", verify_email=user.email, verify_error=error,
+        delivery_error=delivery_error, verification_cooldown=cooldown, verification_resent=resent,
+    ))
+
+
+@require_POST
+def account_verify_resend_view(request):
+    user = _pending_user(request)
+    if not user or has_campus_access(user) or not user.is_active or user.account_status != User.AccountStatus.ACTIVE:
+        return redirect("account")
+    try:
+        if not issue_code(user):
+            request.session["verification_cooldown"] = True
+        else:
+            request.session["verification_resent"] = True
+    except EmailDeliveryError:
+        request.session["verification_delivery_error"] = True
+    return redirect("account_verify")
+
+
+class CampusPasswordResetView(PasswordResetView):
+    template_name = "marketplace/account.html"
+    email_template_name = "marketplace/password_reset_email.txt"
+    subject_template_name = "marketplace/password_reset_subject.txt"
+    success_url = reverse_lazy("password_reset_done")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(_account_context(self.request, auth_mode="forgot", auth_form=context["form"]))
+        return context
+
+
+class CampusPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = "marketplace/account.html"
+    success_url = reverse_lazy("account")
+
+    def dispatch(self, request, *args, **kwargs):
+        token = kwargs.get("token", "")
+        if token.endswith("=") and not token.endswith("=="):
+            user = self.get_user(kwargs["uidb64"])
+            clean_token = token[:-1]
+            if user is not None and self.token_generator.check_token(user, clean_token):
+                return redirect(reverse(
+                    "password_reset_confirm",
+                    kwargs={"uidb64": kwargs["uidb64"], "token": clean_token},
+                ))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse("account") + "?reset=done"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(_account_context(self.request, auth_mode="reset", auth_form=context.get("form")))
+        return context
+
+
+def password_reset_done_view(request):
+    return render(request, "marketplace/account.html", _account_context(request, auth_mode="reset_sent"))
+
+
+@require_POST
+def account_google_view(request):
+    if not settings.GOOGLE_CLIENT_ID:
+        return render(request, "marketplace/account.html", _account_context(
+            request, auth_mode="login", auth_form=CampusAuthenticationForm(request),
+            google_error="Google sign-in is not configured.",
+        ))
+    credential = request.POST.get("credential", "")
+    try:
+        claims = google_auth.verify_google_token(credential, settings.GOOGLE_CLIENT_ID)
+    except (ValueError, GoogleAuthError, OSError):
+        claims = {}
+    email = str(claims.get("email", "")).strip().lower()
+    subject = str(claims.get("sub", "")).strip()
+    error = None
+    if not subject or claims.get("email_verified") is not True or not email.endswith("@illinois.edu"):
+        error = "Use a Google account with an @illinois.edu email address."
+    else:
+        user = User.objects.filter(google_subject=subject).first()
+        if user and user.email.lower() != email:
+            error = "Google account email changed. Contact support."
+        elif not user and User.objects.filter(email__iexact=email).exists():
+            error = "An account with this email already exists. Log in with your username."
+        elif not user:
+            username = email.partition("@")[0]
+            if User.objects.filter(username=username).exists():
+                import secrets
+                username = f"{username[:130]}_{secrets.token_hex(6)}"
+            user = User(username=username, email=email, display_name=username, google_subject=subject)
+            user.set_unusable_password()
+            user.save()
+        if not error:
+            if not user.is_active or user.account_status != User.AccountStatus.ACTIVE:
+                error = "This account is unavailable."
+            elif not has_campus_access(user):
+                user.email_verified = False
+                user.email_verified_at = None
+                user.save(update_fields=["email_verified", "email_verified_at"])
+                request.session["pending_verification_user_id"] = user.pk
+                try:
+                    issue_code(user)
+                except EmailDeliveryError:
+                    request.session["verification_delivery_error"] = True
+                return redirect("account_verify")
+            else:
+                login(request, user, backend="marketplace.auth_backend.CampusModelBackend")
+                return redirect(_safe_return(request))
+    return render(request, "marketplace/account.html", _account_context(
+        request, auth_mode="login", auth_form=CampusAuthenticationForm(request), google_error=error,
+    ))
+
+
+@require_POST
+def account_logout_view(request):
+    logout(request)
+    return redirect("home")
+
+
+# 1. FBV (Manual HttpResponse)
+def listing_manual_view(request):
+    template = loader.get_template("marketplace/listing_list.html")
+    return HttpResponse(template.render(browse_context(request), request))
+
+
+# 2. FBV (render shortcut)
+def listing_render_view(request):
+    return render(request, "marketplace/listing_list.html", browse_context(request))
+
+
+# 3. Base CBV
+class ListingBaseView(View):
+    def get(self, request):
+        return render(request, "marketplace/listing_list.html", browse_context(request))
+
+
+# 4. Generic CBV
+class ListingListView(ListView):  # Naming Pattern: <Model><Purpose>View
+    model = Listing
+    template_name = "marketplace/listing_list.html"
+    context_object_name = "listings"
+
+    def get_queryset(self):
+        self.browse = browse_context(self.request)
+        return self.browse["listings"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.browse)
+        return context
+
+
+class ListingDetailView(DetailView):
+    model = Listing
+    template_name = "marketplace/listing_detail.html"
+    context_object_name = "listing"
+    pk_url_kwarg = "primary_key"
+
+    def get_queryset(self):
+        return (
+            Listing.objects.filter(status=Listing.Status.ACTIVE)
+            .select_related("seller", "item_type__category")
+            .prefetch_related("images")
+        )
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        if request.method == "GET" and self.object.status == Listing.Status.ACTIVE:
+            Listing.objects.filter(pk=self.object.pk).update(views=F("views") + 1)
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["listing"] = decorate_listing(context["listing"])
+        context["similar_listings"] = [
+            decorate_listing(item)
+            for item in (
+                self.get_queryset()
+                .filter(item_type__category_id=self.object.item_type.category_id)
+                .exclude(pk=self.object.pk)[:4]
+            )
+        ]
+        return context
+
+
+class ListingPreviewView(LoginRequiredMixin, ListingDetailView):
+    def get_queryset(self):
+        return (
+            Listing.objects.filter(
+                seller=self.request.user,
+                status=Listing.Status.DRAFT,
+            )
+            .select_related("seller", "item_type__category")
+            .prefetch_related("images")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["preview_mode"] = True
+        context["similar_listings"] = [
+            decorate_listing(item)
+            for item in (
+                Listing.objects.filter(
+                    status=Listing.Status.ACTIVE,
+                    item_type__category_id=self.object.item_type.category_id,
+                )
+                .exclude(pk=self.object.pk)
+                .select_related("seller", "item_type__category")
+                .prefetch_related("images")[:4]
+            )
+        ]
+        return context
+
+
+class ListingFormContextMixin:
+    form_class = ListingCreateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["initial_photos"] = context["form"].selected_images_for_display()
+        return context
+
+    def get_success_url(self):
+        if self.request.POST.get("action") == "preview":
+            return reverse(
+                "listing-preview-url",
+                kwargs={"primary_key": self.object.pk},
+            )
+        return reverse("home")
+
+
+class ListingCreateView(ListingFormContextMixin, LoginRequiredMixin, CreateView):
+    model = Listing
+    form_class = ListingCreateForm
+    template_name = "marketplace/listing_form.html"
+    success_url = reverse_lazy("home")
+
+    def form_valid(self, form):
+        form.instance.seller = self.request.user
+        form.instance.status = Listing.Status.DRAFT
+        return super().form_valid(form)
+
+
+class ListingUpdateView(ListingFormContextMixin, LoginRequiredMixin, UpdateView):
+    model = Listing
+    form_class = ListingCreateForm
+    template_name = "marketplace/listing_form.html"
+    success_url = reverse_lazy("home")
+    pk_url_kwarg = "primary_key"
+
+    def get_queryset(self):
+        return Listing.objects.filter(seller=self.request.user).prefetch_related("images")
+
+    def form_valid(self, form):
+        if self.request.POST.get("action") == "preview":
+            form.instance.status = Listing.Status.DRAFT
+        return super().form_valid(form)
+
+
+@require_POST
+@login_required
+def listing_publish(request, primary_key):
+    listing = get_object_or_404(
+        Listing.objects.filter(
+            seller=request.user,
+            status=Listing.Status.DRAFT,
+        ).prefetch_related("images"),
+        pk=primary_key,
+    )
+    database = database_for(listing)
+    image_ids = ListingImage.objects.using(database).filter(
+        listing_id=listing.pk
+    ).order_by("position", "id").values_list("pk", flat=True)
+    fulfillment = listing.fulfillment_option
+    form_data = {
+        "title": listing.title,
+        "listing_price": str(listing.listing_price),
+        "condition": listing.condition,
+        "item_type": str(listing.item_type_id),
+        "fulfillment_option": fulfillment,
+        "fulfillment_pickup": (
+            "on"
+            if fulfillment in (Listing.Fulfillment.PICKUP, Listing.Fulfillment.BOTH)
+            else ""
+        ),
+        "fulfillment_delivery": (
+            "on"
+            if fulfillment in (Listing.Fulfillment.DELIVERY, Listing.Fulfillment.BOTH)
+            else ""
+        ),
+        "description": listing.description,
+        "minimum_price": (
+            str(listing.minimum_price) if listing.minimum_price is not None else ""
+        ),
+        "move_out_date": (
+            listing.move_out_date.isoformat() if listing.move_out_date else ""
+        ),
+        "bundle_eligible": "on" if listing.bundle_eligible else "",
+        "sell_no_matter_what": "on" if listing.sell_no_matter_what else "",
+        "image_ids": ",".join(str(image_id) for image_id in image_ids),
+    }
+    form = ListingCreateForm(data=form_data, instance=listing, user=request.user)
+    if not form.is_valid():
+        return render(
+            request,
+            "marketplace/listing_form.html",
+            {
+                "form": form,
+                "initial_photos": form.selected_images_for_display(),
+            },
+        )
+
+    form.instance.status = Listing.Status.ACTIVE
+    listing = form.save()
+    return redirect(listing.get_absolute_url())
+
+
+MAX_LISTING_IMAGE_BYTES = 5 * 1024 * 1024
+MAX_UNATTACHED_LISTING_IMAGES = 30
+LISTING_IMAGE_FORMATS = {
+    "JPEG": "jpg",
+    "PNG": "png",
+    "WEBP": "webp",
+}
+
+
+@login_required
+@require_POST
+def listing_image_upload(request):
+    uploaded_file = request.FILES.get("file")
+    external_url = request.POST.get("url", "").strip()
+    if (uploaded_file is None) == (not external_url):
+        return JsonResponse(
+            {"error": "Provide either an image file or an image URL."}, status=400
+        )
+
+    pending_image = ListingImage(listing=None, uploaded_by=request.user)
+    database = database_for(pending_image)
+    if (
+        ListingImage.objects.using(database)
+        .filter(uploaded_by=request.user, listing__isnull=True)
+        .count()
+        >= MAX_UNATTACHED_LISTING_IMAGES
+    ):
+        return JsonResponse(
+            {"error": "You have too many pending images. Finish a listing before uploading more."},
+            status=400,
+        )
+
+    if uploaded_file is not None:
+        if uploaded_file.size == 0 or uploaded_file.size > MAX_LISTING_IMAGE_BYTES:
+            return JsonResponse(
+                {"error": "Choose an image that is 5MB or smaller."}, status=400
+            )
+        try:
+            uploaded_file.seek(0)
+            with Image.open(uploaded_file) as image:
+                image.verify()
+                image_format = image.format
+        except (Image.DecompressionBombError, OSError, UnidentifiedImageError, ValueError):
+            return JsonResponse(
+                {"error": "The file is not a valid image."}, status=400
+            )
+        if image_format not in LISTING_IMAGE_FORMATS:
+            return JsonResponse(
+                {"error": "Use a JPEG, PNG, or WebP image."}, status=400
+            )
+        uploaded_file.seek(0)
+        uploaded_file.name = f"{uuid4().hex}.{LISTING_IMAGE_FORMATS[image_format]}"
+        pending_image.image = uploaded_file
+    else:
+        try:
+            URLValidator()(external_url)
+        except DjangoValidationError:
+            return JsonResponse({"error": "Enter a valid image URL."}, status=400)
+        if urlparse(external_url).scheme not in {"http", "https"}:
+            return JsonResponse(
+                {"error": "Image URLs must use HTTP or HTTPS."}, status=400
+            )
+        pending_image.external_url = external_url
+
+    pending_image.save(using=database)
+    return JsonResponse({"id": pending_image.pk, "url": pending_image.url}, status=201)
 
 
 def _seller_profile(user):
@@ -6,269 +546,84 @@ def _seller_profile(user):
         "name": user.display_name or user.get_username(),
         "initial": (user.display_name or user.get_username() or "?")[0].upper(),
         "verified": user.email_verified,
-        # These profile fields do not exist in the current schema yet.
-        "program": "Academic profile not set",
-        "rating": "4.9",
-        "review_count": 8,
-        "meetup": "Preferred meetup not set",
     }
-
-
-def _pricing_plan(listing, today):
-    """Present a useful plan label until a dedicated pricing-plan field exists."""
-    if listing.move_out_date and (listing.move_out_date - today).days <= 7:
-        return "Sell before I move", "Next review in 2 days"
-    if listing.price_recommendations.all():
-        return "Maximize value", "Next review based on activity"
-    return "Balanced", "Next review based on activity"
-
-
-def _demo_view_count(listing):
-    """Deterministic placeholder until listing-view events are modeled."""
-    return (listing.pk % 47) + 1
 
 
 def _seller_dashboard_context(user):
     """Shared, model-backed context for every Seller dashboard route."""
-    active_listings = Listing.objects.filter(
-        seller=user, status=Listing.Status.ACTIVE
-    )
+    seller_listings = Listing.objects.filter(seller=user)
+    active_listings = seller_listings.filter(status=Listing.Status.ACTIVE)
+    reserved_count = seller_listings.filter(status=Listing.Status.RESERVED).count()
+    sold_count = seller_listings.filter(status=Listing.Status.SOLD).count()
+    upcoming_deadline = date.today() + timedelta(days=7)
+    approaching_moveout = seller_listings.filter(
+        status__in=[Listing.Status.ACTIVE, Listing.Status.RESERVED],
+        move_out_date__range=(date.today(), upcoming_deadline),
+    ).count()
+    missing_moveout = seller_listings.filter(
+        status__in=[Listing.Status.ACTIVE, Listing.Status.RESERVED],
+        move_out_date__isnull=True,
+    ).count()
+    seller_conversations = Conversation.objects.filter(
+        seller=user, listing__isnull=False
+    ).prefetch_related("messages")
+    unanswered_inquiries = 0
+    for conversation in seller_conversations:
+        messages = list(conversation.messages.all())
+        if not messages or any(
+            message.sender_id == conversation.buyer_id and not message.is_read
+            for message in messages
+        ):
+            unanswered_inquiries += 1
     completed_sales = Transaction.objects.filter(
         seller=user, status=Transaction.Status.COMPLETED
     )
-    return {
-        "profile": _seller_profile(user),
-        "active_count": active_listings.count(),
-        # TODO: Replace with a Sum over a future ListingView/event model.
-        "total_views": sum(_demo_view_count(item) for item in active_listings),
-        "inquiries": Conversation.objects.filter(seller=user).count(),
-        "avg_days_to_sell": 0 if not completed_sales.exists() else 14,
-    }
-
-
-def _seven_day_views(total, today):
-    """Shape deterministic demo views for a replaceable analytics boundary."""
-    days = [today - timedelta(days=offset) for offset in range(6, -1, -1)]
-    labels = [f"{day.strftime('%b')} {day.day}" for day in days]
-    weights = [8, 10, 9, 12, 11, 14, 16]
-    weight_total = sum(weights)
-    values = [round(total * weight / weight_total) for weight in weights]
-    if values:
-        values[-1] += total - sum(values)
-    return labels, values
-
-
-def _fallback_price_events(listings, labels):
-    """Demo annotations used only when no recorded applied recommendation exists."""
-    candidates = list(listings[:2])
-    event_indexes = [2, 5]
-    events = []
-    for index, listing in enumerate(candidates):
-        old_price = listing.retail_price or listing.listing_price
-        if old_price == listing.listing_price:
-            old_price = listing.listing_price + 5
-        events.append(
-            {
-                "listing_id": listing.pk,
-                "listing_title": listing.title,
-                "date": labels[event_indexes[index]],
-                "old_price": float(old_price),
-                "new_price": float(listing.listing_price),
-                "temporary": True,
-            }
+    inquiry_listings = list(
+        seller_listings.exclude(status=Listing.Status.SOLD).prefetch_related(
+            "conversations__messages"
         )
-    return events
-
-
-def _seller_insights_context(user):
-    today = date.today()
-    listings = list(
-        Listing.objects.filter(seller=user)
-        .select_related("item_type", "item_type__category")
-        .annotate(inquiry_count=Count("conversations", distinct=True))
     )
-    active_listings = [item for item in listings if item.status == Listing.Status.ACTIVE]
-    for listing in listings:
-        listing.view_count = _demo_view_count(listing)
-        listing.display_image_url = listing.image_url or (
-            static("img/reference/" + ASSETS[listing.title])
-            if listing.title in ASSETS
-            else ""
-        )
-
-    total_views = sum(item.view_count for item in active_listings)
-    total_inquiries = sum(item.inquiry_count for item in listings)
-    sales = Transaction.objects.filter(
-        seller=user, status=Transaction.Status.COMPLETED
-    )
-    sold_count = sales.count()
-    bundle_sales = sales.filter(bundle__isnull=False).count()
-    top_performer = max(active_listings, key=lambda item: item.view_count, default=None)
-    labels, view_values = _seven_day_views(total_views, today)
-
-    recorded_events = []
-    recommendations = PriceRecommendation.objects.filter(
-        listing__seller=user,
-        status__in=[PriceRecommendation.Status.ACCEPTED, PriceRecommendation.Status.MODIFIED],
-    ).select_related("listing")
-    for recommendation in recommendations:
-        applied_price = recommendation.applied_price or recommendation.recommended_price
-        event_date = recommendation.responded_at or recommendation.generated_at
-        label = f"{event_date.strftime('%b')} {event_date.day}"
-        if label in labels:
-            recorded_events.append(
+    inquiry_chart = []
+    for listing in inquiry_listings:
+        conversations = list(listing.conversations.all())
+        unanswered = 0
+        for conversation in conversations:
+            messages = list(conversation.messages.all())
+            if not messages or any(
+                message.sender_id == conversation.buyer_id and not message.is_read
+                for message in messages
+            ):
+                unanswered += 1
+        total = len(conversations)
+        if total:
+            inquiry_chart.append(
                 {
-                    "listing_id": recommendation.listing_id,
-                    "listing_title": recommendation.listing.title,
-                    "date": label,
-                    "old_price": float(recommendation.previous_price),
-                    "new_price": float(applied_price),
-                    "temporary": False,
+                    "title": listing.title,
+                    "total": total,
+                    "answered": total - unanswered,
+                    "unanswered": unanswered,
                 }
             )
-    price_events = recorded_events or _fallback_price_events(active_listings, labels)
-
-    inquiry_rows = sorted(
-        listings, key=lambda item: (item.inquiry_count, item.view_count), reverse=True
-    )[:4]
-    category_counts = {}
-    for listing in active_listings:
-        category = listing.item_type.category.category_name
-        category_counts[category] = category_counts.get(category, 0) + 1
-
-    inquiry_rate = round(total_inquiries / total_views * 100, 1) if total_views else 0
-    sales_rate = round(sold_count / total_inquiries * 100, 1) if total_inquiries else 0
-    chart_data = {
-        "selected_listing_id": None,
-        "views_over_time": {
-            "labels": labels,
-            "views": view_values,
-            "price_events": price_events,
-            "temporary": True,
-        },
-        "inquiries_by_listing": {
-            "labels": [item.title for item in inquiry_rows],
-            "values": [item.inquiry_count for item in inquiry_rows],
-        },
-        "category_performance": {
-            "labels": list(category_counts),
-            "values": list(category_counts.values()),
-        },
-    }
+    inquiry_chart.sort(key=lambda item: (-item["total"], item["title"]))
+    inquiry_chart = inquiry_chart[:6]
+    inquiry_max = max((item["total"] for item in inquiry_chart), default=1)
+    for item in inquiry_chart:
+        item["total_percent"] = round(item["total"] / inquiry_max * 100)
+        item["answered_percent"] = round(item["answered"] / item["total"] * 100)
+        item["unanswered_percent"] = 100 - item["answered_percent"]
     return {
-        **_seller_dashboard_context(user),
-        "active_seller_tab": "insights",
-        "summary_metrics": [
-            {"value": total_views, "label": "Total views", "change": "+12% vs. previous week", "temporary": True},
-            {"value": total_inquiries, "label": "Inquiries", "change": "From listing conversations"},
-            {"value": sold_count, "label": "Items sold", "change": "Completed transactions"},
-            {"value": bundle_sales, "label": "Bundle sales", "change": "Completed bundle transactions"},
-        ],
-        "top_performer": top_performer,
-        "funnel": [
-            {"value": total_views, "label": "Views", "rate": "100%"},
-            {"value": total_inquiries, "label": "Inquiries", "rate": f"{inquiry_rate}%"},
-            {"value": sold_count, "label": "Sold", "rate": f"{sales_rate}% of inquiries"},
-        ],
-        "chart_data": chart_data,
-        "analytics_uses_demo_views": True,
-    }
-
-
-def _money(value):
-    return Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-
-
-def _seller_pricing_context(user):
-    today = date.today()
-    listings = (
-        Listing.objects.filter(seller=user, status=Listing.Status.ACTIVE)
-        .select_related("item_type", "item_type__category")
-        .prefetch_related("price_recommendations")
-        .annotate(inquiry_count=Count("conversations", distinct=True))
-    )
-    pricing_rows = []
-    for listing in listings:
-        listing.display_image_url = listing.image_url or (
-            static("img/reference/" + ASSETS[listing.title])
-            if listing.title in ASSETS
-            else ""
-        )
-        days_remaining = (
-            max((listing.move_out_date - today).days, 0)
-            if listing.move_out_date
-            else None
-        )
-        strategy, review_note = _pricing_plan(listing, today)
-        strategy_key = {
-            "Maximize value": "maximize",
-            "Balanced": "balanced",
-            "Sell before I move": "sell-before-move",
-        }[strategy]
-
-        comparable_is_temporary = not (
-            listing.benchmark_low is not None and listing.benchmark_high is not None
-        )
-        comparable_low = listing.benchmark_low or _money(
-            listing.listing_price * Decimal("0.82")
-        )
-        comparable_high = listing.benchmark_high or _money(
-            listing.listing_price * Decimal("0.94")
-        )
-
-        recommendations = list(listing.price_recommendations.all())
-        latest = recommendations[0] if recommendations else None
-        recommendation_is_temporary = latest is None
-        suggested_price = (
-            latest.applied_price or latest.recommended_price
-            if latest
-            else comparable_high
-        )
-        if latest:
-            reason = "MoveOn has a recorded recommendation based on this listing's pricing history."
-            recommendation_state = latest.get_status_display()
-        elif days_remaining is not None and days_remaining <= 7:
-            reason = "Your move-out date is close, so a more competitive price may improve the chance of selling in time."
-            recommendation_state = "Review suggested"
-        elif listing.listing_price > comparable_high:
-            reason = "The current price is above the estimated range for similar listings, while buyer inquiries remain limited."
-            recommendation_state = "Review suggested"
-        else:
-            reason = "Your price is aligned with similar listings. Keep monitoring activity before making a change."
-            recommendation_state = "On track"
-
-        pricing_rows.append(
-            {
-                "listing": listing,
-                "current_price": listing.listing_price,
-                "comparable_low": comparable_low,
-                "comparable_high": comparable_high,
-                "comparable_is_temporary": comparable_is_temporary,
-                "days_remaining": days_remaining,
-                "strategy": strategy,
-                "strategy_key": strategy_key,
-                "review_note": review_note,
-                "recommendation": {
-                    "suggested_price": suggested_price,
-                    "reason": reason,
-                    "state": recommendation_state,
-                    "temporary": recommendation_is_temporary,
-                },
-            }
-        )
-
-    return {
-        **_seller_dashboard_context(user),
-        "active_seller_tab": "pricing",
-        "pricing_rows": pricing_rows,
-        # User-level selling preferences are not represented in the schema yet.
-        "default_preferences": {
-            "strategy": "balanced",
-            "protect_minimum": any(item.minimum_price is not None for item in listings),
-            "sell_no_matter_what": any(item.sell_no_matter_what for item in listings),
-            "bundle_eligible": any(item.bundle_eligible for item in listings),
-        },
-        "preferences_are_temporary": True,
+        "profile": _seller_profile(user),
+        "campus_access": has_campus_access(user),
+        "active_count": active_listings.count(),
+        "reserved_count": reserved_count,
+        "sold_count": sold_count,
+        "total_views": seller_listings.aggregate(total=Sum("views"))["total"] or 0,
+        "inquiries": seller_conversations.count(),
+        "unanswered_inquiries": unanswered_inquiries,
+        "approaching_moveout": approaching_moveout,
+        "missing_moveout": missing_moveout,
+        "listing_inquiry_chart": inquiry_chart,
+        "total_earned": completed_sales.aggregate(total=Sum("agreed_price"))["total"] or Decimal("0"),
     }
 
 
@@ -278,11 +633,11 @@ def seller_listings_view(request):
     listings = (
         Listing.objects.filter(seller=request.user)
         .select_related("item_type", "item_type__category")
-        .prefetch_related("price_recommendations")
-        .annotate(inquiry_count=Count("conversations", distinct=True))
+        .prefetch_related("images")
+        .annotate(inquiry_count=Count("conversations__buyer", distinct=True))
     )
     query = request.GET.get("q", "").strip()
-    status = request.GET.get("status", "ACTIVE")
+    status = request.GET.get("status", "ALL")
     category = request.GET.get("category", "")
     ordering = request.GET.get("ordering", "newest")
     if query:
@@ -295,16 +650,8 @@ def seller_listings_view(request):
 
     listing_rows = []
     for listing in listings:
-        listing.display_image_url = listing.image_url or (
-            static("img/reference/" + ASSETS[listing.title])
-            if listing.title in ASSETS
-            else ""
-        )
-        plan, review_note = _pricing_plan(listing, today)
-        listing.plan = plan
-        listing.review_note = review_note
-        # Listing view events are not modeled yet; keep this demo metric explicit.
-        listing.view_count = _demo_view_count(listing)
+        listing.display_image_url = listing.cover_image_url
+        listing.view_count = listing.views
         listing.days_remaining = (
             max((listing.move_out_date - today).days, 0)
             if listing.move_out_date
@@ -316,12 +663,14 @@ def seller_listings_view(request):
         request,
         "marketplace/seller_listings.html",
         {
-            **_seller_dashboard_context(request.user),
+            **_buyer_pickups_context(request.user),
             "active_seller_tab": "listings",
+            "active_buyer_tab": "",
             "listings": listing_rows,
-            "categories": Listing.objects.filter(seller=request.user)
-            .values("item_type__category_id", "item_type__category__category_name")
-            .distinct(),
+            "categories": ItemCategory.objects.filter(
+                item_types__listings__seller=request.user
+            ).distinct(),
+            "listing_status_choices": Listing.Status.choices,
             "selected_category": category,
             "selected_status": status,
             "selected_ordering": ordering,
@@ -330,73 +679,22 @@ def seller_listings_view(request):
 
 
 @login_required
-def seller_insights_view(request):
-    return render(
-        request,
-        "marketplace/seller_insights.html",
-        _seller_insights_context(request.user),
-    )
-
-
-@login_required
-def seller_pricing_view(request):
-    return render(
-        request,
-        "marketplace/seller_pricing.html",
-        _seller_pricing_context(request.user),
-    )
-
-
-def _seller_settings_initial(request):
-    return request.session.get(
-        "seller_settings",
-        {
-            "payment_preference": "meetup",
-            "primary_meetup": "",
-            "alternate_meetup": "",
-            "delivery_preference": "pickup",
-            "delivery_notes": "",
-            "notify_inquiries": True,
-            "notify_bundles": True,
-            "notify_pricing": True,
-            "notify_moveout": True,
-            "notify_transactions": True,
-        },
-    )
-
-
-@login_required
 def seller_settings_view(request):
-    initial = _seller_settings_initial(request)
-    form = SellerSettingsForm(request.POST or None, initial=initial)
-    if request.method == "POST" and form.is_valid():
-        request.session["seller_settings"] = form.cleaned_data
-        messages.success(
-            request,
-            "Seller preferences saved for this session. Database persistence is not connected yet.",
-        )
-        return redirect("seller-settings")
+    form = SellerSettingsForm()
     return render(
         request,
         "marketplace/seller_settings.html",
         {
-            **_seller_dashboard_context(request.user),
+            **_buyer_pickups_context(request.user),
             "active_seller_tab": "settings",
+            "active_buyer_tab": "",
             "settings_form": form,
-            "settings_are_temporary": True,
         },
     )
 
 
 def _pickup_image(listing):
-    bundle_image_fallbacks = {
-        "Desk Chair": "rocking-chair.png",
-        "Gray Rug": "gray-pillow.png",
-        "Floor Lamp": "desk-lamp.png",
-        "Blue Sofa": "living-room-clean.png",
-    }
-    asset = ASSETS.get(listing.title) or bundle_image_fallbacks.get(listing.title)
-    return listing.image_url or (static("img/reference/" + asset) if asset else "")
+    return listing.cover_image_url
 
 
 def _transaction_reference_value(transaction):
@@ -404,8 +702,14 @@ def _transaction_reference_value(transaction):
         transaction.benchmark_price_snapshot
         or transaction.listing.retail_price
         or transaction.listing.benchmark_price
-        or transaction.agreed_price
     )
+
+
+def _transaction_savings(transaction):
+    reference_value = _transaction_reference_value(transaction)
+    if reference_value is None:
+        return None
+    return max(reference_value - transaction.agreed_price, Decimal("0"))
 
 
 def _buyer_pickups_context(user):
@@ -427,123 +731,78 @@ def _buyer_pickups_context(user):
     ]
     pickup_rows = []
     for transaction in pending:
-        estimated_value = _transaction_reference_value(transaction)
         pickup_rows.append(
             {
                 "transaction_id": transaction.pk,
                 "listing": transaction.listing,
                 "image_url": _pickup_image(transaction.listing),
                 "agreed_price": transaction.agreed_price,
-                "savings": max(estimated_value - transaction.agreed_price, Decimal("0")),
+                "savings": _transaction_savings(transaction),
                 "seller": transaction.seller,
                 "meetup_datetime": transaction.meetup_datetime,
                 "meetup_location": transaction.meetup_location,
                 "status_label": transaction.get_status_display(),
-                "temporary": False,
             }
         )
 
-    pickup_data_is_temporary = False
-    if not pickup_rows:
-        demo_listing = (
-            Listing.objects.filter(status=Listing.Status.ACTIVE)
-            .exclude(seller=user)
-            .select_related("seller", "item_type", "item_type__category")
-            .first()
-        )
-        if demo_listing:
-            estimated_value = (
-                demo_listing.retail_price
-                or demo_listing.benchmark_price
-                or demo_listing.listing_price
-            )
-            pickup_rows.append(
-                {
-                    "transaction_id": None,
-                    "listing": demo_listing,
-                    "image_url": _pickup_image(demo_listing),
-                    "agreed_price": demo_listing.listing_price,
-                    "savings": max(
-                        estimated_value - demo_listing.listing_price, Decimal("0")
-                    ),
-                    "seller": demo_listing.seller,
-                    "meetup_datetime": timezone.now() + timedelta(days=2),
-                    "meetup_location": "Illini Union",
-                    "status_label": "Pickup scheduled",
-                    "temporary": True,
-                }
-            )
-            pickup_data_is_temporary = True
-
     amount_paid = sum((item.agreed_price for item in purchases), Decimal("0"))
-    estimated_value = sum(
-        (
-            _transaction_reference_value(item)
-        )
-        for item in purchases
+    completed_sales = list(
+        Transaction.objects.filter(seller=user, status=Transaction.Status.COMPLETED)
     )
-    total_saved = max(estimated_value - amount_paid, Decimal("0"))
-    if pickup_data_is_temporary:
-        amount_paid = sum(
-            (item["agreed_price"] for item in pickup_rows), Decimal("0")
-        )
-        total_saved = sum((item["savings"] for item in pickup_rows), Decimal("0"))
-        estimated_value = amount_paid + total_saved
-    chart_max = max(amount_paid, total_saved, Decimal("1"))
+    total_earned = sum((item.agreed_price for item in completed_sales), Decimal("0"))
+    known_savings = [value for item in purchases if (value := _transaction_savings(item)) is not None]
+    total_saved = sum(known_savings, Decimal("0"))
+    estimated_value = sum(
+        (value for item in purchases if (value := _transaction_reference_value(item)) is not None),
+        Decimal("0"),
+    )
+    chart_max = max(amount_paid, total_earned, Decimal("1"))
     spent_bar_height = round(float(amount_paid / chart_max) * 100)
-    savings_bar_height = round(float(total_saved / chart_max) * 100)
+    earned_bar_height = round(float(total_earned / chart_max) * 100)
     chart_points = [
         {
-            "type": (
-                "pickup"
-                if transaction.status == Transaction.Status.PENDING_PICKUP
-                else "history"
-            ),
+            "type": "purchase",
             "date": (
                 transaction.completed_at or transaction.created_at
             ).date().isoformat(),
             "spent": float(transaction.agreed_price),
-            "saved": float(
-                max(
-                    _transaction_reference_value(transaction)
-                    - transaction.agreed_price,
-                    Decimal("0"),
-                )
-            ),
+            "earned": 0,
         }
         for transaction in purchases
         if transaction.status
         in (Transaction.Status.PENDING_PICKUP, Transaction.Status.COMPLETED)
     ]
-    if pickup_data_is_temporary:
-        chart_points = [
-            {
-                "type": "pickup",
-                "date": timezone.localdate().isoformat(),
-                "spent": float(row["agreed_price"]),
-                "saved": float(row["savings"]),
-            }
-            for row in pickup_rows
-        ]
+    chart_points.extend(
+        {
+            "type": "sale",
+            "date": (transaction.completed_at or transaction.created_at).date().isoformat(),
+            "spent": 0,
+            "earned": float(transaction.agreed_price),
+        }
+        for transaction in completed_sales
+    )
     return {
+        **_seller_dashboard_context(user),
         "profile": _seller_profile(user),
         "active_buyer_tab": "pickups",
         "buyer_summary": {
             "total_saved": total_saved,
-            "items_bought": len(pickup_rows) if pickup_data_is_temporary else len(purchases),
-            "pending_pickups": len(pickup_rows) if pickup_data_is_temporary else len(pending),
+            "items_bought": len(purchases),
+            "pending_pickups": len(pending),
             "saved_bundles": Bundle.objects.filter(buyer=user)
             .exclude(status=Bundle.Status.CANCELLED)
             .count(),
             "amount_paid": amount_paid,
+            "total_earned": total_earned,
+            "net_balance": total_earned - amount_paid,
+            "items_moved": len(purchases) + len(completed_sales),
             "estimated_value": estimated_value,
             "chart_max": chart_max,
             "spent_bar_height": spent_bar_height,
-            "savings_bar_height": savings_bar_height,
+            "earned_bar_height": earned_bar_height,
             "chart_points": chart_points,
         },
         "pickup_rows": pickup_rows,
-        "pickup_data_is_temporary": pickup_data_is_temporary,
     }
 
 
@@ -557,20 +816,6 @@ def _buyer_bundles_context(user):
             "bundle_items__listing__item_type__category",
         )
     )
-    bundle_data_is_temporary = False
-    if not bundles:
-        preview = (
-            Bundle.objects.exclude(status=Bundle.Status.CANCELLED)
-            .prefetch_related(
-                "bundle_items__listing__seller",
-                "bundle_items__listing__item_type__category",
-            )
-            .first()
-        )
-        if preview:
-            bundles = [preview]
-            bundle_data_is_temporary = True
-
     bundle_rows = []
     for bundle in bundles:
         item_rows = []
@@ -583,28 +828,30 @@ def _buyer_bundles_context(user):
                 or item.proposed_bundle_price
                 or item.listing_price_snapshot
             )
-            reference_value = (
-                item.listing.retail_price
-                or item.listing.benchmark_price
-                or item.listing_price_snapshot
-            )
+            reference_value = item.listing.retail_price or item.listing.benchmark_price
             confirmed = item.item_status == item.ItemStatus.ACCEPTED
             confirmed_count += int(confirmed)
             current_total += item_price
-            estimated_value += reference_value
+            if reference_value is not None:
+                estimated_value += reference_value
             item_rows.append(
                 {
                     "item": item,
                     "image_url": _pickup_image(item.listing),
                     "price": item_price,
                     "confirmed": confirmed,
-                    "status_label": (
-                        "Confirmed" if confirmed else "Pending Seller Response"
-                    ),
+                    "status_label": item.get_item_status_display(),
                 }
             )
-        target_budget = _money(current_total * Decimal("1.20"))
-        saved_amount = max(estimated_value - current_total, Decimal("0"))
+        saved_amount = (
+            max(estimated_value - current_total, Decimal("0"))
+            if item_rows and all(
+                row["item"].listing.retail_price is not None
+                or row["item"].listing.benchmark_price is not None
+                for row in item_rows
+            )
+            else None
+        )
         total_items = len(item_rows)
         progress_percent = (
             round(confirmed_count / total_items * 100) if total_items else 0
@@ -614,14 +861,12 @@ def _buyer_bundles_context(user):
                 "bundle": bundle,
                 "name": f"{bundle.get_space_display()} Move-In Bundle",
                 "items": item_rows,
-                "target_budget": target_budget,
+                "target_budget": None,
                 "current_total": current_total,
                 "saved_amount": saved_amount,
                 "confirmed_count": confirmed_count,
                 "total_items": total_items,
                 "progress_percent": progress_percent,
-                "temporary": bundle_data_is_temporary,
-                "target_is_temporary": True,
             }
         )
 
@@ -629,29 +874,19 @@ def _buyer_bundles_context(user):
         {
             "active_buyer_tab": "bundles",
             "bundle_rows": bundle_rows,
-            "bundle_data_is_temporary": bundle_data_is_temporary,
         }
     )
-    if bundle_data_is_temporary:
-        context["buyer_summary"] = {
-            **context["buyer_summary"],
-            "saved_bundles": len(bundle_rows),
-        }
     return context
 
 
-def _purchase_history_rows(transactions, temporary=False):
+def _purchase_history_rows(transactions):
     rows = []
     for transaction in transactions:
-        reference_value = _transaction_reference_value(transaction)
         rows.append(
             {
                 "transaction": transaction,
                 "image_url": _pickup_image(transaction.listing),
                 "purchase_date": transaction.completed_at or transaction.created_at,
-                "reference_value": reference_value,
-                "savings": max(reference_value - transaction.agreed_price, Decimal("0")),
-                "temporary": temporary,
             }
         )
     return rows
@@ -664,32 +899,11 @@ def _buyer_purchase_history_context(user):
         .select_related("listing", "listing__item_type", "listing__item_type__category", "seller")
         .order_by("-completed_at", "-created_at")
     )
-    history_is_temporary = False
-    if not transactions:
-        preview = (
-            Transaction.objects.filter(status=Transaction.Status.COMPLETED)
-            .select_related("listing", "listing__item_type", "listing__item_type__category", "seller")
-            .order_by("-completed_at", "-created_at")
-            .first()
-        )
-        if preview:
-            transactions = [preview]
-            history_is_temporary = True
-    history_rows = _purchase_history_rows(transactions, history_is_temporary)
+    history_rows = _purchase_history_rows(transactions)
     context.update(
         {
             "active_buyer_tab": "history",
             "history_rows": history_rows,
-            "history_is_temporary": history_is_temporary,
-            "history_totals": {
-                "spent": sum(
-                    (row["transaction"].agreed_price for row in history_rows),
-                    Decimal("0"),
-                ),
-                "saved": sum(
-                    (row["savings"] for row in history_rows), Decimal("0")
-                ),
-            },
         }
     )
     return context
@@ -697,31 +911,32 @@ def _buyer_purchase_history_context(user):
 
 def _buyer_watchlist_context(user):
     context = _buyer_pickups_context(user)
-    listings = list(
-        Listing.objects.filter(status=Listing.Status.ACTIVE)
-        .exclude(seller=user)
-        .select_related("seller", "item_type", "item_type__category")
-        .order_by("-created_at", "pk")
-    )
-    for listing in listings:
-        listing.display_image_url = _pickup_image(listing)
-        listing.reference_value = (
-            listing.retail_price or listing.benchmark_price or listing.listing_price
+    entries = list(
+        WatchlistItem.objects.filter(user=user)
+        .select_related(
+            "listing",
+            "listing__seller",
+            "listing__item_type",
+            "listing__item_type__category",
         )
+    )
+    listings = []
+    for entry in entries:
+        listing = entry.listing
+        listing.display_image_url = listing.cover_image_url
+        listing.reference_value = listing.retail_price or listing.benchmark_price
         listing.discount_percent = discount_percent(
             listing.reference_value, listing.listing_price
         )
+        listing.watchlisted_at = entry.created_at
+        listings.append(listing)
     context.update(
         {
             "active_buyer_tab": "watchlist",
             "watchlist_candidates": listings,
             "watchlist_categories": sorted(
-                {
-                    listing.item_type.category.category_name
-                    for listing in listings
-                }
+                {item.item_type.category.category_name for item in listings}
             ),
-            "watchlist_is_browser_local": True,
         }
     )
     return context
@@ -777,8 +992,8 @@ def buyer_purchase_history_csv(request):
                 transaction.listing.title,
                 transaction.seller.display_name or transaction.seller.username,
                 transaction.agreed_price,
-                reference_value,
-                max(reference_value - transaction.agreed_price, Decimal("0")),
+                reference_value or "",
+                _transaction_savings(transaction) if reference_value is not None else "",
                 transaction.get_status_display(),
             ]
         )

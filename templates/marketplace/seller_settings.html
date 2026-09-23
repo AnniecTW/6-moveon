@@ -4,7 +4,7 @@
 <section class="seller-settings-page" aria-labelledby="settings-title">
   <header class="settings-page-heading">
     <div><h2 id="settings-title">Settings</h2><p>Manage seller preferences and account defaults.</p></div>
-    {% if settings_are_temporary %}<span>Session preferences</span>{% endif %}
+    <span></span>
   </header>
 
   {% for message in messages %}<p class="settings-message" role="status">{{ message }}</p>{% endfor %}
@@ -50,7 +50,7 @@
 
     </div>
 
-    <footer class="settings-save-bar"><p data-settings-status aria-live="polite">{% if settings_are_temporary %}These preferences are stored only for this signed-in browser session until profile settings are modeled.{% endif %}</p><button class="button primary" type="submit">Save seller settings</button></footer>
+    <footer class="settings-save-bar"><p data-settings-status aria-live="polite"></p><button class="button primary" type="submit" disabled>Save seller settings</button></footer>
   </form>
 </section>
 {% endblock %}

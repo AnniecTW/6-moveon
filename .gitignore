@@ -63,6 +63,7 @@ data/db.sqlite3
 data/media/
 data/messaging_preview_media/
 db.sqlite3-journal
+media/
 
 # Flask stuff:
 instance/

@@ -1,25 +1,2 @@
-{% extends "marketplace/base.html" %}
-{% load static %}
-{% block listing_content %}
-<div class="seller-dashboard">
-  <div class="seller-layout">
-    {% include "marketplace/partials/_profile_sidebar.html" %}
-    <section id="dashboard-content" class="seller-main" aria-labelledby="seller-title" data-dashboard-content tabindex="-1">
-      <header class="seller-heading">
-        <p class="eyebrow">Seller workspace</p>
-        <h1 id="seller-title">Good afternoon, {{ profile.name }}!</h1>
-        <p class="seller-subtitle">Here&rsquo;s how your listings are doing.</p>
-      </header>
-      <section class="seller-kpis" aria-label="Seller summary">
-        <article><span class="kpi-icon" aria-hidden="true">&#9638;</span><strong>{{ active_count }}</strong><span>Active listings</span></article>
-        <article><span class="kpi-icon" aria-hidden="true">&#9673;</span><strong>{{ total_views }}</strong><span>Total views</span></article>
-        <article><span class="kpi-icon" aria-hidden="true">&#9675;</span><strong>{{ inquiries }}</strong><span>Inquiries</span></article>
-        <article><span class="kpi-icon" aria-hidden="true">&#9670;</span><strong>{% if avg_days_to_sell %}{{ avg_days_to_sell }} days{% else %}--{% endif %}</strong><span>Avg. days to sell</span></article>
-      </section>
-      {% include "marketplace/partials/_seller_tabs.html" %}
-      {% block seller_content %}{% endblock %}
-    </section>
-  </div>
-</div>
-{% endblock %}
-{% block extra_scripts %}<script type="module" src="{% static 'js/marketplace.js' %}?v=seller-settings-1"></script>{% endblock %}
+{% extends "marketplace/profile_base.html" %}
+{% block profile_content %}{% block seller_content %}{% endblock %}{% endblock %}
