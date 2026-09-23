@@ -44,10 +44,10 @@ class Command(BaseCommand):
 
     def _seed_users(self):
         specs = [
-            ("alex", "alex@illinois.edu", "Alex"),
-            ("jamie", "jamie@illinois.edu", "Jamie"),
-            ("sam", "sam@illinois.edu", "Sam"),
-            ("maya", "maya@illinois.edu", "Maya"),
+            ("alex", "alex@example.invalid", "Alex"),
+            ("jamie", "jamie@example.invalid", "Jamie"),
+            ("sam", "sam@example.invalid", "Sam"),
+            ("maya", "maya@example.invalid", "Maya"),
         ]
         users = {}
         for username, email, display_name in specs:
@@ -56,11 +56,11 @@ class Command(BaseCommand):
                 defaults={
                     "email": email,
                     "display_name": display_name,
-                    "email_verified": True,
+                    "email_verified": False,
                 },
             )
             if created:
-                user.set_password("password123")
+                user.set_unusable_password()
                 user.save()
             users[display_name] = user
         return users

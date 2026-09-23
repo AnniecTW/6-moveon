@@ -63,7 +63,11 @@
       </button>
       {% if request.resolver_match.url_name == 'home' %}
         {% if request.user.is_authenticated %}
-          <span class="account-identity">{{ request.user.username }}</span>
+          {% if campus_access %}
+            <span class="account-identity">{{ request.user.username }}</span>
+          {% else %}
+            <a class="account-status" href="{% url 'account' %}">{% if request.user.is_staff %}Admin session{% else %}Verify account{% endif %}</a>
+          {% endif %}
           <form method="post" action="{% url 'account_logout' %}">
             {% csrf_token %}
             <button class="icon-button" type="submit" aria-label="Sign out">

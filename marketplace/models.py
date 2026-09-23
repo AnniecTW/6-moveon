@@ -25,6 +25,8 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=True)
     email_verified = models.BooleanField(default=False)
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+    google_subject = models.CharField(max_length=255, unique=True, null=True, blank=True)
     display_name = models.CharField(max_length=150)
     account_status = models.CharField(
         max_length=20,
@@ -38,6 +40,31 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.display_name or self.username
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        if self.pk and (update_fields is None or "email" in update_fields):
+            previous = type(self).objects.filter(pk=self.pk).values_list("email", flat=True).first()
+            if previous is not None and previous.lower() != self.email.lower():
+                self.email_verified = False
+                self.email_verified_at = None
+                if update_fields is not None:
+                    kwargs["update_fields"] = set(update_fields) | {"email_verified", "email_verified_at"}
+                EmailVerification.objects.filter(user_id=self.pk).delete()
+        return super().save(*args, **kwargs)
+
+
+class EmailVerification(models.Model):
+    """One outstanding campus email challenge per account."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="email_challenge"
+    )
+    request_id = models.UUIDField()
+    code_digest = models.CharField(max_length=64)
+    expires_at = models.DateTimeField()
+    sent_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
 
 
 class ItemCategory(models.Model):

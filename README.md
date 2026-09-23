@@ -110,3 +110,21 @@ The six featured demo listings use local reference images and power the interact
 bundle scenes. Other listings without image URLs show a photo placeholder.
 
 Run checks with `python manage.py check` and `python manage.py test`.
+
+## Account access and email
+
+For a local check, register with an `@illinois.edu` address, copy the six-digit
+code from the `runserver` terminal, verify, log in, and log out. Then use
+**Forgot password?** and open its reset link from that terminal. The local
+console backend does **not** deliver real email. A developer can create a
+full-access Django Admin account once per new database; Admin login does not
+require campus email verification.
+
+```bash
+python manage.py createsuperuser
+python manage.py test marketplace.test_auth
+python manage.py test
+```
+
+See [Week 3 authentication details](docs/notes/weekly_progress_updates/wk3_authentication.md)
+for account rules, configuration, test coverage, and remaining external checks.

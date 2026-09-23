@@ -12,8 +12,8 @@
     <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml" />
     <link rel="stylesheet" href="{% static 'css/marketplace.css' %}" />
   </head>
-  <body{% if auth_form %} class="account-open"{% endif %}>
-    <div{% if auth_form %} inert aria-hidden="true"{% endif %}>
+  <body{% if auth_overlay %} class="account-open"{% endif %}>
+    <div{% if auth_overlay %} inert aria-hidden="true"{% endif %}>
     <a class="skip-link" href="#main-content">Skip to listings</a>
     {% include "marketplace/partials/_header.html" %}
     <main id="main-content" class="page">{% block listing_content %}{% endblock %}</main>
