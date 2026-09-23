@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from marketplace.models import User, ItemCategory, ItemType, Listing, Transaction
 from bundles.models import Bundle, BundleItem
@@ -22,9 +23,11 @@ class ParticipantIntegrityTests(TestCase):
         )
         cls.admin = User.objects.create_superuser(
             username="admin",
-            email="admin@example.com",
+            email="admin@illinois.edu",
             display_name="Admin",
             password="test-password",
+            email_verified=True,
+            email_verified_at=timezone.now(),
         )
         category = ItemCategory.objects.create(category_name="Furniture")
         item_type = ItemType.objects.create(category=category, item_type_name="Chair")

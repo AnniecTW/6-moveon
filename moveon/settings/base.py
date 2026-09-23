@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 ]
 
 AUTH_USER_MODEL = "marketplace.User"
+AUTHENTICATION_BACKENDS = ["marketplace.auth_backend.CampusModelBackend"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -51,6 +52,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "marketplace.access_middleware.CampusAccessMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -125,13 +127,19 @@ STATIC_URL = "static/"
 # The browse page uses authored CSS and browser ES modules, with no build step.
 # The older Tailwind source/output remain available but are not loaded by it.
 STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_ROOT = BASE_DIR / "data" / "media"
+CSRF_FAILURE_VIEW = "messaging.csrf.csrf_failure"
 
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    "default": {
-        "BACKEND": "django.core.mail.backends.console.EmailBackend",
-    },
-}
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="marketplace.mail_backends.ReadableConsoleEmailBackend")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="MoveOn <no-reply@moveon.local>")
+EMAIL_HOST = env("EMAIL_HOST", default="localhost")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+PASSWORD_RESET_TIMEOUT = 3600
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")

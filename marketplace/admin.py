@@ -13,10 +13,11 @@ from .models import (
 
 @admin.register(User)
 class MoveOnUserAdmin(UserAdmin):
+    readonly_fields = UserAdmin.readonly_fields + ("email_verified", "email_verified_at")
     fieldsets = UserAdmin.fieldsets + (
         (
             "MoveOn profile",
-            {"fields": ("email_verified", "display_name", "account_status")},
+            {"fields": ("email_verified", "email_verified_at", "display_name", "account_status")},
         ),
     )
     # UserAdmin's own add_fieldsets is a *separate* minimal form used only on the
@@ -26,7 +27,7 @@ class MoveOnUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         (
             "MoveOn profile",
-            {"fields": ("email", "display_name", "email_verified", "account_status")},
+            {"fields": ("email", "display_name", "email_verified", "email_verified_at", "account_status")},
         ),
     )
     list_display = ("username", "display_name", "email", "account_status", "is_staff")

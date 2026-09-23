@@ -1,6 +1,7 @@
 """Database querying and template context; independent of browser scripting."""
 
 from django.db.models import Q, Count
+from .auth_backend import has_campus_access
 from .featured import decorate_listing, featured_bundles
 from .forms import BrowseForm
 from .models import Listing
@@ -86,4 +87,5 @@ def browse_context(request):
         "filter_form": form,
         "filter_chips": chips,
         "featured_bundles": featured_bundles(),
+        "campus_access": request.user.is_authenticated and has_campus_access(request.user),
     }

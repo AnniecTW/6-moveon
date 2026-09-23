@@ -4,12 +4,12 @@
     <a class="logo" href="{% url 'home' %}" aria-label="MoveOn home"
       ><img src="{% static 'img/logo.png' %}" alt="MoveOn" width="150" height="52"
     /></a>
-    <form class="search" method="get" role="search" data-search-form>
-      {% for key, values in request.GET.lists %}{% if key != 'q' %}{% for value in values %}<input
+    <form class="search" method="get" action="{% url 'home' %}" role="search" data-search-form>
+      {% if request.resolver_match.url_name == 'home' %}{% for key, values in request.GET.lists %}{% if key != 'q' %}{% for value in values %}<input
         type="hidden"
         name="{{ key }}"
         value="{{ value }}"
-      />{% endfor %}{% endif %}{% endfor %}
+      />{% endfor %}{% endif %}{% endfor %}{% endif %}
       <label class="sr-only" for="search">Search listings</label>
       <input
         id="search"
@@ -37,17 +37,15 @@
           <circle cx="7" cy="8" r="1" /></svg
         ><span>Sell Item</span>
       </button>
-      <button
-        class="icon-button"
-        type="button"
-        data-header-action="messages"
-        aria-label="Messages"
-      >
+      <a class="button header-bundle-link" href="{% url 'home' %}?bundle=on#listings-heading">Bundle</a>
+      <a class="icon-button messages-link{% if request.resolver_match.url_name == 'messages' %} is-active{% endif %}"
+        href="{% url 'messages' %}" aria-label="Messages"{% if campus_access %} data-unread-url="{% url 'messaging_unread' %}"{% endif %}{% if request.resolver_match.url_name == 'messages' %} aria-current="page"{% endif %}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3" y="5" width="18" height="14" rx="2" />
           <path d="m3 6 9 7 9-7" />
         </svg>
-      </button>
+        {% if campus_access %}<span data-message-count hidden>0</span>{% endif %}
+      </a>
       <button
         class="icon-button shopping-bag"
         type="button"
@@ -61,17 +59,28 @@
           <path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg
         ><span data-saved-count>0</span>
       </button>
-      <button
-        class="icon-button"
-        type="button"
-        data-header-action="profile"
-        aria-label="Profile"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21a8 8 0 0 1 16 0" />
-        </svg>
-      </button>
+        {% if request.user.is_authenticated %}
+          {% if campus_access %}
+            <span class="account-identity">{{ request.user.username }}</span>
+          {% else %}
+            <a class="account-status" href="{% url 'account' %}">{% if request.user.is_staff %}Admin session{% else %}Verify account{% endif %}</a>
+          {% endif %}
+          <form method="post" action="{% url 'account_logout' %}">
+            {% csrf_token %}
+            <button class="icon-button" type="submit" aria-label="Sign out">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10 4H5v16h5" /><path d="M14 8l4 4-4 4" /><path d="M9 12h9" />
+              </svg>
+            </button>
+          </form>
+        {% else %}
+          <a class="icon-button" href="{% url 'account' %}" aria-label="Sign in or create account">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
+          </a>
+        {% endif %}
     </nav>
   </div>
 </header>

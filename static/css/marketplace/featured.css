@@ -68,10 +68,12 @@ body {
   margin-right: 8px;
   padding-inline: 18px;
 }
-.shopping-bag {
+.shopping-bag,
+.messages-link {
   position: relative;
 }
-.shopping-bag [data-saved-count] {
+.shopping-bag [data-saved-count],
+.messages-link [data-message-count] {
   position: absolute;
   top: -1px;
   right: -1px;

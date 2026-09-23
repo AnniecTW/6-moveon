@@ -1,0 +1,167 @@
+{% extends "marketplace/listing_list.html" %}
+{% load static %}
+{% block title %}Account | MoveOn{% endblock %}
+{% block overlay_content %}
+<div class="account-backdrop">
+  <section class="account-card" role="dialog" aria-modal="true" aria-labelledby="account-title">
+    <a class="account-close" href="{% url 'home' %}" aria-label="Close and return to listings">×</a>
+    <div class="account-wordmark">MoveOn <span aria-hidden="true"></span></div>
+
+    {% if auth_mode == 'signup' %}
+      <h1 id="account-title">Create your account.</h1>
+      <p class="account-intro">Join your campus community on MoveOn.</p>
+    {% elif auth_mode == 'verify' %}
+      <h1 id="account-title">Verify your email.</h1>
+      <p class="account-intro">Enter the code for {{ verify_email }}. The code expires in 10 minutes.</p>
+    {% elif auth_mode == 'forgot' %}
+      <h1 id="account-title">Forgot password?</h1>
+      <p class="account-intro">Enter your campus email and we’ll send a reset link.</p>
+    {% elif auth_mode == 'reset_sent' %}
+      {% if console_email_backend %}
+        <h1 id="account-title">Reset link generated.</h1>
+        <p class="account-intro">If there’s an active account for that address, its reset link appears in the server console. No email was delivered.</p>
+      {% else %}
+        <h1 id="account-title">Check your email.</h1>
+        <p class="account-intro">If there’s an active account for that address, a password reset request was passed to the configured email backend.</p>
+      {% endif %}
+    {% elif auth_mode == 'reset' %}
+      <h1 id="account-title">Set a new password.</h1>
+      <p class="account-intro">Choose a new password for your MoveOn account.</p>
+    {% elif auth_mode == 'restricted' %}
+      <h1 id="account-title">{% if restricted_admin %}Administrator account.{% else %}Campus access required.{% endif %}</h1>
+      {% if restricted_campus_email %}
+        <p class="account-intro">This account has not verified its campus email for MoveOn. Sign out and log in here to request a verification code.</p>
+      {% else %}
+        <p class="account-intro">{% if restricted_admin %}This account can access administration but does not have verified campus access for MoveOn.{% else %}This account does not have verified campus access for MoveOn.{% endif %}</p>
+      {% endif %}
+    {% else %}
+      <h1 id="account-title">Welcome back.</h1>
+      <p class="account-intro">Log in to manage your listings, bundles, and conversations.</p>
+    {% endif %}
+
+    {% if auth_mode == 'login' or auth_mode == 'signup' %}
+      <nav class="account-tabs" aria-label="Account access">
+        <a href="{% url 'account' %}?next={{ account_next|urlencode }}"{% if auth_mode == 'login' %} aria-current="page"{% endif %}>Log in</a>
+        <a href="{% url 'account' %}?mode=signup&amp;next={{ account_next|urlencode }}"{% if auth_mode == 'signup' %} aria-current="page"{% endif %}>Create account</a>
+      </nav>
+      {% if reset_done %}<p class="account-notice" role="status">Password updated. Log in with your new password.</p>{% endif %}
+      {% if google_error %}<div class="account-errors" role="alert">{{ google_error }}</div>{% endif %}
+      <form method="post" action="{% url 'account' %}" class="account-form">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="{{ auth_mode }}" />
+        <input type="hidden" name="next" value="{{ account_next }}" />
+        {% if auth_form.non_field_errors %}<div class="account-errors" role="alert">{{ auth_form.non_field_errors }}</div>{% endif %}
+        <div class="account-field">
+          <label for="id_username">{% if auth_mode == 'login' %}Username or campus email{% else %}Username{% endif %}</label>
+          {{ auth_form.username }}
+          {% for error in auth_form.username.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+        </div>
+        {% if auth_mode == 'signup' %}
+          <div class="account-field">
+            <label for="id_email">Campus email</label>
+            {{ auth_form.email }}
+            {% for error in auth_form.email.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+            <p class="account-hint">Use an @illinois.edu email address. You’ll verify it before logging in.</p>
+          </div>
+          <div class="account-field">
+            <label for="id_password1">Password</label>
+            <div class="account-password">{{ auth_form.password1 }}<button type="button" data-password-toggle="id_password1" aria-label="Show password" aria-pressed="false">◎</button></div>
+            {% for error in auth_form.password1.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+          </div>
+          <div class="account-field">
+            <label for="id_password2">Confirm password</label>
+            <div class="account-password">{{ auth_form.password2 }}<button type="button" data-password-toggle="id_password2" aria-label="Show password" aria-pressed="false">◎</button></div>
+            {% for error in auth_form.password2.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+          </div>
+        {% else %}
+          <div class="account-field">
+            <label for="id_password">Password</label>
+            <div class="account-password">{{ auth_form.password }}<button type="button" data-password-toggle="id_password" aria-label="Show password" aria-pressed="false">◎</button></div>
+            {% for error in auth_form.password.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+          </div>
+          <a class="account-forgot" href="{% url 'password_reset' %}">Forgot password?</a>
+        {% endif %}
+        <button class="account-submit" type="submit">{% if auth_mode == 'signup' %}Create account{% else %}Log in{% endif %}</button>
+      </form>
+      {% if google_client_id %}
+        <div class="account-divider"><span>or</span></div>
+        <div class="account-google" data-google-signin data-client-id="{{ google_client_id }}" data-url="{% url 'account_google' %}"></div>
+      {% else %}
+        <div class="account-divider"><span>or</span></div>
+        <button class="account-google-disabled" type="button" disabled>Continue with Google</button>
+        <p class="account-hint account-center">Google sign-in needs app configuration.</p>
+      {% endif %}
+      {% if auth_mode == 'login' %}
+        <p class="account-return">After logging in, you'll return to {% if return_to_messages %}Messages{% else %}the main page{% endif %}.</p>
+        <p class="account-switch">Don't have an account? <a href="{% url 'account' %}?mode=signup&amp;next={{ account_next|urlencode }}">Create one</a></p>
+      {% endif %}
+    {% elif auth_mode == 'restricted' %}
+      {% if restricted_admin %}<p class="account-switch"><a href="{% url 'admin:index' %}">Open Django administration</a></p>{% endif %}
+      <form method="post" action="{% url 'account_logout' %}" class="account-form">
+        {% csrf_token %}
+        <button class="account-submit" type="submit">Sign out</button>
+      </form>
+    {% elif auth_mode == 'verify' %}
+      {% if delivery_error %}<div class="account-errors" role="alert">The email backend could not accept the message. Try resending the code.</div>{% endif %}
+      {% if verification_cooldown %}<p class="account-notice" role="status">Wait 60 seconds before requesting another code.</p>{% endif %}
+      {% if verification_resent %}<p class="account-notice" role="status">A new code was generated for your email address.</p>{% endif %}
+      {% if verify_error %}<div class="account-errors" role="alert">{{ verify_error }}</div>{% endif %}
+      <form method="post" action="{% url 'account_verify' %}" class="account-form">
+        {% csrf_token %}
+        <div class="account-field">
+          <label for="id_code">Verification code</label>
+          <input id="id_code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required />
+        </div>
+        <button class="account-submit" type="submit">Verify email</button>
+      </form>
+      <form method="post" action="{% url 'account_verify_resend' %}" class="account-secondary-form">
+        {% csrf_token %}
+        <button type="submit">Resend code</button>
+      </form>
+      {% if console_email_backend %}<p class="account-hint account-center">In local development, the code appears in the server console. This does not mean an email was delivered.</p>{% endif %}
+      <p class="account-switch"><a href="{% url 'account' %}">Back to log in</a></p>
+    {% elif auth_mode == 'forgot' %}
+      <form method="post" class="account-form">
+        {% csrf_token %}
+        <div class="account-field">
+          <label for="id_email">Campus email</label>
+          {{ auth_form.email }}
+          {% for error in auth_form.email.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+        </div>
+        <button class="account-submit" type="submit">Send reset link</button>
+      </form>
+      <p class="account-switch"><a href="{% url 'account' %}">Back to log in</a></p>
+    {% elif auth_mode == 'reset_sent' %}
+      {% if console_email_backend %}<p class="account-hint">In local development, the link appears in the server console; no real email is delivered.</p>{% endif %}
+      <p class="account-switch"><a href="{% url 'account' %}">Back to log in</a></p>
+    {% elif auth_mode == 'reset' %}
+      {% if validlink %}
+        <form method="post" class="account-form">
+          {% csrf_token %}
+          {% if auth_form.non_field_errors %}<div class="account-errors" role="alert">{{ auth_form.non_field_errors }}</div>{% endif %}
+          <div class="account-field">
+            <label for="id_new_password1">New password</label>
+            {{ auth_form.new_password1 }}
+            {% for error in auth_form.new_password1.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+          </div>
+          <div class="account-field">
+            <label for="id_new_password2">Confirm new password</label>
+            {{ auth_form.new_password2 }}
+            {% for error in auth_form.new_password2.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+          </div>
+          <button class="account-submit" type="submit">Reset password</button>
+        </form>
+      {% else %}
+        <div class="account-errors" role="alert">This reset link is invalid or has expired.</div>
+        <p class="account-switch"><a href="{% url 'password_reset' %}">Request a new link</a></p>
+      {% endif %}
+    {% endif %}
+    <a class="account-home" href="{% url 'home' %}">Back to listings</a>
+  </section>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+  {{ block.super }}
+  {% if google_client_id %}<script src="https://accounts.google.com/gsi/client" async defer></script>{% endif %}
+  <script type="module" src="{% static 'js/marketplace/account.js' %}"></script>
+{% endblock %}

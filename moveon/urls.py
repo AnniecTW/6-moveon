@@ -18,9 +18,29 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from marketplace import views
+from messaging import api as messaging_api
+from bundles import messaging as bundle_messaging
 
 urlpatterns = [
+    path("messages/", messaging_api.page, name="messages"),
+    path("api/messaging/bundles/<int:bundle_id>/send-requests/", messaging_api.api_guard(bundle_messaging.send_requests), name="bundle_send_requests"),
+    path("api/messaging/conversations/", messaging_api.api_guard(messaging_api.conversations), name="messaging_conversations"),
+    path("api/messaging/unread/", messaging_api.api_guard(messaging_api.unread), name="messaging_unread"),
+    path("api/messaging/conversations/create/", messaging_api.api_guard(messaging_api.create), name="messaging_create"),
+    path("api/messaging/conversations/<str:conversation_id>/messages/", messaging_api.api_guard(messaging_api.messages), name="messaging_messages"),
+    path("api/messaging/conversations/<str:conversation_id>/read/", messaging_api.api_guard(messaging_api.mark_read), name="messaging_read"),
+    path("api/messaging/requests/<str:request_id>/decision/", messaging_api.api_guard(messaging_api.request_decision), name="messaging_request_decision"),
+    path("api/messaging/uploads/", messaging_api.api_guard(messaging_api.upload), name="messaging_upload"),
+    path("api/messaging/attachments/<str:image_id>/", messaging_api.api_guard(messaging_api.attachment), name="messaging_attachment"),
     path("", views.listing_render_view, name="home"),
+    path("account/", views.account_view, name="account"),
+    path("account/logout/", views.account_logout_view, name="account_logout"),
+    path("account/verify/", views.account_verify_view, name="account_verify"),
+    path("account/verify/resend/", views.account_verify_resend_view, name="account_verify_resend"),
+    path("account/forgot/", views.CampusPasswordResetView.as_view(), name="password_reset"),
+    path("account/forgot/sent/", views.password_reset_done_view, name="password_reset_done"),
+    path("account/reset/<uidb64>/<token>/", views.CampusPasswordResetConfirmView.as_view(), name="password_reset_confirm"),
+    path("account/google/", views.account_google_view, name="account_google"),
     path("admin/", admin.site.urls),
     path("listings/manual/", views.listing_manual_view, name="listing_manual"),
     path("listings/render/", views.listing_render_view, name="listing_render"),

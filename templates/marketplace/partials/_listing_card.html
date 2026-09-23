@@ -36,6 +36,8 @@
       <span class="condition">{{ item.get_condition_display }}</span
       ><span>{{ item.created_at|date:"M j" }}</span>
     </div>
-    <div class="card-bottom"><span>{{ item.seller.display_name|default:item.seller.username }}</span></div>
+    <div class="card-bottom"><span>{{ item.seller.display_name|default:item.seller.username }}</span>
+      {% if request.user.pk != item.seller_id %}<a class="card-message-link" href="{% url 'messages' %}?listing={{ item.pk|unlocalize }}">Message seller</a>{% endif %}
+    </div>
   </div>
 </article>

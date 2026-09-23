@@ -16,8 +16,7 @@
   {% for item in listings %}{% include "marketplace/partials/_listing_card.html" %}{% empty %}
   <div class="empty-state">
     <h3>
-      {% if filter_form.errors %}Check your filters{% elif filter_chips %}No listings
-      found{% else %}No listings yet{% endif %}
+      {% if filter_form.errors %}Check your filters{% elif filter_chips %}No listings found{% else %}No listings yet{% endif %}
     </h3>
     <p>
       {% if filter_form.errors %}Correct the highlighted fields to

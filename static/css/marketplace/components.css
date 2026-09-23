@@ -37,7 +37,8 @@
 .saved-button {
   white-space: nowrap;
 }
-[data-saved-count] {
+[data-saved-count],
+[data-message-count] {
   border-radius: 50%;
   background: var(--gold);
   padding: 0 6px;
@@ -365,3 +366,4 @@ body:has(.filter-dialog[open]) {
     display: none;
   }
 }
+.card-message-link { color: var(--ink); font-size: 12px; text-decoration: underline; }
