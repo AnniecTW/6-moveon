@@ -37,7 +37,18 @@ def browse_context(request):
                 listings = listings.filter(**{lookup: values[name]})
         fulfillment = values.get("fulfillment", [])
         if fulfillment:
-            listings = listings.filter(fulfillment_option__in=fulfillment)
+            fulfillment_filter = Q(fulfillment_option__in=fulfillment)
+            if any(
+                option in fulfillment
+                for option in (
+                    Listing.Fulfillment.PICKUP,
+                    Listing.Fulfillment.DELIVERY,
+                )
+            ):
+                fulfillment_filter |= Q(
+                    fulfillment_option=Listing.Fulfillment.BOTH
+                )
+            listings = listings.filter(fulfillment_filter)
         if values.get("bundle"):
             listings = listings.filter(bundle_eligible=True)
         for name, lookup in [

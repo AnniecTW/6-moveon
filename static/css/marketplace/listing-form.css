@@ -331,6 +331,23 @@
   justify-content: space-around;
 }
 
+.fulfillment-choice-grid {
+  justify-content: flex-start;
+}
+
+.fulfillment-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 12px;
+}
+
+.fulfillment-choice input {
+  width: 17px;
+  height: 17px;
+}
+
 .choice-card {
   display: inline-flex;
   align-items: center;

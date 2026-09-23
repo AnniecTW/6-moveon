@@ -80,8 +80,16 @@
 
       <section class="form-panel fulfillment-panel" aria-labelledby="fulfillment-heading">
         <h2 id="fulfillment-heading"><span>6.</span> Delivery Options</h2>
-        {{ form.fulfillment_option }}
-        {% for error in form.fulfillment_option.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        <div class="choice-grid fulfillment-choice-grid" role="group" aria-labelledby="fulfillment-heading">
+          <label class="fulfillment-choice">
+            {{ form.fulfillment_pickup }}
+            <span>Pickup</span>
+          </label>
+          <label class="fulfillment-choice">
+            {{ form.fulfillment_delivery }}
+            <span>Delivery</span>
+          </label>
+        </div>
       </section>
 
       <section class="form-panel description-panel" aria-labelledby="description-heading">

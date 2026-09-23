@@ -18,6 +18,7 @@ class BrowseTests(TestCase):
         for title, price, status, delivery in [
             ("Oak desk", 50, "ACTIVE", "DELIVERY"),
             ("Small desk", 20, "ACTIVE", "PICKUP"),
+            ("Shared desk", 30, "ACTIVE", "BOTH"),
             ("Private draft", 10, "DRAFT", "PICKUP"),
             ("Sold desk", 5, "SOLD", "DELIVERY"),
         ]:
@@ -45,7 +46,7 @@ class BrowseTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(
                     {x.title for x in response.context["listings"]},
-                    {"Oak desk", "Small desk"},
+                    {"Oak desk", "Small desk", "Shared desk"},
                 )
                 self.assertContains(response, "css/marketplace.css")
                 self.assertContains(response, 'type="module"')
@@ -69,12 +70,45 @@ class BrowseTests(TestCase):
             reverse("home"), {"fulfillment": "PICKUP", "sort": "price-asc"}
         )
         self.assertEqual(
-            [x.title for x in response.context["listings"]], ["Small desk"]
+            [x.title for x in response.context["listings"]],
+            ["Small desk", "Shared desk"],
         )
 
-    def test_delivery_does_not_include_pickup_only(self):
-        response = self.client.get(reverse("home"), {"fulfillment": "DELIVERY"})
-        self.assertEqual([x.title for x in response.context["listings"]], ["Oak desk"])
+    def test_delivery_does_not_include_pickup_only_but_includes_both(self):
+        response = self.client.get(
+            reverse("home"), {"fulfillment": "DELIVERY", "sort": "price-asc"}
+        )
+        self.assertEqual(
+            [x.title for x in response.context["listings"]],
+            ["Shared desk", "Oak desk"],
+        )
+
+    def test_both_fulfillment_filters_all_selected_capabilities(self):
+        response = self.client.get(
+            reverse("home"),
+            {"fulfillment": ["PICKUP", "DELIVERY"], "sort": "price-asc"},
+        )
+        self.assertEqual(
+            [x.title for x in response.context["listings"]],
+            ["Small desk", "Shared desk", "Oak desk"],
+        )
+        self.assertEqual(
+            [
+                value
+                for value, _ in response.context["filter_form"].fields[
+                    "fulfillment"
+                ].choices
+            ],
+            ["PICKUP", "DELIVERY"],
+        )
+
+    def test_empty_fulfillment_does_not_filter_listings(self):
+        response = self.client.get(reverse("home"), {"sort": "price-asc"})
+
+        self.assertEqual(
+            [x.title for x in response.context["listings"]],
+            ["Small desk", "Shared desk", "Oak desk"],
+        )
 
     def test_invalid_filters_return_errors_not_server_errors(self):
         for params in (
@@ -126,3 +160,15 @@ class DemoSeedTests(TestCase):
         self.assertEqual(Listing.objects.count(), 8)
         call_command("seed_demo_data", stdout=output)
         self.assertEqual(Listing.objects.count(), 8)
+
+    def test_seed_covers_all_fulfillment_options(self):
+        call_command("seed_demo_data", stdout=StringIO())
+
+        self.assertEqual(
+            Listing.objects.get(title="Blue Sofa").fulfillment_option,
+            Listing.Fulfillment.BOTH,
+        )
+        self.assertEqual(
+            Listing.objects.get(title="Television").fulfillment_option,
+            Listing.Fulfillment.DELIVERY,
+        )

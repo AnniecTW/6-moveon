@@ -37,6 +37,16 @@ class FeaturedTests(TestCase):
         self.assertEqual(scenes[1]["total"], Decimal("127"))
         self.assertEqual(scenes[1]["saved"], Decimal("65"))
 
+    def test_seed_covers_delivery_and_both_fulfillment(self):
+        self.assertEqual(
+            Listing.objects.get(title="Coffee Table").fulfillment_option,
+            Listing.Fulfillment.DELIVERY,
+        )
+        self.assertEqual(
+            Listing.objects.get(title="Rocking Chair").fulfillment_option,
+            Listing.Fulfillment.BOTH,
+        )
+
     def test_price_edits_are_reflected_in_scene_and_listing(self):
         item = Listing.objects.get(title="Rocking Chair")
         item.listing_price = Decimal("90")

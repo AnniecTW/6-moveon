@@ -10,6 +10,11 @@ SORT_CHOICES = [
     ("popular", "Popular"),
 ]
 
+FULFILLMENT_FILTER_CHOICES = [
+    (Listing.Fulfillment.PICKUP, Listing.Fulfillment.PICKUP.label),
+    (Listing.Fulfillment.DELIVERY, Listing.Fulfillment.DELIVERY.label),
+]
+
 
 class BrowseForm(forms.Form):
     q = forms.CharField(required=False, max_length=200, label="Search")
@@ -26,7 +31,7 @@ class BrowseForm(forms.Form):
     )
     fulfillment = forms.MultipleChoiceField(
         required=False,
-        choices=Listing.Fulfillment.choices,
+        choices=FULFILLMENT_FILTER_CHOICES,
         widget=forms.CheckboxSelectMultiple,
     )
     min_price = forms.DecimalField(
@@ -68,6 +73,12 @@ class ListingCreateForm(forms.ModelForm):
     """Validate the seller-facing fields used to create a listing."""
 
     title = forms.CharField(max_length=80)
+    fulfillment_option = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput,
+    )
+    fulfillment_pickup = forms.BooleanField(label="Pickup", required=False)
+    fulfillment_delivery = forms.BooleanField(label="Delivery", required=False)
     description = forms.CharField(
         max_length=1000,
         required=False,
@@ -83,6 +94,8 @@ class ListingCreateForm(forms.ModelForm):
             "condition",
             "item_type",
             "fulfillment_option",
+            "fulfillment_pickup",
+            "fulfillment_delivery",
             "description",
             "minimum_price",
             "move_out_date",
@@ -101,3 +114,20 @@ class ListingCreateForm(forms.ModelForm):
             ),
             "move_out_date": forms.DateInput(attrs={"type": "date"}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pickup = cleaned_data.get("fulfillment_pickup")
+        delivery = cleaned_data.get("fulfillment_delivery")
+
+        if not pickup and not delivery:
+            raise forms.ValidationError(
+                "Select pickup, delivery, or both fulfillment options."
+            )
+        if pickup and delivery:
+            cleaned_data["fulfillment_option"] = Listing.Fulfillment.BOTH
+        elif pickup:
+            cleaned_data["fulfillment_option"] = Listing.Fulfillment.PICKUP
+        else:
+            cleaned_data["fulfillment_option"] = Listing.Fulfillment.DELIVERY
+        return cleaned_data
