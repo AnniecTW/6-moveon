@@ -77,12 +77,59 @@ For Brevo, `EMAIL_HOST_PASSWORD` is its SMTP key, not the account password or
 API key. SMTP acceptance still needs confirmation through the provider logs
 and a real inbox before real delivery can be marked tested.
 
-Google sign-in needs a Google Cloud web client ID in `GOOGLE_CLIENT_ID` and
-an authorized site origin. Django verifies the ID token. A Google account
-does not gain student access merely from its email suffix or Google's
-`email_verified` claim: MoveOn's own campus verification still applies.
-Google login does not silently link an existing password account with the same
-email. School SSO remains a future integration.
+### Google sign-in setup and verification
+
+Google sign-in requires a Google Cloud OAuth Web application Client ID. If the
+team has not created one, leave `GOOGLE_CLIENT_ID` unset or empty: real Google
+sign-in cannot be used, and the account page shows **Continue with Google** as
+disabled with an app-configuration explanation. Username/campus-email
+registration, MoveOn's
+six-digit email code, password login, and password reset still work. With the
+default console mail backend, the code is printed in `runserver`; this tests
+the workflow but does not prove control of a real mailbox.
+
+To test the actual Google sign-in flow locally:
+
+1. A developer or team owner creates or selects a Google Cloud project,
+   configures its OAuth consent/branding information, and creates an OAuth
+   client of type **Web application**. The consent screen's support email is
+   an app contact, not the campus email eligibility check. Each student user
+   does not create a Cloud project, and the MoveOn site does not need to be
+   deployed before local testing. See [Google's setup guide](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid).
+2. Add the exact browser origin under **Authorized JavaScript origins**. For
+   port 8000, add `http://localhost` and `http://localhost:8000`; if using
+   `http://127.0.0.1:8000` in the browser, add it separately. An origin has
+   scheme, host, and port, with no `/account/` path. Add the deployed HTTPS
+   origin when the site is deployed. This implementation uses a JavaScript
+   callback and posts the ID token to Django, so it does not use an OAuth
+   redirect URI or client secret.
+3. Put the Web application **Client ID** in the local, Git-ignored `.env`,
+   alongside `SECRET_KEY`, then restart `runserver`:
+
+   ```env
+   GOOGLE_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
+   ```
+
+4. Open `/account/` on the same origin, click the enabled Google button, and
+   select a Google account that reports a verified `@illinois.edu` email.
+   Django verifies the returned ID token with `google-auth` against this
+   Client ID. On first use, MoveOn creates a local account with an unusable
+   password, then requires its **own** campus email code before student access.
+   After that verification, try Google sign-in again and confirm login and
+   logout. An existing MoveOn password account with the same email is not
+   silently linked; use its password login instead. A personal Gmail address
+   does not satisfy MoveOn's campus-email rule.
+
+Google's `email_verified` claim and an `@illinois.edu` suffix alone do not mark
+the MoveOn campus email as verified. This is Google account authentication,
+not Illinois SSO or proof of current enrollment. If the Google popup is blank
+or `/gsi/transform` does not complete, check the exact authorized origin and
+browser console; the account page already sets the popup-compatible COOP
+header when a Client ID is configured. [Google's token-verification guide](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token)
+explains the ID-token and email-ownership limits. Real Google OAuth and real
+mailbox delivery must each be checked with external configuration; mocked
+Google tests alone do not establish either result. School SSO remains a future
+integration.
 
 ## Test evidence and remaining checks
 
