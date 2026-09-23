@@ -18,8 +18,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from marketplace import views
+from messaging import api as messaging_api
+from bundles import messaging as bundle_messaging
 
 urlpatterns = [
+    path("messages/", messaging_api.page, name="messages"),
+    path("api/messaging/bundles/<int:bundle_id>/send-requests/", messaging_api.api_guard(bundle_messaging.send_requests), name="bundle_send_requests"),
+    path("api/messaging/conversations/", messaging_api.api_guard(messaging_api.conversations), name="messaging_conversations"),
+    path("api/messaging/conversations/create/", messaging_api.api_guard(messaging_api.create), name="messaging_create"),
+    path("api/messaging/conversations/<str:conversation_id>/messages/", messaging_api.api_guard(messaging_api.messages), name="messaging_messages"),
+    path("api/messaging/conversations/<str:conversation_id>/read/", messaging_api.api_guard(messaging_api.mark_read), name="messaging_read"),
+    path("api/messaging/requests/<str:request_id>/decision/", messaging_api.api_guard(messaging_api.request_decision), name="messaging_request_decision"),
+    path("api/messaging/uploads/", messaging_api.api_guard(messaging_api.upload), name="messaging_upload"),
+    path("api/messaging/attachments/<str:image_id>/", messaging_api.api_guard(messaging_api.attachment), name="messaging_attachment"),
     path("", views.listing_render_view, name="home"),
     path("account/", views.account_view, name="account"),
     path("account/logout/", views.account_logout_view, name="account_logout"),

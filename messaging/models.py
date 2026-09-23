@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
+import uuid
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 from bundles.models import BundleItem
 from marketplace.models import Listing
@@ -43,6 +46,9 @@ class Conversation(ValidatedSaveModel):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     last_message_at = models.DateTimeField(null=True, blank=True)
+    listing_title_snapshot = models.CharField(max_length=200, blank=True)
+    listing_price_snapshot = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    listing_image_snapshot = models.URLField(blank=True)
 
     class Meta:
         ordering = ["-last_message_at", "-created_at"]
@@ -122,6 +128,14 @@ class Conversation(ValidatedSaveModel):
     def __str__(self):
         return f"{self.buyer} <-> {self.seller}"
 
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.listing_id:
+            listing = self.listing
+            self.listing_title_snapshot = listing.title
+            self.listing_price_snapshot = listing.listing_price
+            self.listing_image_snapshot = listing.image_url
+        return super().save(*args, **kwargs)
+
 
 class Message(ValidatedSaveModel):
     """
@@ -135,12 +149,16 @@ class Message(ValidatedSaveModel):
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sent_messages"
     )
-    body_text = models.TextField()
+    body_text = models.TextField(blank=True)
     is_read = models.BooleanField(default=False)
     sent_at = models.DateTimeField(auto_now_add=True)
+    client_request_id = models.UUIDField(null=True, blank=True)
 
     class Meta:
         ordering = ["sent_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["conversation", "sender", "client_request_id"], name="unique_message_client_request")
+        ]
 
     def clean(self):
         super().clean()
@@ -163,3 +181,21 @@ class Message(ValidatedSaveModel):
 
     def __str__(self):
         return f"{self.sender}: {self.body_text[:30]}"
+
+
+class MessageImage(models.Model):
+    """Private image uploaded for one conversation, then bound to one message."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="images")
+    uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.ForeignKey(Message, null=True, blank=True, on_delete=models.CASCADE, related_name="images")
+    file = models.FileField(upload_to="messaging/private/%Y/%m/%d/")
+    content_type = models.CharField(max_length=30)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+@receiver(post_delete, sender=MessageImage)
+def delete_image_file(sender, instance, **kwargs):
+    if instance.file:
+        instance.file.delete(save=False)

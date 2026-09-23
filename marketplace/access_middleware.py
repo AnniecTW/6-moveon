@@ -2,7 +2,7 @@
 
 from urllib.parse import urlencode
 
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -30,6 +30,13 @@ class CampusAccessMiddleware:
             return None
         if request.user.is_authenticated and has_campus_access(request.user):
             return None
+        if request.path.startswith("/api/messaging/"):
+            authenticated = request.user.is_authenticated
+            return JsonResponse(
+                {"error": "Campus access required." if authenticated else "Sign in required.",
+                 "code": "campus_access_required" if authenticated else "login_required"},
+                status=403 if authenticated else 401,
+            )
         if request.method in ("GET", "HEAD"):
             target = reverse("account") + "?" + urlencode({"next": request.get_full_path()})
             return redirect(target)

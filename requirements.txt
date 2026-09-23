@@ -6,3 +6,4 @@ packaging==26.3
 setuptools==83.0.0
 sqlparse==0.6.0
 wheel==0.47.0
+Pillow>=11,<13

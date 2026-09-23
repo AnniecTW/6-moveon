@@ -5,10 +5,6 @@ export function setupHeader() {
       "Sell an item",
       "Listing creation is coming next. You'll be able to add photos, set your price, and choose pickup or delivery.",
     ],
-    messages: [
-      "Messages",
-      "Your buyer and seller conversations will appear here once account sign-in is connected.",
-    ],
   };
   document.querySelectorAll("[data-header-action]").forEach((button) => {
     button.addEventListener("click", () => {

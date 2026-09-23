@@ -127,6 +127,8 @@ STATIC_URL = "static/"
 # The browse page uses authored CSS and browser ES modules, with no build step.
 # The older Tailwind source/output remain available but are not loaded by it.
 STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_ROOT = BASE_DIR / "data" / "media"
+CSRF_FAILURE_VIEW = "messaging.csrf.csrf_failure"
 
 
 # Email

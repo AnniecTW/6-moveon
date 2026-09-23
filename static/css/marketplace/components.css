@@ -365,3 +365,4 @@ body:has(.filter-dialog[open]) {
     display: none;
   }
 }
+.card-message-link { color: var(--ink); font-size: 12px; text-decoration: underline; }

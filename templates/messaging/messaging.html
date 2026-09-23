@@ -1,0 +1,136 @@
+<!--
+  MoveOn Messaging — portable page fragment
+  ----------------------------------------------------------------
+  This is NOT a full HTML document. It is the Messages PAGE BODY only
+  (no nav — the nav is a separate include, partials/_nav.html).
+
+  This page is a STANDALONE full page reached via the nav (the mail
+  icon links here). It is NOT an overlay / modal / dialog — there is no
+  backdrop, no floating shell, and no close button.
+
+  Drop it inside a host page below the shared nav (e.g. a Django
+  template rendered at /messages/) and load messaging.css +
+  messaging.js alongside it.
+
+  Empty containers marked "JS populates" are filled by messaging.js.
+-->
+<main id="main-content" class="messaging" data-messaging-root>
+  <div class="messaging__notice" data-messaging-notice role="alert" hidden></div>
+
+  <!-- ============================================================
+       PAGE HEADER — title + subtitle (left) · conversation search (right)
+       ============================================================ -->
+  <header class="messaging__header">
+    <div class="messaging__header-titles">
+      <h1 class="messaging__title">Messages</h1>
+      <p class="messaging__subtitle">Product inquiries &amp; Move-In Bundle requests</p>
+    </div>
+    <div class="messaging__header-actions">
+      <span class="messaging__search-icon" aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </span>
+      <input
+        type="search"
+        class="messaging__search"
+        placeholder="Search conversations…"
+        aria-label="Search conversations by product or person"
+        data-search-input
+      />
+    </div>
+  </header>
+
+  <!-- ============================================================
+       WORKSPACE — two columns: LEFT list, RIGHT chat.
+       Height-constrained (see .messaging__body in the CSS) so the
+       composer stays visible without scrolling the whole page.
+       ============================================================ -->
+  <div class="messaging__body">
+
+    <!-- ---------- LEFT: conversation list ---------- -->
+    <aside class="messaging__sidebar">
+      <div class="messaging__filters" data-filters>
+        <button class="messaging__pill is-active" type="button" data-filter="all">All</button>
+        <button class="messaging__pill" type="button" data-filter="buying">Buying</button>
+        <button class="messaging__pill" type="button" data-filter="selling">Selling</button>
+      </div>
+      <!-- JS populates conversation rows here -->
+      <ul class="messaging__list" data-conversation-list>
+        <!-- Empty / loading / no-results states are injected by JS -->
+      </ul>
+    </aside>
+
+    <!-- ---------- RIGHT: chat column ---------- -->
+    <section class="messaging__chat" data-chat>
+
+      <!-- Empty state shown when no conversation is selected -->
+      <div class="messaging__empty" data-chat-empty>
+        <div class="messaging__empty-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+          </svg>
+        </div>
+        <p class="messaging__empty-title">Select a conversation</p>
+        <p class="messaging__empty-text">Choose a conversation from the left to view the listing, messages, and any bundle requests.</p>
+      </div>
+
+      <!-- Active chat (hidden until a conversation is selected) -->
+      <div class="messaging__chat-inner" data-chat-inner hidden>
+
+        <!-- Compact listing / contact header -->
+        <div class="messaging__chat-header" data-chat-header>
+          <!-- JS populates: thumbnail, listing title, availability, price + contact, View Listing -->
+        </div>
+
+        <!-- Scrollable thread: request cards + day-grouped bubbles -->
+        <div class="messaging__thread" data-thread>
+          <!-- JS populates bundle request cards + message bubbles -->
+        </div>
+
+        <!-- Composer pinned at bottom -->
+        <div class="messaging__composer" data-composer>
+          <!-- attachment previews render above the input row -->
+          <div class="messaging__attachments" data-attachments hidden>
+            <!-- JS populates image previews -->
+          </div>
+          <div class="messaging__composer-row">
+            <button
+              class="messaging__attach"
+              type="button"
+              aria-label="Attach images (max 3, 5MB each)"
+              data-attach-btn
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+              </svg>
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              class="messaging__file-input"
+              data-file-input
+              hidden
+            />
+            <input
+              type="text"
+              class="messaging__input"
+              placeholder="Type a message…"
+              aria-label="Message text"
+              data-message-input
+            />
+            <button class="messaging__send" type="button" data-send-btn>
+              Send
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /.messaging__chat-inner -->
+    </section><!-- /.messaging__chat -->
+
+  </div><!-- /.messaging__body -->
+</main><!-- /.messaging -->

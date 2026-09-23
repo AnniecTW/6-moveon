@@ -11,18 +11,23 @@
     <title>{% block title %}MoveOn{% endblock %}</title>
     <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml" />
     <link rel="stylesheet" href="{% static 'css/marketplace.css' %}" />
+    {% block extra_head %}{% endblock %}
   </head>
-  <body{% if auth_overlay %} class="account-open"{% endif %}>
+  <body class="{% if auth_overlay %}account-open {% endif %}{% block body_class %}{% endblock %}">
     <div{% if auth_overlay %} inert aria-hidden="true"{% endif %}>
-    <a class="skip-link" href="#main-content">Skip to listings</a>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     {% include "marketplace/partials/_header.html" %}
+    {% block site_main %}
     <main id="main-content" class="page">{% block listing_content %}{% endblock %}</main>
+    {% endblock %}
+    {% block site_footer %}
     <footer class="site-footer">
       <div class="page">
         <p>MoveOn — a fresh start at a fair price.</p>
         <p>Curated secondhand furniture, built for move-in season.</p>
       </div>
     </footer>
+    {% endblock %}
     </div>
     {% block overlay_content %}{% endblock %}
     {% block extra_scripts %}{% endblock %}
