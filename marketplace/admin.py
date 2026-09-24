@@ -5,6 +5,7 @@ from .models import (
     ItemCategory,
     ItemType,
     Listing,
+    ListingImage,
     PriceRecommendation,
     Transaction,
     User,
@@ -49,6 +50,12 @@ class ItemTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Listing)
 class ListingAdmin(admin.ModelAdmin):
+    class ListingImageInline(admin.TabularInline):
+        model = ListingImage
+        extra = 0
+        readonly_fields = ("url",)
+        fields = ("image", "external_url", "position", "uploaded_by", "url")
+
     list_display = (
         "title",
         "seller",
@@ -60,6 +67,7 @@ class ListingAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "condition", "bundle_eligible", "fulfillment_option")
     search_fields = ("title", "description")
+    inlines = (ListingImageInline,)
 
 
 @admin.register(PriceRecommendation)

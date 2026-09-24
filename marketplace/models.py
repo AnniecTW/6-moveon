@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_delete
 from django.core.exceptions import ValidationError
+from django.dispatch import receiver
 from django.urls import reverse
 
 from .validation import ValidatedSaveModel, database_for, participant_errors
@@ -135,6 +137,8 @@ class Listing(ValidatedSaveModel):
         SOLD = "SOLD", "Sold"
         INACTIVE = "INACTIVE", "Inactive"
 
+    MAX_IMAGES = 8
+
     seller = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="listings"
     )
@@ -197,11 +201,67 @@ class Listing(ValidatedSaveModel):
                         "seller": "The owner cannot change after a transaction or conversation references this listing."
                     }
                 )
+
+    @property
+    def cover_image_url(self):
+        prefetched_images = getattr(self, "_prefetched_objects_cache", {}).get("images")
+        if prefetched_images is None:
+            image = self.images.order_by("position", "id").first()
+        else:
+            image = prefetched_images[0] if prefetched_images else None
+        return image.url if image else self.image_url or ""
+
     def get_absolute_url(self):
         return reverse("listing-detail-url", kwargs={"primary_key": self.pk})
 
     def __str__(self):
         return self.title
+
+
+class ListingImage(ValidatedSaveModel):
+    """A user-uploaded or externally hosted image attached to a listing."""
+
+    listing = models.ForeignKey(
+        Listing,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="listing_images",
+    )
+    image = models.ImageField(upload_to="listing_images/%Y/%m/", blank=True)
+    external_url = models.URLField(blank=True)
+    position = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["position", "id"]
+
+    def clean(self):
+        super().clean()
+        has_image = bool(self.image)
+        has_external_url = bool((self.external_url or "").strip())
+        if has_image == has_external_url:
+            raise ValidationError(
+                "Provide exactly one of an uploaded image or an external image URL."
+            )
+
+    @property
+    def url(self):
+        return self.image.url if self.image else self.external_url
+
+    def __str__(self):
+        return f"Image {self.pk} for {self.listing or 'unattached listing'}"
+
+
+@receiver(post_delete, sender=ListingImage)
+def delete_listing_image_file(sender, instance, **kwargs):
+    if instance.image:
+        instance.image.storage.delete(instance.image.name)
 
 
 class PriceRecommendation(models.Model):

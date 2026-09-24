@@ -78,7 +78,7 @@ def discount_percent(original, sale):
 
 
 def decorate_listing(item):
-    item.display_image_url = item.image_url
+    item.display_image_url = item.cover_image_url
     if (
         not item.display_image_url
         and item.seller.username == DEMO_USERNAME
@@ -96,6 +96,7 @@ def featured_bundles():
         status=Listing.Status.ACTIVE,
         bundle_eligible=True,
     ).select_related("seller", "item_type", "item_type__category")
+    listings = listings.prefetch_related("images")
     by_title = {item.title: decorate_listing(item) for item in listings}
     bundles = []
     for scene in SCENES:

@@ -9,6 +9,36 @@
   padding-block: 14px 52px;
 }
 
+.listing-preview-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  border: 1px solid #cbd9c9;
+  border-radius: 6px;
+  padding: 10px 14px;
+  background: #f1f6ef;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.listing-preview-banner p {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.listing-preview-banner form {
+  margin: 0;
+}
+
+.listing-preview-banner strong {
+  margin-right: 5px;
+  color: #4c6f51;
+}
+
 .detail-navigation,
 .detail-actions,
 .detail-price-row,

@@ -147,7 +147,7 @@ class BrowseTests(TestCase):
             status="ACTIVE",
             fulfillment_option="PICKUP",
         )
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(5):
             response = self.client.get(reverse("home"), {"max_price": "0"})
         self.assertContains(response, "Free desk")
         self.assertEqual(len(response.context["listings"]), 1)

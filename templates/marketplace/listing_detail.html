@@ -3,6 +3,16 @@
 
 {% block listing_content %}
 <article class="listing-detail">
+  {% if preview_mode %}
+    <div class="listing-preview-banner" role="status">
+      <p><strong>This is a preview, not published yet.</strong></p>
+      <a class="button" href="{% url 'listing-update-url' primary_key=listing.pk %}">Back to edit</a>
+      <form method="post" action="{% url 'listing-publish-url' primary_key=listing.pk %}">
+        {% csrf_token %}
+        <button class="button primary" type="submit">Publish</button>
+      </form>
+    </div>
+  {% endif %}
   <nav class="detail-navigation" aria-label="Listing navigation">
     <a class="back-link" href="{% url 'home' %}">
       <span aria-hidden="true">←</span> Back to Listings
@@ -100,7 +110,9 @@
             <h2 id="seller-heading">{{ listing.seller.display_name|default:listing.seller.username }}</h2>
           </div>
         </div>
-        <button class="button primary seller-button" type="button">Message Seller</button>
+        {% if request.user.pk != listing.seller_id %}
+          <a class="button primary seller-button" href="{% url 'messages' %}?listing={{ listing.pk }}">Message Seller</a>
+        {% endif %}
         <button class="button seller-button" type="button">♡ Save Listing</button>
       </section>
 

@@ -1,7 +1,12 @@
 """Forms used by the marketplace browse and listing workflows."""
 
 from django import forms
-from .models import ItemCategory, ItemType, Listing
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Q
+
+from .models import ItemCategory, ItemType, Listing, ListingImage
+from .validation import database_for
 
 SORT_CHOICES = [
     ("newest", "Newest"),
@@ -73,6 +78,7 @@ class ListingCreateForm(forms.ModelForm):
     """Validate the seller-facing fields used to create a listing."""
 
     title = forms.CharField(max_length=80)
+    image_ids = forms.CharField(required=False, widget=forms.HiddenInput)
     fulfillment_option = forms.CharField(
         required=False,
         widget=forms.HiddenInput,
@@ -85,10 +91,20 @@ class ListingCreateForm(forms.ModelForm):
         widget=forms.Textarea(attrs={"rows": 5}),
     )
 
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        if not self.is_bound and self.instance.pk:
+            database = database_for(self.instance)
+            image_ids = ListingImage.objects.using(database).filter(
+                listing_id=self.instance.pk
+            ).values_list("pk", flat=True)
+            self.initial["image_ids"] = ",".join(str(image_id) for image_id in image_ids)
+
     class Meta:
         model = Listing
         fields = [
-            "image_url",
+            "image_ids",
             "title",
             "listing_price",
             "condition",
@@ -103,9 +119,6 @@ class ListingCreateForm(forms.ModelForm):
             "sell_no_matter_what",
         ]
         widgets = {
-            "image_url": forms.URLInput(
-                attrs={"placeholder": "Paste a photo URL", "type": "url"}
-            ),
             "listing_price": forms.NumberInput(
                 attrs={"min": "0", "step": "0.01", "placeholder": "Enter your price"}
             ),
@@ -114,6 +127,107 @@ class ListingCreateForm(forms.ModelForm):
             ),
             "move_out_date": forms.DateInput(attrs={"type": "date"}),
         }
+
+    def clean_image_ids(self):
+        raw_value = self.cleaned_data.get("image_ids", "")
+        image_ids = []
+        for raw_id in str(raw_value).split(","):
+            raw_id = raw_id.strip()
+            if not raw_id:
+                continue
+            try:
+                image_id = int(raw_id)
+            except (TypeError, ValueError):
+                raise ValidationError("Choose valid uploaded images.")
+            if image_id in image_ids:
+                raise ValidationError("Each uploaded image can only be selected once.")
+            image_ids.append(image_id)
+
+        if len(image_ids) > Listing.MAX_IMAGES:
+            raise ValidationError(
+                f"A listing can have at most {Listing.MAX_IMAGES} images."
+            )
+        if not image_ids:
+            return []
+        if self.user is None or not getattr(self.user, "is_authenticated", False):
+            raise ValidationError("You must be signed in to select uploaded images.")
+
+        database = database_for(self.instance)
+        images = ListingImage.objects.using(database).filter(pk__in=image_ids)
+        by_id = {image.pk: image for image in images}
+        if len(by_id) != len(image_ids):
+            raise ValidationError("One or more selected images are unavailable.")
+        for image_id in image_ids:
+            image = by_id[image_id]
+            if image.uploaded_by_id != self.user.pk:
+                raise ValidationError("You can only use images you uploaded.")
+            if image.listing_id not in (None, self.instance.pk):
+                raise ValidationError("One or more selected images belong to another listing.")
+        return image_ids
+
+    def selected_images_for_display(self):
+        """Return selected photos in the order submitted or initialized."""
+        if self.is_bound:
+            raw_value = self.data.get(self.add_prefix("image_ids"), "")
+        else:
+            raw_value = self.initial.get("image_ids", "")
+        image_ids = []
+        for raw_id in str(raw_value).split(","):
+            try:
+                image_id = int(raw_id.strip())
+            except (TypeError, ValueError):
+                continue
+            if image_id > 0 and image_id not in image_ids:
+                image_ids.append(image_id)
+        if not image_ids:
+            return []
+
+        database = database_for(self.instance)
+        image_query = ListingImage.objects.using(database).filter(
+            pk__in=image_ids,
+            uploaded_by_id=getattr(self.user, "pk", None),
+        )
+        if self.instance.pk:
+            image_query = image_query.filter(
+                Q(listing_id__isnull=True) | Q(listing_id=self.instance.pk)
+            )
+        else:
+            image_query = image_query.filter(listing_id__isnull=True)
+        by_id = {image.pk: image for image in image_query}
+        return [
+            {"id": image_id, "url": by_id[image_id].url}
+            for image_id in image_ids
+            if image_id in by_id
+        ]
+
+    def save(self, commit=True):
+        listing = super().save(commit=False)
+        if commit:
+            self._save_listing_and_images(listing)
+        return listing
+
+    def _save_listing_and_images(self, listing):
+        database = database_for(listing)
+        image_ids = self.cleaned_data.get("image_ids", [])
+        with transaction.atomic(using=database):
+            listing.save(using=database)
+            selected_images = list(
+                ListingImage.objects.using(database)
+                .select_for_update()
+                .filter(pk__in=image_ids)
+            )
+            by_id = {image.pk: image for image in selected_images}
+            if len(by_id) != len(image_ids):
+                raise ValidationError("One or more selected images are unavailable.")
+
+            ListingImage.objects.using(database).filter(
+                listing_id=listing.pk
+            ).exclude(pk__in=image_ids).delete()
+            for position, image_id in enumerate(image_ids):
+                image = by_id[image_id]
+                image.listing_id = listing.pk
+                image.position = position
+                image.save(using=database, update_fields={"listing", "position"})
 
     def clean(self):
         cleaned_data = super().clean()

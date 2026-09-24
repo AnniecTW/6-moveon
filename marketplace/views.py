@@ -1,29 +1,35 @@
 from urllib.parse import urlencode
+from urllib.parse import urlparse
+from uuid import uuid4
 
-from django.http import HttpResponse
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.validators import URLValidator
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
 from django.conf import settings
 from django.urls import reverse, reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, UpdateView
+from PIL import Image, UnidentifiedImageError
 from google.auth.exceptions import GoogleAuthError
 from .auth_forms import CampusAuthenticationForm, ListingSignupForm
 from .auth_backend import credential_user, has_campus_access
 from .email_verification import EmailDeliveryError, consume_code, issue_code
 from . import google_auth
-from .models import Listing, User
-from django.views.generic import CreateView, DetailView, ListView
+from .models import Listing, ListingImage, User
+from django.views.generic import CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .featured import decorate_listing
-from .models import Listing
 from .browse import browse_context
 from .forms import ListingCreateForm
+from .validation import database_for
 
 
 def _safe_return(request):
@@ -300,6 +306,7 @@ class ListingDetailView(DetailView):
         return (
             Listing.objects.filter(status=Listing.Status.ACTIVE)
             .select_related("seller", "item_type__category")
+            .prefetch_related("images")
         )
 
     def get_context_data(self, **kwargs):
@@ -316,7 +323,58 @@ class ListingDetailView(DetailView):
         return context
 
 
-class ListingCreateView(LoginRequiredMixin, CreateView):
+class ListingPreviewView(LoginRequiredMixin, ListingDetailView):
+    def get_queryset(self):
+        return (
+            Listing.objects.filter(
+                seller=self.request.user,
+                status=Listing.Status.DRAFT,
+            )
+            .select_related("seller", "item_type__category")
+            .prefetch_related("images")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["preview_mode"] = True
+        context["similar_listings"] = [
+            decorate_listing(item)
+            for item in (
+                Listing.objects.filter(
+                    status=Listing.Status.ACTIVE,
+                    item_type__category_id=self.object.item_type.category_id,
+                )
+                .exclude(pk=self.object.pk)
+                .select_related("seller", "item_type__category")
+                .prefetch_related("images")[:4]
+            )
+        ]
+        return context
+
+
+class ListingFormContextMixin:
+    form_class = ListingCreateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["initial_photos"] = context["form"].selected_images_for_display()
+        return context
+
+    def get_success_url(self):
+        if self.request.POST.get("action") == "preview":
+            return reverse(
+                "listing-preview-url",
+                kwargs={"primary_key": self.object.pk},
+            )
+        return reverse("home")
+
+
+class ListingCreateView(ListingFormContextMixin, LoginRequiredMixin, CreateView):
     model = Listing
     form_class = ListingCreateForm
     template_name = "marketplace/listing_form.html"
@@ -326,3 +384,145 @@ class ListingCreateView(LoginRequiredMixin, CreateView):
         form.instance.seller = self.request.user
         form.instance.status = Listing.Status.DRAFT
         return super().form_valid(form)
+
+
+class ListingUpdateView(ListingFormContextMixin, LoginRequiredMixin, UpdateView):
+    model = Listing
+    form_class = ListingCreateForm
+    template_name = "marketplace/listing_form.html"
+    success_url = reverse_lazy("home")
+    pk_url_kwarg = "primary_key"
+
+    def get_queryset(self):
+        return Listing.objects.filter(seller=self.request.user).prefetch_related("images")
+
+    def form_valid(self, form):
+        if self.request.POST.get("action") == "preview":
+            form.instance.status = Listing.Status.DRAFT
+        return super().form_valid(form)
+
+
+@require_POST
+@login_required
+def listing_publish(request, primary_key):
+    listing = get_object_or_404(
+        Listing.objects.filter(
+            seller=request.user,
+            status=Listing.Status.DRAFT,
+        ).prefetch_related("images"),
+        pk=primary_key,
+    )
+    database = database_for(listing)
+    image_ids = ListingImage.objects.using(database).filter(
+        listing_id=listing.pk
+    ).order_by("position", "id").values_list("pk", flat=True)
+    fulfillment = listing.fulfillment_option
+    form_data = {
+        "title": listing.title,
+        "listing_price": str(listing.listing_price),
+        "condition": listing.condition,
+        "item_type": str(listing.item_type_id),
+        "fulfillment_option": fulfillment,
+        "fulfillment_pickup": (
+            "on"
+            if fulfillment in (Listing.Fulfillment.PICKUP, Listing.Fulfillment.BOTH)
+            else ""
+        ),
+        "fulfillment_delivery": (
+            "on"
+            if fulfillment in (Listing.Fulfillment.DELIVERY, Listing.Fulfillment.BOTH)
+            else ""
+        ),
+        "description": listing.description,
+        "minimum_price": (
+            str(listing.minimum_price) if listing.minimum_price is not None else ""
+        ),
+        "move_out_date": (
+            listing.move_out_date.isoformat() if listing.move_out_date else ""
+        ),
+        "bundle_eligible": "on" if listing.bundle_eligible else "",
+        "sell_no_matter_what": "on" if listing.sell_no_matter_what else "",
+        "image_ids": ",".join(str(image_id) for image_id in image_ids),
+    }
+    form = ListingCreateForm(data=form_data, instance=listing, user=request.user)
+    if not form.is_valid():
+        return render(
+            request,
+            "marketplace/listing_form.html",
+            {
+                "form": form,
+                "initial_photos": form.selected_images_for_display(),
+            },
+        )
+
+    form.instance.status = Listing.Status.ACTIVE
+    listing = form.save()
+    return redirect(listing.get_absolute_url())
+
+
+MAX_LISTING_IMAGE_BYTES = 5 * 1024 * 1024
+MAX_UNATTACHED_LISTING_IMAGES = 30
+LISTING_IMAGE_FORMATS = {
+    "JPEG": "jpg",
+    "PNG": "png",
+    "WEBP": "webp",
+}
+
+
+@login_required
+@require_POST
+def listing_image_upload(request):
+    uploaded_file = request.FILES.get("file")
+    external_url = request.POST.get("url", "").strip()
+    if (uploaded_file is None) == (not external_url):
+        return JsonResponse(
+            {"error": "Provide either an image file or an image URL."}, status=400
+        )
+
+    pending_image = ListingImage(listing=None, uploaded_by=request.user)
+    database = database_for(pending_image)
+    if (
+        ListingImage.objects.using(database)
+        .filter(uploaded_by=request.user, listing__isnull=True)
+        .count()
+        >= MAX_UNATTACHED_LISTING_IMAGES
+    ):
+        return JsonResponse(
+            {"error": "You have too many pending images. Finish a listing before uploading more."},
+            status=400,
+        )
+
+    if uploaded_file is not None:
+        if uploaded_file.size == 0 or uploaded_file.size > MAX_LISTING_IMAGE_BYTES:
+            return JsonResponse(
+                {"error": "Choose an image that is 5MB or smaller."}, status=400
+            )
+        try:
+            uploaded_file.seek(0)
+            with Image.open(uploaded_file) as image:
+                image.verify()
+                image_format = image.format
+        except (Image.DecompressionBombError, OSError, UnidentifiedImageError, ValueError):
+            return JsonResponse(
+                {"error": "The file is not a valid image."}, status=400
+            )
+        if image_format not in LISTING_IMAGE_FORMATS:
+            return JsonResponse(
+                {"error": "Use a JPEG, PNG, or WebP image."}, status=400
+            )
+        uploaded_file.seek(0)
+        uploaded_file.name = f"{uuid4().hex}.{LISTING_IMAGE_FORMATS[image_format]}"
+        pending_image.image = uploaded_file
+    else:
+        try:
+            URLValidator()(external_url)
+        except DjangoValidationError:
+            return JsonResponse({"error": "Enter a valid image URL."}, status=400)
+        if urlparse(external_url).scheme not in {"http", "https"}:
+            return JsonResponse(
+                {"error": "Image URLs must use HTTP or HTTPS."}, status=400
+            )
+        pending_image.external_url = external_url
+
+    pending_image.save(using=database)
+    return JsonResponse({"id": pending_image.pk, "url": pending_image.url}, status=201)

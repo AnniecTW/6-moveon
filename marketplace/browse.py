@@ -17,7 +17,7 @@ def browse_context(request):
     form = BrowseForm(request.GET)
     listings = Listing.objects.filter(status=Listing.Status.ACTIVE).select_related(
         "seller", "item_type", "item_type__category"
-    )
+    ).prefetch_related("images")
     chips = []
     if form.is_valid():
         values = form.cleaned_data
