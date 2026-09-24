@@ -24,7 +24,11 @@
         </div>
       </li>
     </ol>
-    <a class="button primary" href="?bundle=on#listings-heading"
+    <a
+      class="button primary"
+      href="{% url 'bundles:select_space' %}"
+      data-bundle-modal-trigger
+      data-modal-url="{% url 'bundles:start_modal' %}"
       >Try it! <span aria-hidden="true">→</span></a
     >
   </div>

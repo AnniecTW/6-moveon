@@ -36,7 +36,13 @@
           <circle cx="7" cy="8" r="1" /></svg
         ><span>Sell Item</span>
       </a>
-      <a class="button header-bundle-link" href="{% url 'home' %}?bundle=on#listings-heading">Bundle</a>
+      <a
+        class="button header-bundle-link"
+        href="{% url 'bundles:select_space' %}"
+        data-bundle-modal-trigger
+        data-modal-url="{% url 'bundles:start_modal' %}"
+        >Bundle</a
+      >
       <a class="icon-button messages-link{% if request.resolver_match.url_name == 'messages' %} is-active{% endif %}"
         href="{% url 'messages' %}" aria-label="Messages"{% if campus_access %} data-unread-url="{% url 'messaging_unread' %}"{% endif %}{% if request.resolver_match.url_name == 'messages' %} aria-current="page"{% endif %}>
         <svg viewBox="0 0 24 24" aria-hidden="true">

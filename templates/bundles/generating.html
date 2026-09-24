@@ -1,0 +1,39 @@
+{% extends "bundles/base.html" %}
+{% load static %}
+
+{% block title %}Generating your bundles… | Move-In Bundle{% endblock %}
+
+{% block stepper %}
+  {% include "bundles/partials/_stepper.html" with current_step=3 %}
+{% endblock %}
+
+{% block wizard_content %}
+  <div
+    class="generating-screen"
+    data-generating
+    data-bundle-id="{{ bundle.id }}"
+    data-generate-url="{% url 'bundles:generate' %}"
+    data-csrf-token="{{ csrf_token }}"
+  >
+    <div class="generating-sparkle" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+    <h1 class="wizard-heading">Generating your bundles<span class="generating-dots" aria-hidden="true"><i></i><i></i><i></i></span></h1>
+    <p class="muted">Comparing eligible listings for Budget, Best Value, and Premium…</p>
+
+    <p class="generating-error" data-generating-error hidden>
+      Something went wrong generating your bundle.
+      <a href="{% url 'bundles:select_categories' %}">Go back and try again</a>.
+    </p>
+
+    <noscript>
+      <p class="wizard-note">
+        <a class="button primary" href="{% url 'bundles:builder' %}?bundle={{ bundle.id }}">Continue</a>
+      </p>
+    </noscript>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script type="module" src="{% static 'js/bundles/generating.js' %}"></script>
+{% endblock %}

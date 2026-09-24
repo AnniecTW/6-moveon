@@ -1,0 +1,17 @@
+{% comment %}Takes current_step (1-4). Steps are fixed for the whole wizard.{% endcomment %}
+<li class="wizard-step{% if current_step == 1 %} is-active{% elif current_step > 1 %} is-done{% endif %}">
+  <span class="wizard-step__badge">{% if current_step > 1 %}&#10003;{% else %}1{% endif %}</span>
+  <span class="wizard-step__label">Space</span>
+</li>
+<li class="wizard-step{% if current_step == 2 %} is-active{% elif current_step > 2 %} is-done{% endif %}">
+  <span class="wizard-step__badge">{% if current_step > 2 %}&#10003;{% else %}2{% endif %}</span>
+  <span class="wizard-step__label">Categories</span>
+</li>
+<li class="wizard-step{% if current_step == 3 %} is-active{% elif current_step > 3 %} is-done{% endif %}">
+  <span class="wizard-step__badge">{% if current_step > 3 %}&#10003;{% else %}3{% endif %}</span>
+  <span class="wizard-step__label">Bundle Builder</span>
+</li>
+<li class="wizard-step{% if current_step == 4 %} is-active{% endif %}">
+  <span class="wizard-step__badge">4</span>
+  <span class="wizard-step__label">Summary</span>
+</li>

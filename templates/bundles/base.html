@@ -1,0 +1,23 @@
+{% extends "marketplace/base.html" %}
+
+{% block title %}Move-In Bundle | MoveOn{% endblock %}
+
+{% block site_main %}
+<main id="main-content" class="page wizard-page">
+  <ol class="wizard-stepper" aria-label="Bundle builder steps">
+    {% block stepper %}{% endblock %}
+  </ol>
+
+  {% if messages %}
+    <ul class="wizard-messages">
+      {% for message in messages %}
+        <li class="wizard-message{% if message.tags %} wizard-message--{{ message.tags }}{% endif %}">
+          {{ message }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% block wizard_content %}{% endblock %}
+</main>
+{% endblock %}

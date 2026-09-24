@@ -11,6 +11,7 @@
     <title>{% block title %}MoveOn{% endblock %}</title>
     <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml" />
     <link rel="stylesheet" href="{% static 'css/marketplace.css' %}?v=2" />
+    <link rel="stylesheet" href="{% static 'css/bundles/wizard.css' %}" />
     {% block extra_head %}{% endblock %}
   </head>
   <body class="{% if auth_overlay %}account-open {% endif %}{% block body_class %}{% endblock %}">

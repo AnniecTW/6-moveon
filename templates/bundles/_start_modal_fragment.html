@@ -1,0 +1,46 @@
+<dialog class="bundle-start-dialog" data-bundle-start-dialog aria-labelledby="bundle-start-title">
+  <button class="icon-button dialog-close" type="button" aria-label="Close" data-start-close>&times;</button>
+
+  <div class="start-panel" data-start-panel="space">
+    <p class="eyebrow">Move-In Bundle Sale</p>
+    <h2 id="bundle-start-title">What part of the home are you shopping for?</h2>
+    <div class="space-grid">
+      {% for value, label, pairs in space_panels %}
+        <button type="button" class="space-tile" data-space-option="{{ value }}">{{ label }}</button>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% for value, label, pairs in space_panels %}
+    <div class="start-panel" data-start-panel="categories" data-space-panel="{{ value }}" hidden>
+      <button type="button" class="chip start-back" data-start-back>&larr; {{ label }}</button>
+      <h2>Select categories for your bundle</h2>
+      <p class="muted">Choose one or more categories. You'll unlock bundle pricing once you select at least 3 items.</p>
+      <form data-start-form data-space="{{ value }}" method="post" action="{% url 'bundles:start' %}">
+        {% csrf_token %}
+        <fieldset class="category-grid">
+          <legend class="sr-only">Categories</legend>
+          {% for item_type, is_available in pairs %}
+            <label class="category-tile{% if not is_available %} is-disabled{% endif %}">
+              <input
+                type="checkbox"
+                name="categories"
+                value="{{ item_type.id }}"
+                {% if not is_available %}disabled{% endif %}
+              />
+              <span>{{ item_type.item_type_name }}</span>
+              {% if not is_available %}<small class="muted">No listings yet</small>{% endif %}
+            </label>
+          {% empty %}
+            <p class="muted">No categories set up for this space yet.</p>
+          {% endfor %}
+        </fieldset>
+        <p class="errorlist" data-start-error hidden></p>
+        <div class="wizard-actions">
+          <span></span>
+          <button type="submit" class="button primary">See Bundle Suggestions</button>
+        </div>
+      </form>
+    </div>
+  {% endfor %}
+</dialog>

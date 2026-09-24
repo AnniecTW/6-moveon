@@ -45,6 +45,7 @@ urlpatterns = [
     path("account/google/", views.account_google_view, name="account_google"),
     path("admin/", admin.site.urls),
     path("", include("marketplace.urls")),
+    path("bundles/", include("bundles.urls")),
     path("listings/manual/", views.listing_manual_view, name="listing_manual"),
     path("listings/render/", views.listing_render_view, name="listing_render"),
     path(

@@ -1,0 +1,55 @@
+{% extends "bundles/base.html" %}
+
+{% block title %}Select categories | Move-In Bundle{% endblock %}
+
+{% block stepper %}
+  {% include "bundles/partials/_stepper.html" with current_step=2 %}
+{% endblock %}
+
+{% block wizard_content %}
+  <div class="wizard-layout">
+    <section class="filter-panel wizard-panel">
+      <div class="wizard-chosen-space">
+        <span>Chosen space</span>
+        <strong>{{ space_label }}</strong>
+        <a class="button" href="{% url 'bundles:select_space' %}">Change space</a>
+      </div>
+
+      <h1>Select categories for your bundle</h1>
+      <p class="muted">Choose one or more categories. You'll unlock bundle pricing once you select at least 3 items.</p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <fieldset class="category-grid">
+          <legend class="sr-only">Categories</legend>
+          {% for item_type, is_available in available_pairs %}
+            <label class="category-tile{% if not is_available %} is-disabled{% endif %}">
+              <input
+                type="checkbox"
+                name="categories"
+                value="{{ item_type.id }}"
+                {% if not is_available %}disabled{% endif %}
+                {% if item_type.id|stringformat:"s" in form.categories.value %}checked{% endif %}
+              />
+              <span>{{ item_type.item_type_name }}</span>
+              {% if not is_available %}<small class="muted">No listings yet</small>{% endif %}
+            </label>
+          {% endfor %}
+        </fieldset>
+        {% if form.categories.errors %}<p class="errorlist">{{ form.categories.errors|join:", " }}</p>{% endif %}
+
+        <div class="wizard-actions">
+          <a class="button" href="{% url 'bundles:select_space' %}">Back</a>
+          <button type="submit" class="button primary">See Bundle Suggestions</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="filter-panel wizard-sidebar">
+      <h2>Selection summary</h2>
+      <p><span class="muted">Chosen space</span><br /><strong>{{ space_label }}</strong></p>
+      <p><span class="muted">Next step</span><br /><strong>AI-generated Budget, Best Value &amp; Premium picks</strong></p>
+      <p class="muted">Select at least 3 items to unlock bundle pricing.</p>
+    </aside>
+  </div>
+{% endblock %}
