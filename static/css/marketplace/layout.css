@@ -135,6 +135,9 @@
   grid-template-columns: 1fr;
 }
 .listing-grid[data-view="list"] .listing-card {
+  display: block;
+}
+.listing-grid[data-view="list"] .listing-card-link {
   display: grid;
   grid-template-columns: 230px 1fr;
 }
@@ -204,6 +207,9 @@
     grid-template-columns: 1fr;
   }
   .listing-grid[data-view="list"] .listing-card {
+    display: block;
+  }
+  .listing-grid[data-view="list"] .listing-card-link {
     grid-template-columns: 115px 1fr;
   }
   .listing-grid[data-view="list"] .card-photo {

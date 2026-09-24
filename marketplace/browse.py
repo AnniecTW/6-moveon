@@ -17,7 +17,7 @@ def browse_context(request):
     form = BrowseForm(request.GET)
     listings = Listing.objects.filter(status=Listing.Status.ACTIVE).select_related(
         "seller", "item_type", "item_type__category"
-    )
+    ).prefetch_related("images")
     chips = []
     if form.is_valid():
         values = form.cleaned_data
@@ -37,7 +37,18 @@ def browse_context(request):
                 listings = listings.filter(**{lookup: values[name]})
         fulfillment = values.get("fulfillment", [])
         if fulfillment:
-            listings = listings.filter(fulfillment_option__in=fulfillment)
+            fulfillment_filter = Q(fulfillment_option__in=fulfillment)
+            if any(
+                option in fulfillment
+                for option in (
+                    Listing.Fulfillment.PICKUP,
+                    Listing.Fulfillment.DELIVERY,
+                )
+            ):
+                fulfillment_filter |= Q(
+                    fulfillment_option=Listing.Fulfillment.BOTH
+                )
+            listings = listings.filter(fulfillment_filter)
         if values.get("bundle"):
             listings = listings.filter(bundle_eligible=True)
         for name, lookup in [

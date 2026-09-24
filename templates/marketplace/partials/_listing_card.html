@@ -5,39 +5,39 @@
   data-id="{{ item.pk|unlocalize }}"
   id="listing-{{ item.pk|unlocalize }}"
 >
-  <div class="card-photo">
-    {% if item.display_image_url %}<img
-      src="{{ item.display_image_url }}"
-      alt="{{ item.title }}"
-      loading="lazy"
-      width="640"
-      height="480"
-    />{% else %}
-    <div class="photo-placeholder">No photo yet</div>
-    {% endif %} {% if item.bundle_eligible %}<span class="bundle-badge"
-      >Bundle eligible</span
-    >{% endif %}
-    <button
-      type="button"
-      class="favorite"
-      data-favorite-id="{{ item.pk|unlocalize }}"
-      aria-label="Save {{ item.title }}"
-      aria-pressed="false"
-      hidden
-    >
-      ♡
-    </button>
-  </div>
-  <div class="card-content">
-    <p class="eyebrow">{{ item.item_type.category.category_name }} · {{ item.item_type.item_type_name }}</p>
-    <h3>{{ item.title }}</h3>
-    {% include "marketplace/partials/_price.html" %}
-    <div class="card-meta">
-      <span class="condition">{{ item.get_condition_display }}</span
-      ><span>{{ item.created_at|date:"M j" }}</span>
+  <a class="listing-card-link" href="{{ item.get_absolute_url }}">
+    <div class="card-photo">
+      {% if item.display_image_url %}<img
+        src="{{ item.display_image_url }}"
+        alt="{{ item.title }}"
+        loading="lazy"
+        width="640"
+        height="480"
+      />{% else %}
+      <div class="photo-placeholder">No photo yet</div>
+      {% endif %} {% if item.bundle_eligible %}<span class="bundle-badge"
+        >Bundle eligible</span
+      >{% endif %}
     </div>
-    <div class="card-bottom"><span>{{ item.seller.display_name|default:item.seller.username }}</span>
-      {% if request.user.pk != item.seller_id %}<a class="card-message-link" href="{% url 'messages' %}?listing={{ item.pk|unlocalize }}">Message seller</a>{% endif %}
+    <div class="card-content">
+      <p class="eyebrow">{{ item.item_type.category.category_name }} · {{ item.item_type.item_type_name }}</p>
+      <h3>{{ item.title }}</h3>
+      {% include "marketplace/partials/_price.html" %}
+      <div class="card-meta">
+        <span class="condition">{{ item.get_condition_display }}</span
+        ><span>{{ item.created_at|date:"M j" }}</span>
+      </div>
+      <div class="card-bottom"><span>{{ item.seller.display_name|default:item.seller.username }}</span></div>
     </div>
-  </div>
+  </a>
+  <button
+    type="button"
+    class="favorite"
+    data-favorite-id="{{ item.pk|unlocalize }}"
+    aria-label="Save {{ item.title }}"
+    aria-pressed="false"
+    hidden
+  >
+    ♡
+  </button>
 </article>

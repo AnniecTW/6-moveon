@@ -1,0 +1,146 @@
+{% extends "marketplace/base.html" %}
+{% block title %}{{ listing.title }} | MoveOn{% endblock %}
+
+{% block listing_content %}
+<article class="listing-detail">
+  {% if preview_mode %}
+    <div class="listing-preview-banner" role="status">
+      <p><strong>This is a preview, not published yet.</strong></p>
+      <a class="button" href="{% url 'listing-update-url' primary_key=listing.pk %}">Back to edit</a>
+      <form method="post" action="{% url 'listing-publish-url' primary_key=listing.pk %}">
+        {% csrf_token %}
+        <button class="button primary" type="submit">Publish</button>
+      </form>
+    </div>
+  {% endif %}
+  <nav class="detail-navigation" aria-label="Listing navigation">
+    <a class="back-link" href="{% url 'home' %}">
+      <span aria-hidden="true">←</span> Back to Listings
+    </a>
+    <div class="detail-actions">
+      <button class="icon-action" type="button" aria-label="Save {{ listing.title }}">
+        ♡ <span aria-hidden="true">Save</span>
+      </button>
+      <button class="icon-action" type="button" aria-label="Share {{ listing.title }}">
+        <span aria-hidden="true">↗</span> <span aria-hidden="true">Share</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="detail-layout">
+    <section class="detail-gallery" aria-label="Photos of {{ listing.title }}">
+      <div class="detail-photo">
+        {% if listing.display_image_url %}
+          <img src="{{ listing.display_image_url }}" alt="{{ listing.title }}" width="900" height="675" />
+        {% else %}
+          <div class="photo-placeholder">No photo yet</div>
+        {% endif %}
+      </div>
+      <div class="detail-thumbnails" aria-label="Available photos">
+        {% if listing.display_image_url %}
+          <button class="detail-thumbnail is-active" type="button" aria-label="Show {{ listing.title }} photo">
+            <img src="{{ listing.display_image_url }}" alt="" width="96" height="72" />
+          </button>
+        {% endif %}
+        <span class="detail-thumbnail detail-thumbnail-placeholder" aria-hidden="true"></span>
+        <span class="detail-thumbnail detail-thumbnail-placeholder" aria-hidden="true"></span>
+        <span class="detail-thumbnail detail-thumbnail-placeholder" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <section class="detail-summary" aria-labelledby="listing-title">
+      <p class="eyebrow">{{ listing.item_type.category.category_name }} · {{ listing.item_type.item_type_name }}</p>
+      <h1 id="listing-title">{{ listing.title }}</h1>
+      <div class="detail-price-row">
+        <p class="detail-price">${{ listing.listing_price|floatformat:"-2" }}</p>
+        {% if listing.benchmark_price %}
+          <span class="benchmark-note">Benchmark price: ${{ listing.benchmark_price|floatformat:"-2" }}</span>
+        {% endif %}
+      </div>
+      {% if listing.retail_price %}
+        <p class="retail-price">Retail price <strong>${{ listing.retail_price|floatformat:"-2" }}</strong></p>
+      {% endif %}
+
+      <div class="detail-meta" aria-label="Listing summary">
+        <span class="detail-meta-item"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></svg>Listed {{ listing.created_at|timesince }} ago</span>
+        <span class="detail-meta-item"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /><circle cx="12" cy="12" r="9" /></svg>{{ listing.get_condition_display }}</span>
+        <span class="detail-meta-item"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z" /><circle cx="7" cy="19" r="2" /><circle cx="18" cy="19" r="2" /></svg>{{ listing.get_fulfillment_option_display }}</span>
+      </div>
+
+      <section class="detail-section" aria-labelledby="item-details-heading">
+        <h2 id="item-details-heading">Item Details</h2>
+        <dl class="detail-facts">
+          <div>
+            <dt><span class="detail-fact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /><circle cx="12" cy="12" r="9" /></svg></span>Condition</dt>
+            <dd>{{ listing.get_condition_display }}</dd>
+          </div>
+          <div>
+            <dt><span class="detail-fact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></svg></span>Category</dt>
+            <dd>{{ listing.item_type.category.category_name }} → {{ listing.item_type.item_type_name }}</dd>
+          </div>
+          <div>
+            <dt><span class="detail-fact-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z" /><circle cx="7" cy="19" r="2" /><circle cx="18" cy="19" r="2" /></svg></span>Fulfillment</dt>
+            <dd>{{ listing.get_fulfillment_option_display }}</dd>
+          </div>
+          {% if listing.move_out_date %}
+          <div>
+            <dt>Move-out date</dt>
+            <dd>{{ listing.move_out_date|date:"M j, Y" }}</dd>
+          </div>
+          {% endif %}
+        </dl>
+      </section>
+
+      <section class="detail-section" aria-labelledby="description-heading">
+        <h2 id="description-heading">Description</h2>
+        {% if listing.description %}
+          <div class="description">{{ listing.description|linebreaks }}</div>
+        {% else %}
+          <p class="muted">The seller has not added a description yet.</p>
+        {% endif %}
+      </section>
+    </section>
+
+    <aside class="detail-sidebar">
+      <section class="seller-panel" aria-labelledby="seller-heading">
+        <div class="seller-heading">
+          <div class="seller-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg></div>
+          <div>
+            <p class="eyebrow">Seller</p>
+            <h2 id="seller-heading">{{ listing.seller.display_name|default:listing.seller.username }}</h2>
+          </div>
+        </div>
+        {% if request.user.pk != listing.seller_id %}
+          <a class="button primary seller-button" href="{% url 'messages' %}?listing={{ listing.pk }}">Message Seller</a>
+        {% endif %}
+        <button class="button seller-button" type="button">♡ Save Listing</button>
+      </section>
+
+      {% if listing.bundle_eligible %}
+      <section class="bundle-panel" aria-labelledby="bundle-heading">
+        <div class="panel-heading">
+          <span class="bundle-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h16v12H4z" /><path d="m4 8 8-4 8 4M12 4v16" /></svg></span>
+          <h2 id="bundle-heading">Bundle Sale</h2>
+          <span class="included-label">Included</span>
+        </div>
+        <p>This item is eligible to be included in bundle purchases.</p>
+      </section>
+      {% endif %}
+    </aside>
+  </div>
+
+  <section class="similar-section" aria-labelledby="similar-heading">
+    <div class="similar-heading">
+      <h2 id="similar-heading">Similar Items</h2>
+      <a href="{% url 'home' %}">See more</a>
+    </div>
+    <div class="similar-grid">
+      {% for item in similar_listings %}
+        {% include "marketplace/partials/_listing_card.html" with item=item %}
+      {% empty %}
+        <p class="muted">More items in this category are on the way.</p>
+      {% endfor %}
+    </div>
+  </section>
+</article>
+{% endblock %}

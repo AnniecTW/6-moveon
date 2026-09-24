@@ -47,7 +47,13 @@ class Command(BaseCommand):
                         "condition": Listing.Condition.GOOD,
                         "status": Listing.Status.ACTIVE,
                         "bundle_eligible": True,
-                        "fulfillment_option": Listing.Fulfillment.PICKUP,
+                        "fulfillment_option": (
+                            Listing.Fulfillment.BOTH
+                            if spec["title"] == "Rocking Chair"
+                            else Listing.Fulfillment.DELIVERY
+                            if spec["title"] == "Coffee Table"
+                            else Listing.Fulfillment.PICKUP
+                        ),
                     },
                 )
                 added += int(created)

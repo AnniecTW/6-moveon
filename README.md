@@ -129,22 +129,98 @@ python manage.py test
 See [Week 3 authentication details](docs/notes/weekly_progress_updates/wk3_authentication.md)
 for account rules, configuration, test coverage, and remaining external checks.
 
-## Messages
+## Testing Message seller / Messaging locally
 
-The desktop [Messages page](http://127.0.0.1:8000/messages/) supports protected
-conversations, unread counts, Bundle requests, and image messages. For a local
-preview in PowerShell, run these commands from the repository root (seed only
-once if you want to keep existing preview passwords):
+The [Messages page](http://127.0.0.1:8000/messages/) requires two active,
+verified `@illinois.edu` accounts: A is the buyer and B is the seller, with at
+least one active listing owned by B. Use one of these setup paths:
+
+- **Isolated preview data:** `messaging_preview` uses its own SQLite database.
+  Its seed command creates demo data, including active listings, and verified
+  accounts `alex` and `maya`. It prints their temporary passwords in the
+  terminal; use them locally and never paste them into README, notes, or other
+  tracked files.
+- **Regular development data:** Register A and B through the site, verify both
+  accounts using the six-digit codes printed in the `runserver` terminal, then
+  sign in as B and use **Sell Item** to create and publish an active listing.
+  Listing creation is available in the UI; Django Admin is not needed for this
+  workflow.
+
+Start an isolated preview server from the repository root:
+
+```bash
+# macOS / Linux
+python manage.py migrate --settings=moveon.settings.messaging_preview
+python manage.py seed_messaging_preview --settings=moveon.settings.messaging_preview
+python manage.py runserver 127.0.0.1:8000 --settings=moveon.settings.messaging_preview
+```
 
 ```powershell
+# Windows PowerShell
 & .\.venv\Scripts\python.exe manage.py migrate --settings=moveon.settings.messaging_preview
 & .\.venv\Scripts\python.exe manage.py seed_messaging_preview --settings=moveon.settings.messaging_preview
 & .\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000 --settings=moveon.settings.messaging_preview
 ```
 
-To run the focused Messaging tests, use
-`& .\.venv\Scripts\python.exe manage.py test tests.messaging --settings=moveon.settings.development`.
-For a quick manual check, sign in as one preview user, send a message to the
-other, then confirm the recipient's unread badge and reply.
+For regular development data, migrate and start the server with the development
+settings instead. Then register the accounts and create B's listing in the UI:
+
+```bash
+# macOS / Linux
+python manage.py migrate --settings=moveon.settings.development
+python manage.py runserver --settings=moveon.settings.development
+```
+
+```powershell
+# Windows PowerShell
+& .\.venv\Scripts\python.exe manage.py migrate --settings=moveon.settings.development
+& .\.venv\Scripts\python.exe manage.py runserver --settings=moveon.settings.development
+```
+
+### Manual test
+
+1. Sign in as A. Open B's active listing detail page and click **Message
+   Seller**. The browser should navigate to `/messages/?listing=<id>` and open
+   the matching conversation.
+2. Send a message as A. Confirm B's Messages unread badge increases, then sign
+   in as B, open the conversation, and reply.
+3. Sign out and click **Message Seller** as a guest. The account page should
+   retain the Messages destination when switching between **Create account**
+   and **Log in**; after verification and sign-in, the browser should return to
+   the listing conversation. As a separate check, use the header profile icon
+   to sign in; that general account entry should return to the home page.
+
+Run automated checks with the development settings:
+
+```bash
+# macOS / Linux
+python manage.py test --settings=moveon.settings.development
+python manage.py check --settings=moveon.settings.development
+python manage.py makemigrations --check --dry-run --settings=moveon.settings.development
+```
+
+```powershell
+# Windows PowerShell
+& .\.venv\Scripts\python.exe manage.py test --settings=moveon.settings.development
+& .\.venv\Scripts\python.exe manage.py check --settings=moveon.settings.development
+& .\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run --settings=moveon.settings.development
+```
+
+### Common questions
+
+- **Conflicting migrations:** Once the conflicting branches are present in
+  your checkout, run
+  `python manage.py makemigrations --merge --settings=moveon.settings.development`,
+  review the generated merge migration, and then run `migrate`.
+- **Why can't a Django Admin account open Messages?** Admin access does not
+  grant student access. Use active accounts with verified `@illinois.edu`
+  addresses.
+- **Which settings should I use?** Use `moveon.settings.messaging_preview`
+  only for the isolated seeded preview database. Use
+  `moveon.settings.development` for ordinary registration and listing creation
+  and for automated checks.
+
 See [Messaging implementation and local setup](docs/notes/weekly_progress_updates/wk3_messaging.md)
-or jump directly to the [10-minute manual test](docs/notes/weekly_progress_updates/wk3_messaging.md#manual-testing).
+for the broader Messages workflow, and the
+[Message seller wiring note](docs/notes/weekly_progress_updates/wk3_detail_message_wiring.md)
+for this listing-to-conversation integration.

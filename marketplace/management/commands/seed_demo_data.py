@@ -195,7 +195,13 @@ class Command(BaseCommand):
                         Decimal("0.01")
                     ),
                     "bundle_eligible": bundle_eligible,
-                    "fulfillment_option": Listing.Fulfillment.PICKUP,
+                    "fulfillment_option": (
+                        Listing.Fulfillment.BOTH
+                        if title == "Blue Sofa"
+                        else Listing.Fulfillment.DELIVERY
+                        if title == "Television"
+                        else Listing.Fulfillment.PICKUP
+                    ),
                     "status": Listing.Status.SOLD
                     if title == "Desk Chair"
                     else Listing.Status.ACTIVE,
