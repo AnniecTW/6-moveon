@@ -4,9 +4,11 @@ import os
 import re
 import tempfile
 import uuid
+from unittest.mock import Mock, patch
 
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -145,6 +147,79 @@ class MessagingApiTests(TestCase):
     def test_create_or_reuse_inquiry(self):
         self.login(self.buyer)
         response = self.post_json("messaging_create", data={"listingId": self.listing.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["id"], str(self.conversation.pk))
+        self.assertEqual(Conversation.objects.count(), 1)
+
+    def test_create_race_reuses_conversation_after_unique_conflict(self):
+        self.login(self.buyer)
+        missing = Mock()
+        missing.first.return_value = None
+        with (
+            patch.object(Conversation.objects, "filter", return_value=missing),
+            patch.object(Conversation.objects, "create", side_effect=IntegrityError),
+        ):
+            response = self.post_json(
+                "messaging_create", data={"listingId": self.listing.pk}
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["id"], str(self.conversation.pk))
+        self.assertEqual(Conversation.objects.count(), 1)
+
+    def test_create_rejects_own_listing(self):
+        self.login(self.seller)
+
+        response = self.post_json(
+            "messaging_create", data={"listingId": self.listing.pk}
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "You cannot message yourself.")
+        self.assertEqual(Conversation.objects.count(), 1)
+
+    def test_create_rejects_non_integer_listing_id(self):
+        self.login(self.buyer)
+
+        response = self.post_json("messaging_create", data={"listingId": "abc"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "Invalid listing.")
+
+    def test_create_returns_not_found_for_missing_listing(self):
+        self.login(self.buyer)
+
+        response = self.post_json("messaging_create", data={"listingId": 999999})
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_create_rejects_unavailable_listing_without_conversation(self):
+        listing = Listing.objects.create(
+            seller=self.seller,
+            item_type=self.listing.item_type,
+            title="Inactive desk",
+            condition=Listing.Condition.GOOD,
+            listing_price=40,
+            fulfillment_option=Listing.Fulfillment.PICKUP,
+            status=Listing.Status.INACTIVE,
+        )
+        self.login(self.buyer)
+
+        response = self.post_json("messaging_create", data={"listingId": listing.pk})
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["code"], "listing_unavailable")
+        self.assertFalse(Conversation.objects.filter(listing=listing).exists())
+
+    def test_create_reopens_existing_conversation_for_unavailable_listing(self):
+        self.listing.status = Listing.Status.INACTIVE
+        self.listing.save(update_fields=["status"])
+        self.login(self.buyer)
+
+        response = self.post_json(
+            "messaging_create", data={"listingId": self.listing.pk}
+        )
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["id"], str(self.conversation.pk))
         self.assertEqual(Conversation.objects.count(), 1)

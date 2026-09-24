@@ -133,7 +133,7 @@ class Conversation(ValidatedSaveModel):
             listing = self.listing
             self.listing_title_snapshot = listing.title
             self.listing_price_snapshot = listing.listing_price
-            self.listing_image_snapshot = listing.image_url
+            self.listing_image_snapshot = listing.cover_image_url
         return super().save(*args, **kwargs)
 
 

@@ -55,8 +55,10 @@ def data(request):
 
 def participant(request, conversation_id):
     return get_object_or_404(
-        Conversation.objects.select_related("listing", "buyer", "seller").filter(
-            Q(buyer=request.user) | Q(seller=request.user)), pk=conversation_id,
+        Conversation.objects.select_related("listing", "buyer", "seller")
+        .prefetch_related("listing__images")
+        .filter(Q(buyer=request.user) | Q(seller=request.user)),
+        pk=conversation_id,
     )
 
 
@@ -105,7 +107,7 @@ def conversation_data(conversation, user):
             "title": listing.title if listing else conversation.listing_title_snapshot or "Deleted listing",
             "listedPrice": float(listing.listing_price) if listing else (
                 float(conversation.listing_price_snapshot) if conversation.listing_price_snapshot is not None else None),
-            "imageUrl": listing.image_url if listing else conversation.listing_image_snapshot or None,
+            "imageUrl": listing.cover_image_url if listing else conversation.listing_image_snapshot or None,
             "available": bool(listing and listing.status == Listing.Status.ACTIVE),
             "unavailableReason": "Unavailable" if not listing or listing.status != Listing.Status.ACTIVE else "",
         },
@@ -137,8 +139,10 @@ def page(request):
 
 @require_GET
 def conversations(request):
-    qs = Conversation.objects.filter(Q(buyer=request.user) | Q(seller=request.user)).select_related(
-        "buyer", "seller", "listing"
+    qs = (
+        Conversation.objects.filter(Q(buyer=request.user) | Q(seller=request.user))
+        .select_related("buyer", "seller", "listing")
+        .prefetch_related("listing__images")
     )
     role = request.GET.get("role")
     if role == "buying":
@@ -178,18 +182,34 @@ def create(request):
         listing_id = int(payload.get("listingId"))
     except (ValueError, TypeError):
         return error("Invalid listing.")
-    listing = get_object_or_404(Listing.objects.select_related("seller"), pk=listing_id)
+    listing = get_object_or_404(
+        Listing.objects.select_related("seller").prefetch_related("images"),
+        pk=listing_id,
+    )
     if listing.seller_id == request.user.pk:
         return error("You cannot message yourself.")
     with transaction.atomic():
-        conversation = Conversation.objects.filter(buyer=request.user, seller=listing.seller, listing=listing).first()
+        conversation = Conversation.objects.filter(
+            buyer=request.user,
+            seller=listing.seller,
+            listing=listing,
+        ).first()
         if conversation is None:
             if listing.status != Listing.Status.ACTIVE:
                 return error("This listing is unavailable.", 409, "listing_unavailable")
             try:
-                conversation = Conversation.objects.create(buyer=request.user, seller=listing.seller, listing=listing)
+                with transaction.atomic():
+                    conversation = Conversation.objects.create(
+                        buyer=request.user,
+                        seller=listing.seller,
+                        listing=listing,
+                    )
             except IntegrityError:
-                conversation = Conversation.objects.get(buyer=request.user, seller=listing.seller, listing=listing)
+                conversation = Conversation.objects.get(
+                    buyer=request.user,
+                    seller=listing.seller,
+                    listing=listing,
+                )
     return JsonResponse(conversation_data(conversation, request.user))
 
 
