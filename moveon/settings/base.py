@@ -28,6 +28,11 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
+# Optional: powers the AI Bundle Builder's tier classification (bundles app).
+# Left blank, that feature falls back to a plain price-based heuristic
+# instead of failing.
+GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+
 
 # Application definition
 

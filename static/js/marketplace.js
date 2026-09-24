@@ -7,6 +7,7 @@ import { setupHeader } from "./marketplace/header.js?v=2";
 import { setupDashboardNavigation } from "./marketplace/dashboard.js";
 import { setupSellerSettings } from "./marketplace/settings.js";
 import { setupBuyerPickups } from "./marketplace/buyer.js";
+import { setupBundleStartLauncher } from "./bundles/start-launcher.js";
 
 setupCarousel();
 setupHotspots();
@@ -14,6 +15,7 @@ setupHeader();
 setupDashboardNavigation();
 setupSellerSettings();
 setupBuyerPickups();
+setupBundleStartLauncher();
 if (document.querySelector("[data-marketplace]")) {
   const favorites = setupFavorites();
   const drawer = setupDrawer();

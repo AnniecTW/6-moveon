@@ -1,0 +1,77 @@
+{% extends "bundles/base.html" %}
+{% load static %}
+
+{% block title %}Bundle Summary | Move-In Bundle{% endblock %}
+
+{% block stepper %}
+  {% include "bundles/partials/_stepper.html" with current_step=4 %}
+{% endblock %}
+
+{% block wizard_content %}
+  <div class="wizard-layout">
+    <section class="filter-panel wizard-panel">
+      <h1>Bundle summary</h1>
+
+      {% if sent %}
+        <p class="wizard-note">Requests sent — sellers will respond soon. Check <a href="{% url 'messages' %}">Messages</a> for their replies.</p>
+      {% endif %}
+
+      <div class="wizard-table-wrap">
+        <table class="wizard-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Condition</th>
+              <th>Delivery</th>
+              <th>Seller</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in bundle_items %}
+              <tr>
+                <td>{{ item.listing.title }}</td>
+                <td><span class="condition">{{ item.listing.get_condition_display }}</span></td>
+                <td>{{ item.listing.get_fulfillment_option_display }}</td>
+                <td>{{ item.listing.seller.display_name }}</td>
+                <td>${{ item.listing.listing_price }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="wizard-total"><strong>Total: ${{ total }}</strong></p>
+      <p class="muted">
+        No bundle discount is applied yet — a minimum-price-based discount is a
+        planned future add-on. This total is the sum of listed prices.
+      </p>
+
+      {% if not sent %}
+        <p class="wizard-message wizard-message--error" data-checkout-error hidden></p>
+        <form
+          method="post"
+          action="{% url 'bundles:summary' %}?bundle={{ bundle.id }}"
+          data-checkout-form
+          data-send-url="{% url 'bundle_send_requests' bundle.id %}"
+          data-csrf-token="{{ csrf_token }}"
+        >
+          {% csrf_token %}
+          <div class="wizard-actions">
+            <a class="button" href="{% url 'bundles:builder' %}?bundle={{ bundle.id }}">Modify Bundle</a>
+            <button type="submit" class="button primary" data-checkout-submit>Send Requests to Sellers</button>
+          </div>
+        </form>
+      {% else %}
+        <div class="wizard-actions">
+          <a class="button primary" href="{% url 'messages' %}">Go to Messages</a>
+          <a class="button" href="{% url 'home' %}">Back to MoveOn</a>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script type="module" src="{% static 'js/bundles/checkout.js' %}"></script>
+{% endblock %}
