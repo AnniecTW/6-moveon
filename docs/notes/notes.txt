@@ -10,3 +10,92 @@ Week 2:
 - Added named listing routes and implemented four Listing views: manual HttpResponse, render FBV, base CBV, and generic ListView. (See marketplace\views for views code and docs\notes\views_screenshots for screenshots).
 - Updated the README and branching strategy documentation with setup and workflow instructions. (See docs\branching_strategy).
 - For Section 3, Part B, the feature template includes `templates/marketplace/partials/_results.html`, where `{% for %}` renders the listings and `{% empty %}` displays a meaningful empty-state message when no listings are available.
+
+Week 3: Assignment 3
+
+- I went through the six sections of the P1-A3 assignment and checked them against MoveOn.
+- I added screenshots to `docs/notes/week3_screenshots/` to show the main features working.
+
+1. URLs and navigation - complete
+
+- The home page is `/`, and `listing_render_view` in `marketplace/views.py` loads it.
+- The shared navigation is in `templates/marketplace/partials/_header.html`, included by
+  `templates/marketplace/base.html`. Its links use Django's named URLs.
+- Listing cards link to their detail pages with `get_absolute_url()` in
+  `marketplace/models.py`. The detail route is in `marketplace/urls.py`, and
+  `ListingDetailView` in `marketplace/views.py` loads the listing by its primary key.
+- The detail page uses `templates/marketplace/listing_detail.html`.
+- I checked that the home page and listing detail pages load, and opened a detail page
+  from a listing card. Screenshots: `section1_home_page.png`, `section1_navigation.png`,
+  and `section1_listing_detail.png`.
+
+2. Database queries and search - complete
+
+- `BrowseForm` in `marketplace/forms.py` checks the search and filter values.
+  `filtered_listings()` in `marketplace/browse.py` uses them to find real listings,
+  including matches in seller, item type, and category fields.
+- Marketplace search and filters use GET, so the search appears in the URL and can be
+  shared or opened again. Results are shown in `templates/marketplace/partials/_results.html`,
+  which also explains when nothing matches.
+- Seller listing counts use Django's `Count` aggregation and appear in
+  `templates/marketplace/seller_listings.html`.
+- Purchase history has a separate POST search. `PurchaseHistorySearchForm` in
+  `marketplace/forms.py` is shown in `templates/marketplace/buyer_purchase_history.html`.
+  `buyer_purchase_history_view` in `marketplace/views.py` searches the signed-in user's
+  completed purchases by item or seller. The form includes CSRF protection, and the
+  search text does not appear in the URL. It does not change any purchase records.
+- I checked the searches, empty results, and user-specific results. Screenshots:
+  `section2_get_search.png`, `section2_orm_summary.png`, and `section2_post_search.png`.
+
+3. Static files and styling - complete
+
+- `moveon/settings/base.py` tells Django where the project's `static/` files live, and
+  shared templates use `{% load static %}` to include them.
+- The main stylesheet, `static/css/marketplace.css`, imports the smaller stylesheets in
+  `static/css/marketplace/`. Images and browser JavaScript are in `static/img/` and
+  `static/js/`. Listing photos uploaded by users are handled separately through Django's
+  media settings.
+- The existing layout, colors, fonts, header, and listing cards are still in place.
+  Some CSS and JavaScript links use a version such as `?v=a3-1`, which prompts the browser
+  to load the updated file. Screenshot: `section3_static_css.png`.
+
+4. Chart image - complete
+
+- I built on the profile's existing Top Listings by Inquiries chart. In
+  `marketplace/charts.py`, `listing_inquiry_data()` counts conversations for each seller's
+  listings. It counts each conversation once, even if several messages were sent.
+- `listing_inquiry_chart()` serves a PNG at `/profile/inquiries.png`. It draws the bars
+  with Matplotlib, keeps the image in a `BytesIO` buffer, and returns it from a Django
+  `HttpResponse` as `image/png`. The chart is not saved to disk.
+- The chart appears on the profile page in `templates/marketplace/profile_base.html`.
+  The card has its own heading, so the duplicate title inside the chart has been removed.
+  The image also has a caption and alt text. If there are no inquiries, the chart shows
+  an empty-state message instead. Matplotlib is listed in `requirements.txt`.
+- The chart is drawn in memory for each request, and the number of listings shown is
+  limited. Screenshot: `section4_data_visualization.png`. Tests cover charts with and
+  without inquiry data.
+
+5. Forms and user input - complete in code
+
+- Marketplace search uses GET. New listings use `ListingCreateView` in
+  `marketplace/views.py` and `ListingCreateForm` in `marketplace/forms.py`.
+  `templates/marketplace/listing_form.html` displays the form and includes a CSRF token.
+- Django shows the form on GET, then checks and saves it on POST. The bundle builder and
+  summary pages also handle GET and POST requests.
+- Tests cover listing creation and reject a POST without a valid CSRF token. I did not
+  make another listing while taking screenshots, so the local database would not get
+  extra test data. Screenshot: `section5_post_listing_form.png`.
+
+6. JSON API - complete
+
+- `listings()` in `marketplace/api.py` provides a public, read-only GET endpoint at
+  `/api/listings/`. It returns active listings as JSON with each listing's IDs, title,
+  price, condition, category, and detail URL. Seller email addresses and private messages
+  are left out.
+- The endpoint supports the marketplace search filters and returns up to 20 results per
+  page. It returns a JSON error for invalid filters. `marketplace/access_middleware.py`
+  allows public access to this route while keeping messaging APIs protected.
+- `listings_documentation()` uses the same API data at `/api/listings/demo/`, where the
+  filters can be tried and the response type viewed. Regular pages return `text/html`,
+  the API returns `application/json`, and the chart returns `image/png`.
+- The README includes the API details and example URLs. Screenshot: `section6_json_api.png`.

@@ -6,10 +6,14 @@
     <div><h2 id="purchase-history-title">Purchase History</h2><p>Review your completed purchases.</p></div>
   </header>
 
-  <div class="history-controls">
-    <label class="history-search"><span class="sr-only">Search purchase history</span><input type="search" placeholder="Search purchase history..." data-history-search /></label>
+  <form class="history-controls" method="post" action="{% url 'buyer-purchase-history' %}">
+    {% csrf_token %}
+    <label class="history-search"><span class="sr-only">Search purchase history</span>{{ history_search_form.q }}</label>
+    <button class="button" type="submit">Search history</button>
+    <a href="{% url 'buyer-purchase-history' %}">Clear</a>
     <label class="history-sort"><span class="sr-only">Sort purchase history</span><select data-history-sort><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
-  </div>
+  </form>
+  {{ history_search_form.q.errors }}
 
   <div class="history-list" data-history-list>
     {% for row in history_rows %}
@@ -26,8 +30,7 @@
       </div>
       <p class="history-action-status" data-history-status aria-live="polite"></p>
     </article>
-    {% empty %}<div class="empty-state"><h3>No completed purchases yet</h3><p>Completed MoveOn purchases will appear here.</p></div>{% endfor %}
+    {% empty %}<div class="empty-state"><h3>{% if history_search_form.q.value %}No matching completed purchases{% else %}No completed purchases yet{% endif %}</h3><p>Try another search or clear your search to see all completed purchases.</p></div>{% endfor %}
   </div>
-  <p class="history-no-results" data-history-empty hidden>No purchases match your search.</p>
 </section>
 {% endblock %}

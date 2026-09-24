@@ -6,6 +6,17 @@ writes must use validated instance saves.
 """
 
 from django.db import models, router
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+
+
+def validate_image_reference(value):
+    """Allow HTTP(S) images and same-origin absolute paths, never script/file URLs."""
+    if value.startswith("/") and not value.startswith("//"):
+        if "\\" not in value and not any(character.isspace() or ord(character) < 32 for character in value):
+            return
+        raise ValidationError("Enter a valid image path.")
+    URLValidator(schemes=["http", "https"])(value)
 
 
 def database_for(instance):

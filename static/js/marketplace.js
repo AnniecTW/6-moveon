@@ -6,8 +6,8 @@ import { setupHotspots } from "./marketplace/hotspots.js";
 import { setupHeader } from "./marketplace/header.js?v=2";
 import { setupDashboardNavigation } from "./marketplace/dashboard.js";
 import { setupSellerSettings } from "./marketplace/settings.js";
-import { setupBuyerPickups } from "./marketplace/buyer.js";
-import { setupBundleStartLauncher } from "./bundles/start-launcher.js";
+import { setupBuyerPickups } from "./marketplace/buyer.js?v=a3-1";
+import { setupBundleStartLauncher } from "./bundles/start-launcher.js?v=a3-1";
 
 setupCarousel();
 setupHotspots();

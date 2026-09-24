@@ -21,6 +21,13 @@ FULFILLMENT_FILTER_CHOICES = [
 ]
 
 
+class PurchaseHistorySearchForm(forms.Form):
+    q = forms.CharField(
+        required=False, max_length=200, label="Search purchase history",
+        widget=forms.TextInput(attrs={"type": "search", "placeholder": "Search purchase history..."}),
+    )
+
+
 class BrowseForm(forms.Form):
     q = forms.CharField(required=False, max_length=200, label="Search")
     category = forms.MultipleChoiceField(

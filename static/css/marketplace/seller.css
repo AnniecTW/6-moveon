@@ -25,7 +25,7 @@
 .profile-summary-heading h2 { font: 22px var(--serif); }
 .profile-listing-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .profile-financial-chart { padding-top: 0; }
-.action-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; padding: 12px 0 4px; }
+.action-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; padding: 12px 0 4px; }
 .action-metrics article.action-metric-alert { border-color: #e8b6b6; background: #fbe4e4; }
 .action-metrics article.action-metric-alert .kpi-icon { color: #8b3f3f; background: #f4caca; }
 .listing-inquiry-card { padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
@@ -440,3 +440,6 @@
 @media (max-width: 480px) { .watchlist-heading { align-items: start; flex-direction: column; } .watchlist-heading-controls { width: 100%; justify-content: start; } .watchlist-heading-controls label { flex: 1; } .watchlist-heading-controls select { width: 100%; } .watchlist-count { display: none; } .watchlist-row { grid-template-columns: 1fr; } .watchlist-item { grid-column: 1; } .watchlist-actions .button { width: 100%; } }
 @media (max-width: 380px) { .history-totals { grid-template-columns: 1fr; } }
 @media (max-width: 430px) { .seller-kpis { gap: 6px; } .seller-kpis article { padding: 12px 8px; grid-template-columns: 34px 1fr; column-gap: 7px; } .kpi-icon { width: 34px; height: 34px; font-size: 17px; } .seller-kpis strong { font-size: 22px; } }
+
+.inquiry-chart-image { display: block; width: 100%; height: auto; }
+.listing-inquiry-chart { margin: 0; }

@@ -8,6 +8,7 @@ from django.dispatch import receiver
 from bundles.models import BundleItem
 from marketplace.models import Listing
 from marketplace.validation import ValidatedSaveModel, database_for, participant_errors
+from marketplace.validation import validate_image_reference
 
 
 class Conversation(ValidatedSaveModel):
@@ -49,7 +50,7 @@ class Conversation(ValidatedSaveModel):
     last_message_at = models.DateTimeField(null=True, blank=True)
     listing_title_snapshot = models.CharField(max_length=200, blank=True)
     listing_price_snapshot = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    listing_image_snapshot = models.URLField(blank=True)
+    listing_image_snapshot = models.CharField(max_length=2048, blank=True, validators=[validate_image_reference])
 
     class Meta:
         ordering = ["-last_message_at", "-created_at"]

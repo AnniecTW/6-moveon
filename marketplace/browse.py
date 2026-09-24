@@ -13,12 +13,11 @@ ORDERING = {
 }
 
 
-def browse_context(request):
-    form = BrowseForm(request.GET)
+def filtered_listings(form):
+    """One validated query implementation for HTML browsing and the public API."""
     listings = Listing.objects.filter(status=Listing.Status.ACTIVE).select_related(
         "seller", "item_type", "item_type__category"
     ).prefetch_related("images")
-    chips = []
     if form.is_valid():
         values = form.cleaned_data
         for term in values.get("q", "").split():
@@ -65,6 +64,16 @@ def browse_context(request):
             listings = listings.order_by(
                 ORDERING.get(values.get("sort"), "-created_at"), "pk"
             )
+    else:
+        listings = listings.none()
+    return listings
+
+
+def browse_context(request):
+    form = BrowseForm(request.GET)
+    listings = filtered_listings(form)
+    chips = []
+    if form.is_valid():
         for name in (
             "q",
             "category",
@@ -91,8 +100,6 @@ def browse_context(request):
                 elif name == "max_price":
                     label = "Max $" + value
                 chips.append({"label": label, "url": "?" + params.urlencode()})
-    else:
-        listings = listings.none()
     return {
         "listings": [decorate_listing(item) for item in listings],
         "filter_form": form,

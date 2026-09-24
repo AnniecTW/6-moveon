@@ -38,8 +38,10 @@ def api_guard(view):
             if response.status_code == 405:
                 return error("Method not allowed.", 405, "method_not_allowed")
             return response
-        except (Http404, ValueError, ValidationError):
+        except (Http404, ValueError):
             return error("Resource not found.", 404, "not_found")
+        except ValidationError:
+            return error("The submitted data could not be validated.", 400, "invalid_request")
         except OperationalError:
             return error("Messaging is busy. Please retry.", 503, "temporarily_unavailable")
     return guarded

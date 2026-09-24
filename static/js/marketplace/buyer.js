@@ -116,20 +116,6 @@ export function setupBuyerPickups() {
       : "Seller ratings are not stored in the current data model yet.";
   });
 
-  document.addEventListener("input", (event) => {
-    if (!event.target.matches("[data-history-search]")) return;
-    const page = event.target.closest(".purchase-history-page");
-    const query = event.target.value.trim().toLowerCase();
-    let visible = 0;
-    page?.querySelectorAll("[data-history-row]").forEach((row) => {
-      const matches = row.dataset.historyText.toLowerCase().includes(query);
-      row.hidden = !matches;
-      visible += Number(matches);
-    });
-    const empty = page?.querySelector("[data-history-empty]");
-    if (empty) empty.hidden = visible !== 0;
-  });
-
   document.addEventListener("change", (event) => {
     if (!event.target.matches("[data-history-sort]")) return;
     const list = event.target.closest(".purchase-history-page")?.querySelector("[data-history-list]");

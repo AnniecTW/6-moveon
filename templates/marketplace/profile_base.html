@@ -1,6 +1,6 @@
 {% extends "marketplace/base.html" %}
 {% load static %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/marketplace/seller.css' %}?v=week3-profile-1" />{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/marketplace/seller.css' %}?v=a3-1" />{% endblock %}
 {% block listing_content %}
 <div class="seller-dashboard buyer-dashboard">
   <div class="seller-layout">
@@ -12,11 +12,16 @@
         <p class="seller-subtitle">Manage your listings and purchases in one place.</p>
       </header>
 
-      <div class="profile-summary-heading"><h2>Actions Needed</h2></div>
-      <section class="action-metrics seller-kpis" aria-label="Items needing attention">
-        <article{% if buyer_summary.pending_pickups > 0 %} class="action-metric-alert"{% endif %}><span class="kpi-icon" aria-hidden="true">&#9679;</span><strong>{{ buyer_summary.pending_pickups }}</strong><span>Upcoming pickups</span></article>
+      <div class="profile-summary-heading"><h2>Actions Needed - Items Sold</h2></div>
+      <section class="action-metrics seller-kpis" aria-label="Actions needed for items sold">
         <article{% if unanswered_inquiries > 0 %} class="action-metric-alert"{% endif %}><span class="kpi-icon" aria-hidden="true">!</span><strong>{{ unanswered_inquiries }}</strong><span>Unanswered inquiries</span></article>
         <article{% if reserved_count > 0 %} class="action-metric-alert"{% endif %}><span class="kpi-icon" aria-hidden="true">&#9670;</span><strong>{{ reserved_count }}</strong><span>Reserved items awaiting completion</span></article>
+      </section>
+
+      <div class="profile-summary-heading"><h2>Actions Needed - Items Purchased</h2></div>
+      <section class="action-metrics seller-kpis" aria-label="Actions needed for items purchased">
+        <article{% if buyer_unanswered_inquiries > 0 %} class="action-metric-alert"{% endif %}><span class="kpi-icon" aria-hidden="true">!</span><strong>{{ buyer_unanswered_inquiries }}</strong><span>Unanswered inquiries</span></article>
+        <article{% if buyer_summary.pending_pickups > 0 %} class="action-metric-alert"{% endif %}><span class="kpi-icon" aria-hidden="true">&#9679;</span><strong>{{ buyer_summary.pending_pickups }}</strong><span>Upcoming pickups</span></article>
       </section>
 
       <div class="profile-summary-heading"><h2>Marketplace Summary</h2></div>
@@ -52,10 +57,11 @@
       </section>
 
       <article class="listing-inquiry-card" aria-labelledby="listing-inquiry-title">
-        <header><div><h3 id="listing-inquiry-title">Top Listings by Inquiries</h3><p>Conversations awaiting a buyer response and inquiries that still need your reply.</p></div><div class="listing-inquiry-legend"><span><i class="answered"></i>Awaiting Response</span><span><i class="unanswered"></i>Unanswered</span></div></header>
-        {% if listing_inquiry_chart %}<div class="listing-inquiry-chart">
-          {% for metric in listing_inquiry_chart %}<div class="listing-inquiry-row"><span title="{{ metric.title }}">{{ metric.title }}</span><div class="listing-inquiry-track"><div class="listing-inquiry-total" style="width: {{ metric.total_percent }}%"><i class="answered" style="width: {{ metric.answered_percent }}%"></i><i class="unanswered" style="width: {{ metric.unanswered_percent }}%"></i></div></div><strong>{{ metric.total }}</strong></div>{% endfor %}
-        </div>{% else %}<p class="listing-inquiry-empty">No inquiries for active listings yet.</p>{% endif %}
+        <header><div><h3 id="listing-inquiry-title">Top Listings by Inquiries</h3><p>Conversations awaiting a buyer response and inquiries that still need your reply.</p></div></header>
+        <figure class="listing-inquiry-chart">
+          <img class="inquiry-chart-image" src="{% url 'listing-inquiry-chart' %}" alt="Top listings by inquiry count, split into awaiting response and unanswered conversations." />
+          <figcaption class="sr-only">Your six non-sold listings with the most conversations.</figcaption>
+        </figure>
       </article>
       {% include "marketplace/partials/_profile_tabs.html" %}
       {% block profile_content %}{% endblock %}
@@ -63,4 +69,4 @@
   </div>
 </div>
 {% endblock %}
-{% block extra_scripts %}<script type="module" src="{% static 'js/marketplace.js' %}?v=profile-unified-1"></script>{% endblock %}
+{% block extra_scripts %}<script type="module" src="{% static 'js/marketplace.js' %}?v=a3-1"></script>{% endblock %}

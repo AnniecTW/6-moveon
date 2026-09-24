@@ -1,0 +1,25 @@
+{% extends "marketplace/base.html" %}
+{% block title %}Listings JSON API | MoveOn{% endblock %}
+{% block extra_head %}<style>
+  .api-demo { max-width: 920px; margin: 4rem auto; }
+  .api-demo form { display:flex; flex-wrap:wrap; gap:1rem; align-items:end; margin:2rem 0; }
+  .api-demo label { display:grid; gap:.4rem; }
+  .api-demo input { padding:.7rem; border:1px solid #c9c6bd; border-radius:.5rem; }
+  .api-demo pre { overflow:auto; max-height:60vh; padding:1.5rem; background:#f3f1eb; border-radius:.75rem; font-size:.9rem; }
+  .api-demo code { overflow-wrap:anywhere; }
+</style>{% endblock %}
+{% block listing_content %}
+<main class="api-demo" aria-labelledby="api-title">
+  <p class="eyebrow">MoveOn API</p>
+  <h1 id="api-title">Public Listings JSON</h1>
+  <p>Read-only active listing data. Try <code>/api/listings/?q=desk&amp;category=1&amp;page=1</code>.</p>
+  <form method="get" action="{% url 'listing-api-demo' %}">
+    <label>Search listings <input type="search" name="q" value="{{ query }}" maxlength="200"></label>
+    <label>Category ID <input type="number" min="1" name="category" value="{{ category }}"></label>
+    <button class="button primary" type="submit">Filter JSON</button>
+  </form>
+  <h2>Response · {{ json_status }} · {{ json_content_type }}</h2>
+  <pre><code>{{ json_response }}</code></pre>
+  <p><a href="{% url 'listing-api' %}">Open the raw JSON endpoint</a></p>
+</main>
+{% endblock %}

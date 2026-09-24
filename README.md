@@ -111,6 +111,14 @@ bundle scenes. Other listings without image URLs show a photo placeholder.
 
 Run checks with `python manage.py check` and `python manage.py test`.
 
+## Assignment 3: navigation, forms, chart, and JSON API
+
+The homepage lists active database-backed items; each listing card uses its model's `get_absolute_url()` to reach a primary-key detail page. Header links use Django named URLs. The purchase-history form demonstrates a private, CSRF-protected POST search while the marketplace search keeps filters in shareable GET query parameters.
+
+The profile's existing ?Top Listings by Inquiries? chart is generated from ORM counts at `/profile/inquiries.png` and returned as `image/png` from memory. A public, read-only listing API is available at `/api/listings/`. For example, `/api/listings/?q=desk&category=1&page=1` filters active items and returns at most 20 results with count/page metadata. Browse filters (`q`, `category`, `item_type`, `condition`, `fulfillment`, `min_price`, `max_price`, `bundle`, `sort`) can be supplied as query parameters. `/api/listings/demo/?q=desk` displays a formatted example response and its `application/json` content type. Each response includes listing IDs, title, price, condition, category and detail URL; private seller and messaging data are excluded. The API is public and read-only; messaging endpoints remain protected.
+
+Assignment 3 browser evidence is in [`docs/notes/week3_screenshots/`](docs/notes/week3_screenshots/), with the requirement-by-requirement implementation notes in [`docs/notes/notes.txt`](docs/notes/notes.txt).
+
 ## Account access and email
 
 For a local check, register with an `@illinois.edu` address, copy the six-digit

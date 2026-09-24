@@ -164,6 +164,57 @@ class SellerListingsViewTests(TestCase):
 		self.assertContains(response, "Unanswered inquiries")
 		self.assertNotContains(response, f"More actions for {listing.title}")
 
+	def test_profile_separates_seller_and_buyer_actions(self):
+		owned_listing = Listing.objects.get(title="Study Desk")
+		owned_listing.status = Listing.Status.RESERVED
+		owned_listing.save()
+
+		other_seller = User.objects.create_user(
+			email_verified=True,
+			email_verified_at=timezone.now(),
+			username="purchase-seller",
+			email="purchase-seller@illinois.edu",
+			display_name="Purchase Seller",
+		)
+		purchase_listing = Listing.objects.create(
+			seller=other_seller,
+			item_type=owned_listing.item_type,
+			title="Purchased Desk Lamp",
+			condition=Listing.Condition.GOOD,
+			listing_price=20,
+			benchmark_low=15,
+			benchmark_high=30,
+			fulfillment_option=Listing.Fulfillment.PICKUP,
+		)
+		purchase_conversation = Conversation.objects.create(
+			listing=purchase_listing,
+			buyer=self.user,
+			seller=other_seller,
+		)
+		Message.objects.create(
+			conversation=purchase_conversation,
+			sender=other_seller,
+			body_text="Are you still interested?",
+			is_read=False,
+		)
+		Transaction.objects.create(
+			conversation=purchase_conversation,
+			listing=purchase_listing,
+			buyer=self.user,
+			seller=other_seller,
+			agreed_price=20,
+			status=Transaction.Status.PENDING_PICKUP,
+		)
+
+		self.client.force_login(self.user)
+		response = self.client.get(reverse("seller-listings"))
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.context["reserved_count"], 1)
+		self.assertEqual(response.context["buyer_unanswered_inquiries"], 1)
+		self.assertEqual(response.context["buyer_summary"]["pending_pickups"], 1)
+		self.assertContains(response, "Actions Needed - Items Sold")
+		self.assertContains(response, "Actions Needed - Items Purchased")
+
 	def test_public_ids_and_transaction_conversation_are_model_backed(self):
 		listing = Listing.objects.get(title="Study Desk")
 		buyer = User.objects.create_user(email_verified=True, email_verified_at=timezone.now(),

@@ -1,7 +1,7 @@
 import csv
 from datetime import date, timedelta
 from decimal import Decimal
-from django.db.models import Count, F, Sum
+from django.db.models import Count, F, Q, Sum
 from messaging.models import Conversation
 from bundles.models import Bundle
 
@@ -34,7 +34,8 @@ from django.views.generic import CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .featured import decorate_listing, discount_percent
 from .browse import browse_context
-from .forms import ListingCreateForm, SellerSettingsForm
+from .forms import ListingCreateForm, SellerSettingsForm, PurchaseHistorySearchForm
+from .charts import listing_inquiry_data
 from .validation import database_for
 
 
@@ -549,6 +550,23 @@ def _seller_profile(user):
     }
 
 
+def _unanswered_listing_inquiries(user, participant_field, sender_field):
+    """Count listing conversations with no messages or unread messages from the other person."""
+    conversations = Conversation.objects.filter(
+        **{participant_field: user, "listing__isnull": False}
+    )
+    needs_response = Q(messages__isnull=True) | Q(
+        **{f"messages__sender_id": F(sender_field), "messages__is_read": False}
+    )
+    return (
+        conversations.annotate(
+            unanswered=Count("pk", filter=needs_response, distinct=True)
+        )
+        .filter(unanswered__gt=0)
+        .count()
+    )
+
+
 def _seller_dashboard_context(user):
     """Shared, model-backed context for every Seller dashboard route."""
     seller_listings = Listing.objects.filter(seller=user)
@@ -566,51 +584,14 @@ def _seller_dashboard_context(user):
     ).count()
     seller_conversations = Conversation.objects.filter(
         seller=user, listing__isnull=False
-    ).prefetch_related("messages")
-    unanswered_inquiries = 0
-    for conversation in seller_conversations:
-        messages = list(conversation.messages.all())
-        if not messages or any(
-            message.sender_id == conversation.buyer_id and not message.is_read
-            for message in messages
-        ):
-            unanswered_inquiries += 1
+    )
+    unanswered_inquiries = _unanswered_listing_inquiries(
+        user, "seller", "buyer_id"
+    )
     completed_sales = Transaction.objects.filter(
         seller=user, status=Transaction.Status.COMPLETED
     )
-    inquiry_listings = list(
-        seller_listings.exclude(status=Listing.Status.SOLD).prefetch_related(
-            "conversations__messages"
-        )
-    )
-    inquiry_chart = []
-    for listing in inquiry_listings:
-        conversations = list(listing.conversations.all())
-        unanswered = 0
-        for conversation in conversations:
-            messages = list(conversation.messages.all())
-            if not messages or any(
-                message.sender_id == conversation.buyer_id and not message.is_read
-                for message in messages
-            ):
-                unanswered += 1
-        total = len(conversations)
-        if total:
-            inquiry_chart.append(
-                {
-                    "title": listing.title,
-                    "total": total,
-                    "answered": total - unanswered,
-                    "unanswered": unanswered,
-                }
-            )
-    inquiry_chart.sort(key=lambda item: (-item["total"], item["title"]))
-    inquiry_chart = inquiry_chart[:6]
-    inquiry_max = max((item["total"] for item in inquiry_chart), default=1)
-    for item in inquiry_chart:
-        item["total_percent"] = round(item["total"] / inquiry_max * 100)
-        item["answered_percent"] = round(item["answered"] / item["total"] * 100)
-        item["unanswered_percent"] = 100 - item["answered_percent"]
+    inquiry_chart = listing_inquiry_data(user)
     return {
         "profile": _seller_profile(user),
         "campus_access": has_campus_access(user),
@@ -729,6 +710,9 @@ def _buyer_pickups_context(user):
         for transaction in purchases
         if transaction.status == Transaction.Status.PENDING_PICKUP
     ]
+    buyer_unanswered_inquiries = _unanswered_listing_inquiries(
+        user, "buyer", "seller_id"
+    )
     pickup_rows = []
     for transaction in pending:
         pickup_rows.append(
@@ -802,6 +786,7 @@ def _buyer_pickups_context(user):
             "earned_bar_height": earned_bar_height,
             "chart_points": chart_points,
         },
+        "buyer_unanswered_inquiries": buyer_unanswered_inquiries,
         "pickup_rows": pickup_rows,
     }
 
@@ -892,18 +877,27 @@ def _purchase_history_rows(transactions):
     return rows
 
 
-def _buyer_purchase_history_context(user):
+def _buyer_purchase_history_context(user, search_form=None):
     context = _buyer_pickups_context(user)
-    transactions = list(
+    transactions = (
         Transaction.objects.filter(buyer=user, status=Transaction.Status.COMPLETED)
         .select_related("listing", "listing__item_type", "listing__item_type__category", "seller")
         .order_by("-completed_at", "-created_at")
     )
+    if search_form is not None and search_form.is_valid():
+        query = search_form.cleaned_data["q"]
+        for term in query.split():
+            transactions = transactions.filter(
+                Q(listing__title__icontains=term) | Q(seller__display_name__icontains=term)
+            )
+    elif search_form is not None:
+        transactions = transactions.none()
     history_rows = _purchase_history_rows(transactions)
     context.update(
         {
             "active_buyer_tab": "history",
             "history_rows": history_rows,
+            "history_search_form": search_form if search_form is not None else PurchaseHistorySearchForm(),
         }
     )
     return context
@@ -956,7 +950,10 @@ def buyer_purchase_history_view(request):
     return render(
         request,
         "marketplace/buyer_purchase_history.html",
-        _buyer_purchase_history_context(request.user),
+        _buyer_purchase_history_context(
+            request.user,
+            PurchaseHistorySearchForm(request.POST) if request.method == "POST" else None,
+        ),
     )
 
 
