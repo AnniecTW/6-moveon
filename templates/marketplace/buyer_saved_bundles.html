@@ -1,0 +1,50 @@
+{% extends "marketplace/buyer_base.html" %}
+{% block title %}Saved Bundles | MoveOn{% endblock %}
+{% block buyer_content %}
+<section class="buyer-bundles-page" aria-labelledby="bundles-title">
+  <header class="bundles-heading"><div><h2 id="bundles-title">Saved Bundles</h2><p>Track bundle items, seller responses, and savings.</p></div><span>{{ bundle_rows|length }} saved bundle{{ bundle_rows|length|pluralize }}</span></header>
+  <div class="saved-bundle-list">
+    {% for row in bundle_rows %}
+    <article class="saved-bundle-card">
+      <header class="bundle-card-heading">
+        <div><span class="pickup-label">MoveOn bundle</span><h3>{{ row.name }}</h3><p>Created {{ row.bundle.created_at|date:"M d, Y" }}{% if row.bundle.selected_tier %} &middot; {{ row.bundle.get_selected_tier_display }}{% endif %}</p></div>
+        <span class="bundle-state">{{ row.bundle.get_status_display }}</span>
+      </header>
+
+      <div class="bundle-financials" aria-label="Bundle financial summary">
+        <div><span>Current total</span><strong>${{ row.current_total|floatformat:0 }}</strong></div>
+        <div class="bundle-saved"><span>Saved</span><strong>{% if row.saved_amount is not None %}${{ row.saved_amount|floatformat:0 }}{% endif %}</strong></div>
+        <div class="bundle-confirmation-progress"><span>Seller confirmations</span><strong>{{ row.confirmed_count }} of {{ row.total_items }} confirmed</strong><progress value="{{ row.confirmed_count }}" max="{{ row.total_items|default:1 }}">{{ row.progress_percent }}%</progress></div>
+      </div>
+
+      <div class="bundle-items" aria-label="Items in {{ row.name }}">
+        {% for bundle_item in row.items %}
+        <div class="bundle-item-row">
+          <div class="bundle-item-image">{% if bundle_item.image_url %}<img src="{{ bundle_item.image_url }}" alt="{{ bundle_item.item.listing.title }}" />{% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM7 7l2-3h6l2 3M8 12h8M8 16h5"/></svg>{% endif %}</div>
+          <div class="bundle-item-name"><span class="pickup-label">Item</span><strong>{{ bundle_item.item.listing.title }}</strong><small>{{ bundle_item.item.listing.item_type.category.category_name }}</small></div>
+          <div class="bundle-item-seller"><span class="pickup-label">Seller</span><strong>{{ bundle_item.item.listing.seller.display_name|default:bundle_item.item.listing.seller.username }}</strong><small>{% if bundle_item.item.listing.seller.email_verified %}&#10003; Verified seller{% else %}Verification pending{% endif %}</small></div>
+          <div class="bundle-item-price"><span class="pickup-label">Bundle price</span><strong>${{ bundle_item.price|floatformat:0 }}</strong></div>
+          <span class="bundle-response{% if bundle_item.confirmed %} confirmed{% else %} pending{% endif %}">{{ bundle_item.status_label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <footer class="bundle-actions">
+        <button class="button" type="button" data-bundle-action="details" data-bundle-name="{{ row.name }}">View Full Bundle Details</button>
+        <button class="button" type="button" data-bundle-action="contact" data-bundle-name="{{ row.name }}">Contact Remaining Sellers</button>
+        <button class="button bundle-cancel-button" type="button" data-bundle-action="cancel" data-bundle-name="{{ row.name }}">Cancel Bundle</button>
+      </footer>
+      <p class="bundle-action-status" data-bundle-status aria-live="polite"></p>
+    </article>
+    {% empty %}<div class="empty-state"><h3>No saved bundles</h3><p>Your Move-In Bundles will appear here after you create one.</p></div>{% endfor %}
+  </div>
+
+  <dialog class="bundle-cancel-dialog" data-bundle-cancel-dialog aria-labelledby="cancel-bundle-title">
+    <form method="dialog">
+      <h2 id="cancel-bundle-title">Cancel bundle?</h2>
+      <p><span data-cancel-bundle-name></span> will remain unchanged because cancellation is not connected to the backend yet.</p>
+      <div><button class="button" value="close">Keep bundle</button><button class="button primary" value="confirm" data-confirm-bundle-cancel>Confirm preview</button></div>
+    </form>
+  </dialog>
+</section>
+{% endblock %}

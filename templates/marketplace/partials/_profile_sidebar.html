@@ -1,0 +1,8 @@
+<aside class="profile-sidebar" aria-label="Your profile">
+  <div class="profile-avatar">{{ profile.initial }}</div>
+  <h2>{{ profile.name }}</h2>
+  <ul class="profile-facts">
+    <li><span aria-hidden="true">&#10003;</span> {% if profile.verified %}Verified email{% else %}Verification pending{% endif %}</li>
+  </ul>
+  <a class="button profile-button" href="#profile-settings">Edit Profile</a>
+</aside>

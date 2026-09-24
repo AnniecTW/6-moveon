@@ -1,5 +1,6 @@
 from django.urls import path
 
+from marketplace import views
 from marketplace.views import (
     ListingCreateView,
     ListingDetailView,
@@ -11,6 +12,21 @@ from marketplace.views import (
 )
 
 urlpatterns = [
+    path("profile/listings/", views.seller_listings_view, name="seller-listings"),
+    path("profile/settings/", views.seller_settings_view, name="seller-settings"),
+    path("profile/pickups/", views.buyer_pickups_view, name="buyer-pickups"),
+    path("profile/saved-bundles/", views.buyer_bundles_view, name="buyer-bundles"),
+    path(
+        "profile/purchase-history/",
+        views.buyer_purchase_history_view,
+        name="buyer-purchase-history",
+    ),
+    path(
+        "profile/purchase-history/download/",
+        views.buyer_purchase_history_csv,
+        name="buyer-purchase-history-csv",
+    ),
+    path("profile/watchlist/", views.buyer_watchlist_view, name="buyer-watchlist"),
     path("listings/new/", ListingCreateView.as_view(), name="listing-create-url"),
     path(
         "listings/<int:primary_key>/preview/",

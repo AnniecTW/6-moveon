@@ -60,7 +60,7 @@
       </button>
         {% if request.user.is_authenticated %}
           {% if campus_access %}
-            <span class="account-identity">{{ request.user.username }}</span>
+            <a class="header-user" href="{% url 'seller-listings' %}"><span class="header-avatar">{{ request.user.display_name|default:request.user.username|slice:":1"|upper }}</span><span>{{ request.user.display_name|default:request.user.username }}</span></a>
           {% else %}
             <a class="account-status" href="{% url 'account' %}">{% if request.user.is_staff %}Admin session{% else %}Verify account{% endif %}</a>
           {% endif %}

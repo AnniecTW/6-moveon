@@ -1,0 +1,33 @@
+{% extends "marketplace/buyer_base.html" %}
+{% block title %}Purchase History | MoveOn{% endblock %}
+{% block buyer_content %}
+<section class="purchase-history-page" aria-labelledby="purchase-history-title">
+  <header class="history-heading">
+    <div><h2 id="purchase-history-title">Purchase History</h2><p>Review your completed purchases.</p></div>
+  </header>
+
+  <div class="history-controls">
+    <label class="history-search"><span class="sr-only">Search purchase history</span><input type="search" placeholder="Search purchase history..." data-history-search /></label>
+    <label class="history-sort"><span class="sr-only">Sort purchase history</span><select data-history-sort><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label>
+  </div>
+
+  <div class="history-list" data-history-list>
+    {% for row in history_rows %}
+    <article class="history-row" data-history-row data-history-date="{{ row.purchase_date|date:'c' }}" data-history-text="{{ row.transaction.listing.title }} {{ row.transaction.seller.display_name|default:row.transaction.seller.username }}">
+      <div class="history-item">
+        <div class="history-image">{% if row.image_url %}<img src="{{ row.image_url }}" alt="{{ row.transaction.listing.title }}" />{% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM7 7l2-3h6l2 3M8 12h8M8 16h5"/></svg>{% endif %}</div>
+        <div><span class="pickup-label">Item</span><h3>{{ row.transaction.listing.title }}</h3><small>Purchased {{ row.purchase_date|date:"M d, Y" }}</small></div>
+      </div>
+      <div class="history-seller"><span class="pickup-label">Seller</span><strong>{{ row.transaction.seller.display_name|default:row.transaction.seller.username }}</strong><small>{% if row.transaction.seller.email_verified %}&#10003; Verified seller{% else %}Verification pending{% endif %}</small></div>
+      <div class="history-price"><span class="pickup-label">Final price</span><strong>${{ row.transaction.agreed_price|floatformat:0 }}</strong></div>
+      <div class="history-status"><span class="pickup-label">Status</span><strong>{{ row.transaction.get_status_display }}</strong></div>
+      <div class="history-actions">
+        <button class="button" type="button" data-history-action="rate">Rate Seller</button>
+      </div>
+      <p class="history-action-status" data-history-status aria-live="polite"></p>
+    </article>
+    {% empty %}<div class="empty-state"><h3>No completed purchases yet</h3><p>Completed MoveOn purchases will appear here.</p></div>{% endfor %}
+  </div>
+  <p class="history-no-results" data-history-empty hidden>No purchases match your search.</p>
+</section>
+{% endblock %}

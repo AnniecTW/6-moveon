@@ -1,0 +1,31 @@
+{% extends "marketplace/seller_base.html" %}
+{% block title %}My Listings | MoveOn{% endblock %}
+{% block seller_content %}
+      <section class="listings-panel" aria-labelledby="listings-title">
+        <div class="panel-heading">
+          <div><h2 id="listings-title">My Listings ({{ active_count }})</h2><p>Manage your items, track performance, and set your pricing plan.</p></div>
+        </div>
+        <form class="listing-controls" method="get">
+          <label class="control-search"><span aria-hidden="true">&#9906;</span><span class="sr-only">Search your listings</span><input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search your listings..." /></label>
+          <label><span class="sr-only">Listing status</span><select name="status"><option value="ALL"{% if selected_status == 'ALL' %} selected{% endif %}>All statuses</option>{% for value, label in listing_status_choices %}<option value="{{ value }}"{% if selected_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+          <label><span class="sr-only">Category</span><select name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category.pk }}"{% if selected_category == category.pk|stringformat:'s' %} selected{% endif %}>{{ category.category_name }}</option>{% endfor %}</select></label>
+          <label class="control-sort"><span class="sr-only">Sort listings</span><select name="ordering"><option value="newest"{% if selected_ordering == 'newest' %} selected{% endif %}>Newest first</option><option value="price"{% if selected_ordering == 'price' %} selected{% endif %}>Price: low to high</option></select></label>
+        </form>
+        <div class="seller-listings">
+          {% for listing in listings %}
+          <article class="seller-listing-row">
+            <div class="seller-listing-image">{% if listing.display_image_url %}<img src="{{ listing.display_image_url }}" alt="{{ listing.title }}" />{% else %}<span aria-hidden="true">&#9633;</span>{% endif %}</div>
+            <div class="listing-identity"><h3>{{ listing.title }}</h3><p>{{ listing.item_type.category.category_name }} · {{ listing.get_condition_display }}</p><p>Listed: {{ listing.created_at|date:"M d, Y" }}</p><div class="listing-tags">{% if listing.bundle_eligible %}<span>Bundle included</span>{% endif %}{% if listing.sell_no_matter_what %}<span>Sell no matter what</span>{% endif %}</div></div>
+            <div class="listing-price"><strong>${{ listing.listing_price|floatformat:0 }}</strong><span>Comparable: {% if listing.benchmark_low %}${{ listing.benchmark_low|floatformat:0 }}{% endif %}{% if listing.benchmark_low and listing.benchmark_high %} &ndash; {% endif %}{% if listing.benchmark_high %}${{ listing.benchmark_high|floatformat:0 }}{% endif %}</span><b class="listing-status listing-status-{{ listing.status|lower }}">{{ listing.get_status_display|upper }}</b></div>
+            <div class="listing-performance"><span>&#9673; {% if listing.view_count is not None %}{{ listing.view_count }} views{% endif %}</span><span aria-label="{{ listing.inquiry_count }} inquiries">&#9675; {{ listing.inquiry_count }} inquiries</span></div>
+            <div class="listing-moveout">{% if listing.move_out_date %}<span>&#9632; Move-out: {{ listing.move_out_date|date:"M d, Y" }}</span>{% if listing.days_remaining is not None %}<small>{{ listing.days_remaining }} days left</small>{% endif %}{% endif %}</div>
+            <div class="pricing-plan">
+              <span class="pricing-plan-label">Pricing plan</span>
+              {% if listing.pricing_plan %}<strong>{{ listing.get_pricing_plan_display }}</strong>{% endif %}
+            </div>
+            <div class="listing-actions"><a class="button" href="{% url 'listing-update-url' listing.pk %}">Edit</a></div>
+          </article>
+          {% empty %}<div class="empty-state"><h3>No active listings yet</h3><p>Your active items will appear here after you create a listing.</p></div>{% endfor %}
+        </div>
+      </section>
+{% endblock %}

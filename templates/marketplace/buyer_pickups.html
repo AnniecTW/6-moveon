@@ -1,0 +1,26 @@
+{% extends "marketplace/buyer_base.html" %}
+{% block title %}Active Pickups | MoveOn{% endblock %}
+{% block buyer_content %}
+<section class="buyer-pickups-page" aria-labelledby="pickups-title">
+  <header class="pickups-heading"><div><h2 id="pickups-title">Active Pickups</h2><p>Coordinate and complete your upcoming purchases.</p></div><span>{{ pickup_rows|length }} awaiting pickup</span></header>
+  <div class="pickup-list">
+    {% for row in pickup_rows %}
+    <article class="pickup-card">
+      <div class="pickup-item">
+        <div class="pickup-image">{% if row.image_url %}<img src="{{ row.image_url }}" alt="{{ row.listing.title }}" />{% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM7 7l2-3h6l2 3M8 12h8M8 16h5"/></svg>{% endif %}</div>
+        <div><span class="pickup-label">Item</span><h3>{{ row.listing.title }}</h3><p>{{ row.listing.item_type.category.category_name }}</p></div>
+      </div>
+      <div class="pickup-price"><span class="pickup-label">Price</span><strong>${{ row.agreed_price|floatformat:0 }}</strong></div>
+      <div class="pickup-seller"><span class="pickup-label">Seller</span><strong>{{ row.seller.display_name|default:row.seller.username }}</strong><small>{% if row.seller.email_verified %}&#10003; Verified seller{% else %}Verification pending{% endif %}</small></div>
+      <div class="pickup-meetup"><span class="pickup-label">Meet-up date</span>{% if row.meetup_datetime %}<strong>{{ row.meetup_datetime|date:"M d, Y" }}</strong>{% endif %}</div>
+      <div class="pickup-status"><span class="pickup-label">Status</span><strong>{{ row.status_label }}</strong></div>
+      <div class="pickup-actions">
+        <a class="button" href="{% url 'messages' %}?listing={{ row.listing.pk }}">Message Seller</a>
+        <button class="button primary" type="button" data-buyer-action="confirm" data-item-title="{{ row.listing.title }}">Confirm Item Received &amp; Complete Order</button>
+      </div>
+      <p class="pickup-action-status" data-pickup-status aria-live="polite"></p>
+    </article>
+    {% empty %}<div class="empty-state"><h3>No active pickups</h3><p>Purchases waiting for pickup will appear here.</p></div>{% endfor %}
+  </div>
+</section>
+{% endblock %}

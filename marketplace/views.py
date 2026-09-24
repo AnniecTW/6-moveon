@@ -1,3 +1,10 @@
+import csv
+from datetime import date, timedelta
+from decimal import Decimal
+from django.db.models import Count, F, Sum
+from messaging.models import Conversation
+from bundles.models import Bundle
+
 from urllib.parse import urlencode
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -14,7 +21,6 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
-from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, UpdateView
 from PIL import Image, UnidentifiedImageError
@@ -23,12 +29,12 @@ from .auth_forms import CampusAuthenticationForm, ListingSignupForm
 from .auth_backend import credential_user, has_campus_access
 from .email_verification import EmailDeliveryError, consume_code, issue_code
 from . import google_auth
-from .models import Listing, ListingImage, User
+from .models import ItemCategory, Listing, ListingImage, Transaction, User, WatchlistItem
 from django.views.generic import CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .featured import decorate_listing
+from .featured import decorate_listing, discount_percent
 from .browse import browse_context
-from .forms import ListingCreateForm
+from .forms import ListingCreateForm, SellerSettingsForm
 from .validation import database_for
 
 
@@ -309,6 +315,12 @@ class ListingDetailView(DetailView):
             .prefetch_related("images")
         )
 
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        if request.method == "GET" and self.object.status == Listing.Status.ACTIVE:
+            Listing.objects.filter(pk=self.object.pk).update(views=F("views") + 1)
+        return response
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["listing"] = decorate_listing(context["listing"])
@@ -526,3 +538,481 @@ def listing_image_upload(request):
 
     pending_image.save(using=database)
     return JsonResponse({"id": pending_image.pk, "url": pending_image.url}, status=201)
+
+
+def _seller_profile(user):
+    """Keep shared account details in one context shape for future dashboards."""
+    return {
+        "name": user.display_name or user.get_username(),
+        "initial": (user.display_name or user.get_username() or "?")[0].upper(),
+        "verified": user.email_verified,
+    }
+
+
+def _seller_dashboard_context(user):
+    """Shared, model-backed context for every Seller dashboard route."""
+    seller_listings = Listing.objects.filter(seller=user)
+    active_listings = seller_listings.filter(status=Listing.Status.ACTIVE)
+    reserved_count = seller_listings.filter(status=Listing.Status.RESERVED).count()
+    sold_count = seller_listings.filter(status=Listing.Status.SOLD).count()
+    upcoming_deadline = date.today() + timedelta(days=7)
+    approaching_moveout = seller_listings.filter(
+        status__in=[Listing.Status.ACTIVE, Listing.Status.RESERVED],
+        move_out_date__range=(date.today(), upcoming_deadline),
+    ).count()
+    missing_moveout = seller_listings.filter(
+        status__in=[Listing.Status.ACTIVE, Listing.Status.RESERVED],
+        move_out_date__isnull=True,
+    ).count()
+    seller_conversations = Conversation.objects.filter(
+        seller=user, listing__isnull=False
+    ).prefetch_related("messages")
+    unanswered_inquiries = 0
+    for conversation in seller_conversations:
+        messages = list(conversation.messages.all())
+        if not messages or any(
+            message.sender_id == conversation.buyer_id and not message.is_read
+            for message in messages
+        ):
+            unanswered_inquiries += 1
+    completed_sales = Transaction.objects.filter(
+        seller=user, status=Transaction.Status.COMPLETED
+    )
+    inquiry_listings = list(
+        seller_listings.exclude(status=Listing.Status.SOLD).prefetch_related(
+            "conversations__messages"
+        )
+    )
+    inquiry_chart = []
+    for listing in inquiry_listings:
+        conversations = list(listing.conversations.all())
+        unanswered = 0
+        for conversation in conversations:
+            messages = list(conversation.messages.all())
+            if not messages or any(
+                message.sender_id == conversation.buyer_id and not message.is_read
+                for message in messages
+            ):
+                unanswered += 1
+        total = len(conversations)
+        if total:
+            inquiry_chart.append(
+                {
+                    "title": listing.title,
+                    "total": total,
+                    "answered": total - unanswered,
+                    "unanswered": unanswered,
+                }
+            )
+    inquiry_chart.sort(key=lambda item: (-item["total"], item["title"]))
+    inquiry_chart = inquiry_chart[:6]
+    inquiry_max = max((item["total"] for item in inquiry_chart), default=1)
+    for item in inquiry_chart:
+        item["total_percent"] = round(item["total"] / inquiry_max * 100)
+        item["answered_percent"] = round(item["answered"] / item["total"] * 100)
+        item["unanswered_percent"] = 100 - item["answered_percent"]
+    return {
+        "profile": _seller_profile(user),
+        "campus_access": has_campus_access(user),
+        "active_count": active_listings.count(),
+        "reserved_count": reserved_count,
+        "sold_count": sold_count,
+        "total_views": seller_listings.aggregate(total=Sum("views"))["total"] or 0,
+        "inquiries": seller_conversations.count(),
+        "unanswered_inquiries": unanswered_inquiries,
+        "approaching_moveout": approaching_moveout,
+        "missing_moveout": missing_moveout,
+        "listing_inquiry_chart": inquiry_chart,
+        "total_earned": completed_sales.aggregate(total=Sum("agreed_price"))["total"] or Decimal("0"),
+    }
+
+
+@login_required
+def seller_listings_view(request):
+    today = date.today()
+    listings = (
+        Listing.objects.filter(seller=request.user)
+        .select_related("item_type", "item_type__category")
+        .prefetch_related("images")
+        .annotate(inquiry_count=Count("conversations__buyer", distinct=True))
+    )
+    query = request.GET.get("q", "").strip()
+    status = request.GET.get("status", "ALL")
+    category = request.GET.get("category", "")
+    ordering = request.GET.get("ordering", "newest")
+    if query:
+        listings = listings.filter(title__icontains=query)
+    if status and status != "ALL":
+        listings = listings.filter(status=status)
+    if category:
+        listings = listings.filter(item_type__category_id=category)
+    listings = listings.order_by("listing_price" if ordering == "price" else "-created_at")
+
+    listing_rows = []
+    for listing in listings:
+        listing.display_image_url = listing.cover_image_url
+        listing.view_count = listing.views
+        listing.days_remaining = (
+            max((listing.move_out_date - today).days, 0)
+            if listing.move_out_date
+            else None
+        )
+        listing_rows.append(listing)
+
+    return render(
+        request,
+        "marketplace/seller_listings.html",
+        {
+            **_buyer_pickups_context(request.user),
+            "active_seller_tab": "listings",
+            "active_buyer_tab": "",
+            "listings": listing_rows,
+            "categories": ItemCategory.objects.filter(
+                item_types__listings__seller=request.user
+            ).distinct(),
+            "listing_status_choices": Listing.Status.choices,
+            "selected_category": category,
+            "selected_status": status,
+            "selected_ordering": ordering,
+        },
+    )
+
+
+@login_required
+def seller_settings_view(request):
+    form = SellerSettingsForm()
+    return render(
+        request,
+        "marketplace/seller_settings.html",
+        {
+            **_buyer_pickups_context(request.user),
+            "active_seller_tab": "settings",
+            "active_buyer_tab": "",
+            "settings_form": form,
+        },
+    )
+
+
+def _pickup_image(listing):
+    return listing.cover_image_url
+
+
+def _transaction_reference_value(transaction):
+    return (
+        transaction.benchmark_price_snapshot
+        or transaction.listing.retail_price
+        or transaction.listing.benchmark_price
+    )
+
+
+def _transaction_savings(transaction):
+    reference_value = _transaction_reference_value(transaction)
+    if reference_value is None:
+        return None
+    return max(reference_value - transaction.agreed_price, Decimal("0"))
+
+
+def _buyer_pickups_context(user):
+    purchases = list(
+        Transaction.objects.filter(buyer=user)
+        .exclude(status=Transaction.Status.CANCELLED)
+        .select_related(
+            "listing",
+            "listing__item_type",
+            "listing__item_type__category",
+            "seller",
+            "bundle",
+        )
+    )
+    pending = [
+        transaction
+        for transaction in purchases
+        if transaction.status == Transaction.Status.PENDING_PICKUP
+    ]
+    pickup_rows = []
+    for transaction in pending:
+        pickup_rows.append(
+            {
+                "transaction_id": transaction.pk,
+                "listing": transaction.listing,
+                "image_url": _pickup_image(transaction.listing),
+                "agreed_price": transaction.agreed_price,
+                "savings": _transaction_savings(transaction),
+                "seller": transaction.seller,
+                "meetup_datetime": transaction.meetup_datetime,
+                "meetup_location": transaction.meetup_location,
+                "status_label": transaction.get_status_display(),
+            }
+        )
+
+    amount_paid = sum((item.agreed_price for item in purchases), Decimal("0"))
+    completed_sales = list(
+        Transaction.objects.filter(seller=user, status=Transaction.Status.COMPLETED)
+    )
+    total_earned = sum((item.agreed_price for item in completed_sales), Decimal("0"))
+    known_savings = [value for item in purchases if (value := _transaction_savings(item)) is not None]
+    total_saved = sum(known_savings, Decimal("0"))
+    estimated_value = sum(
+        (value for item in purchases if (value := _transaction_reference_value(item)) is not None),
+        Decimal("0"),
+    )
+    chart_max = max(amount_paid, total_earned, Decimal("1"))
+    spent_bar_height = round(float(amount_paid / chart_max) * 100)
+    earned_bar_height = round(float(total_earned / chart_max) * 100)
+    chart_points = [
+        {
+            "type": "purchase",
+            "date": (
+                transaction.completed_at or transaction.created_at
+            ).date().isoformat(),
+            "spent": float(transaction.agreed_price),
+            "earned": 0,
+        }
+        for transaction in purchases
+        if transaction.status
+        in (Transaction.Status.PENDING_PICKUP, Transaction.Status.COMPLETED)
+    ]
+    chart_points.extend(
+        {
+            "type": "sale",
+            "date": (transaction.completed_at or transaction.created_at).date().isoformat(),
+            "spent": 0,
+            "earned": float(transaction.agreed_price),
+        }
+        for transaction in completed_sales
+    )
+    return {
+        **_seller_dashboard_context(user),
+        "profile": _seller_profile(user),
+        "active_buyer_tab": "pickups",
+        "buyer_summary": {
+            "total_saved": total_saved,
+            "items_bought": len(purchases),
+            "pending_pickups": len(pending),
+            "saved_bundles": Bundle.objects.filter(buyer=user)
+            .exclude(status=Bundle.Status.CANCELLED)
+            .count(),
+            "amount_paid": amount_paid,
+            "total_earned": total_earned,
+            "net_balance": total_earned - amount_paid,
+            "items_moved": len(purchases) + len(completed_sales),
+            "estimated_value": estimated_value,
+            "chart_max": chart_max,
+            "spent_bar_height": spent_bar_height,
+            "earned_bar_height": earned_bar_height,
+            "chart_points": chart_points,
+        },
+        "pickup_rows": pickup_rows,
+    }
+
+
+def _buyer_bundles_context(user):
+    context = _buyer_pickups_context(user)
+    bundles = list(
+        Bundle.objects.filter(buyer=user)
+        .exclude(status=Bundle.Status.CANCELLED)
+        .prefetch_related(
+            "bundle_items__listing__seller",
+            "bundle_items__listing__item_type__category",
+        )
+    )
+    bundle_rows = []
+    for bundle in bundles:
+        item_rows = []
+        current_total = Decimal("0")
+        estimated_value = Decimal("0")
+        confirmed_count = 0
+        for item in bundle.bundle_items.all():
+            item_price = (
+                item.final_price
+                or item.proposed_bundle_price
+                or item.listing_price_snapshot
+            )
+            reference_value = item.listing.retail_price or item.listing.benchmark_price
+            confirmed = item.item_status == item.ItemStatus.ACCEPTED
+            confirmed_count += int(confirmed)
+            current_total += item_price
+            if reference_value is not None:
+                estimated_value += reference_value
+            item_rows.append(
+                {
+                    "item": item,
+                    "image_url": _pickup_image(item.listing),
+                    "price": item_price,
+                    "confirmed": confirmed,
+                    "status_label": item.get_item_status_display(),
+                }
+            )
+        saved_amount = (
+            max(estimated_value - current_total, Decimal("0"))
+            if item_rows and all(
+                row["item"].listing.retail_price is not None
+                or row["item"].listing.benchmark_price is not None
+                for row in item_rows
+            )
+            else None
+        )
+        total_items = len(item_rows)
+        progress_percent = (
+            round(confirmed_count / total_items * 100) if total_items else 0
+        )
+        bundle_rows.append(
+            {
+                "bundle": bundle,
+                "name": f"{bundle.get_space_display()} Move-In Bundle",
+                "items": item_rows,
+                "target_budget": None,
+                "current_total": current_total,
+                "saved_amount": saved_amount,
+                "confirmed_count": confirmed_count,
+                "total_items": total_items,
+                "progress_percent": progress_percent,
+            }
+        )
+
+    context.update(
+        {
+            "active_buyer_tab": "bundles",
+            "bundle_rows": bundle_rows,
+        }
+    )
+    return context
+
+
+def _purchase_history_rows(transactions):
+    rows = []
+    for transaction in transactions:
+        rows.append(
+            {
+                "transaction": transaction,
+                "image_url": _pickup_image(transaction.listing),
+                "purchase_date": transaction.completed_at or transaction.created_at,
+            }
+        )
+    return rows
+
+
+def _buyer_purchase_history_context(user):
+    context = _buyer_pickups_context(user)
+    transactions = list(
+        Transaction.objects.filter(buyer=user, status=Transaction.Status.COMPLETED)
+        .select_related("listing", "listing__item_type", "listing__item_type__category", "seller")
+        .order_by("-completed_at", "-created_at")
+    )
+    history_rows = _purchase_history_rows(transactions)
+    context.update(
+        {
+            "active_buyer_tab": "history",
+            "history_rows": history_rows,
+        }
+    )
+    return context
+
+
+def _buyer_watchlist_context(user):
+    context = _buyer_pickups_context(user)
+    entries = list(
+        WatchlistItem.objects.filter(user=user)
+        .select_related(
+            "listing",
+            "listing__seller",
+            "listing__item_type",
+            "listing__item_type__category",
+        )
+    )
+    listings = []
+    for entry in entries:
+        listing = entry.listing
+        listing.display_image_url = listing.cover_image_url
+        listing.reference_value = listing.retail_price or listing.benchmark_price
+        listing.discount_percent = discount_percent(
+            listing.reference_value, listing.listing_price
+        )
+        listing.watchlisted_at = entry.created_at
+        listings.append(listing)
+    context.update(
+        {
+            "active_buyer_tab": "watchlist",
+            "watchlist_candidates": listings,
+            "watchlist_categories": sorted(
+                {item.item_type.category.category_name for item in listings}
+            ),
+        }
+    )
+    return context
+
+
+@login_required
+def buyer_watchlist_view(request):
+    return render(
+        request,
+        "marketplace/buyer_watchlist.html",
+        _buyer_watchlist_context(request.user),
+    )
+
+
+@login_required
+def buyer_purchase_history_view(request):
+    return render(
+        request,
+        "marketplace/buyer_purchase_history.html",
+        _buyer_purchase_history_context(request.user),
+    )
+
+
+@login_required
+def buyer_purchase_history_csv(request):
+    transactions = (
+        Transaction.objects.filter(
+            buyer=request.user, status=Transaction.Status.COMPLETED
+        )
+        .select_related("listing", "seller")
+        .order_by("-completed_at", "-created_at")
+    )
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="moveon-purchase-history.csv"'
+    writer = csv.writer(response)
+    writer.writerow(
+        [
+            "Purchase date",
+            "Item",
+            "Seller",
+            "Final price",
+            "Estimated retail/reference price",
+            "Estimated savings",
+            "Transaction status",
+        ]
+    )
+    for transaction in transactions:
+        reference_value = _transaction_reference_value(transaction)
+        purchase_date = transaction.completed_at or transaction.created_at
+        writer.writerow(
+            [
+                purchase_date.date().isoformat(),
+                transaction.listing.title,
+                transaction.seller.display_name or transaction.seller.username,
+                transaction.agreed_price,
+                reference_value or "",
+                _transaction_savings(transaction) if reference_value is not None else "",
+                transaction.get_status_display(),
+            ]
+        )
+    return response
+
+
+@login_required
+def buyer_pickups_view(request):
+    return render(
+        request,
+        "marketplace/buyer_pickups.html",
+        _buyer_pickups_context(request.user),
+    )
+
+
+@login_required
+def buyer_bundles_view(request):
+    return render(
+        request,
+        "marketplace/buyer_saved_bundles.html",
+        _buyer_bundles_context(request.user),
+    )

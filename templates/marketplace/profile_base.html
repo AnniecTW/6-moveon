@@ -1,0 +1,66 @@
+{% extends "marketplace/base.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/marketplace/seller.css' %}?v=week3-profile-1" />{% endblock %}
+{% block listing_content %}
+<div class="seller-dashboard buyer-dashboard">
+  <div class="seller-layout">
+    {% include "marketplace/partials/_profile_sidebar.html" %}
+    <section id="dashboard-content" class="seller-main" aria-labelledby="profile-title" data-dashboard-content tabindex="-1">
+      <header class="seller-heading">
+        <p class="eyebrow">My profile</p>
+        <h1 id="profile-title">Good afternoon, {{ profile.name }}!</h1>
+        <p class="seller-subtitle">Manage your listings and purchases in one place.</p>
+      </header>
+
+      <div class="profile-summary-heading"><h2>Actions Needed</h2></div>
+      <section class="action-metrics seller-kpis" aria-label="Items needing attention">
+        <article{% if buyer_summary.pending_pickups > 0 %} class="action-metric-alert"{% endif %}><span class="kpi-icon" aria-hidden="true">&#9679;</span><strong>{{ buyer_summary.pending_pickups }}</strong><span>Upcoming pickups</span></article>
+        <article{% if unanswered_inquiries > 0 %} class="action-metric-alert"{% endif %}><span class="kpi-icon" aria-hidden="true">!</span><strong>{{ unanswered_inquiries }}</strong><span>Unanswered inquiries</span></article>
+        <article{% if reserved_count > 0 %} class="action-metric-alert"{% endif %}><span class="kpi-icon" aria-hidden="true">&#9670;</span><strong>{{ reserved_count }}</strong><span>Reserved items awaiting completion</span></article>
+      </section>
+
+      <div class="profile-summary-heading"><h2>Marketplace Summary</h2></div>
+      <section class="buyer-summary profile-financial-chart" aria-label="Money in and money out">
+        <article class="buyer-spending-card">
+          <header class="buyer-chart-header"><div><h3>Total Earned vs. Total Spent</h3><p data-chart-summary>Your marketplace sales and purchases.</p></div>
+            <div class="buyer-chart-filters" aria-label="Chart filters">
+              <label><span>From</span><input type="date" data-chart-date="start" /></label>
+              <label><span>To</span><input type="date" data-chart-date="end" /></label>
+              <details class="buyer-chart-type-filter"><summary>Activity types <span data-chart-type-count>2 selected</span></summary><div>
+                <label><input type="checkbox" value="purchase" data-chart-type checked /> Purchases</label>
+                <label><input type="checkbox" value="sale" data-chart-type checked /> Sales</label>
+              </div></details>
+            </div>
+          </header>
+          <div class="buyer-bar-chart" role="img" aria-label="Total spent ${{ buyer_summary.amount_paid|floatformat:0 }} and total earned ${{ buyer_summary.total_earned|floatformat:0 }}">
+            <div class="buyer-chart-axis" aria-hidden="true"><span data-chart-max>${{ buyer_summary.chart_max|floatformat:0 }}</span><span>$0</span></div>
+            <div class="buyer-chart-plot"><span class="buyer-grid-line line-top"></span><span class="buyer-grid-line line-middle"></span><span class="buyer-grid-line line-bottom"></span>
+              <div class="buyer-bar-group"><strong data-chart-value="spent">${{ buyer_summary.amount_paid|floatformat:0 }}</strong><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="12" y="{{ buyer_summary.spent_bar_height|add:'-100'|cut:'-' }}" width="76" height="{{ buyer_summary.spent_bar_height }}" rx="3" class="spent-bar" data-chart-bar="spent"/></svg><span>Total Spent<small>(Purchases)</small></span></div>
+              <div class="buyer-bar-group"><strong data-chart-value="earned">${{ buyer_summary.total_earned|floatformat:0 }}</strong><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="12" y="{{ buyer_summary.earned_bar_height|add:'-100'|cut:'-' }}" width="76" height="{{ buyer_summary.earned_bar_height }}" rx="3" class="savings-bar" data-chart-bar="earned"/></svg><span>Total Earned<small>(Completed Sales)</small></span></div>
+            </div>
+          </div>
+          <div class="buyer-chart-legend" aria-label="Chart legend"><div><i class="spent-dot"></i><span>Total Spent<strong data-chart-legend="spent">${{ buyer_summary.amount_paid|floatformat:0 }}</strong></span></div><div><i class="savings-dot"></i><span>Total Earned<strong data-chart-legend="earned">${{ buyer_summary.total_earned|floatformat:0 }}</strong></span></div></div>
+          {{ buyer_summary.chart_points|json_script:"buyer-chart-data" }}
+        </article>
+      </section>
+
+      <div class="profile-summary-heading"><h2>Listing Summary</h2></div>
+      <section class="seller-kpis profile-listing-summary" aria-label="Listing summary">
+        <article><span class="kpi-icon" aria-hidden="true">&#9638;</span><strong>{{ active_count }}</strong><span>Active listings</span></article>
+        <article><span class="kpi-icon" aria-hidden="true">&#10003;</span><strong>{{ sold_count }}</strong><span>Sold items</span></article>
+        <article><span class="kpi-icon" aria-hidden="true">&#9675;</span><strong>{{ inquiries }}</strong><span>Total inquiries</span></article>
+      </section>
+
+      <article class="listing-inquiry-card" aria-labelledby="listing-inquiry-title">
+        <header><div><h3 id="listing-inquiry-title">Top Listings by Inquiries</h3><p>Conversations awaiting a buyer response and inquiries that still need your reply.</p></div><div class="listing-inquiry-legend"><span><i class="answered"></i>Awaiting Response</span><span><i class="unanswered"></i>Unanswered</span></div></header>
+        {% if listing_inquiry_chart %}<div class="listing-inquiry-chart">
+          {% for metric in listing_inquiry_chart %}<div class="listing-inquiry-row"><span title="{{ metric.title }}">{{ metric.title }}</span><div class="listing-inquiry-track"><div class="listing-inquiry-total" style="width: {{ metric.total_percent }}%"><i class="answered" style="width: {{ metric.answered_percent }}%"></i><i class="unanswered" style="width: {{ metric.unanswered_percent }}%"></i></div></div><strong>{{ metric.total }}</strong></div>{% endfor %}
+        </div>{% else %}<p class="listing-inquiry-empty">No inquiries for active listings yet.</p>{% endif %}
+      </article>
+      {% include "marketplace/partials/_profile_tabs.html" %}
+      {% block profile_content %}{% endblock %}
+    </section>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}<script type="module" src="{% static 'js/marketplace.js' %}?v=profile-unified-1"></script>{% endblock %}

@@ -1,0 +1,12 @@
+<div class="profile-tab-groups">
+  <section aria-labelledby="listing-tabs-title"><h2 id="listing-tabs-title">Listings</h2><nav class="seller-tabs" aria-label="Listing pages">
+    <a{% if active_seller_tab == 'listings' %} class="active" aria-current="page"{% endif %} href="{% url 'seller-listings' %}" data-dashboard-tab>My Listings</a>
+    <a{% if active_seller_tab == 'settings' %} class="active" aria-current="page"{% endif %} href="{% url 'seller-settings' %}" data-dashboard-tab>Settings</a>
+  </nav></section>
+  <section aria-labelledby="purchase-tabs-title"><h2 id="purchase-tabs-title">Purchases</h2><nav class="seller-tabs buyer-tabs" aria-label="Purchase pages">
+    <a{% if active_buyer_tab == 'pickups' %} class="active" aria-current="page"{% endif %} href="{% url 'buyer-pickups' %}" data-dashboard-tab>Active Pickups</a>
+    <a{% if active_buyer_tab == 'bundles' %} class="active" aria-current="page"{% endif %} href="{% url 'buyer-bundles' %}" data-dashboard-tab>Saved Bundles</a>
+    <a{% if active_buyer_tab == 'history' %} class="active" aria-current="page"{% endif %} href="{% url 'buyer-purchase-history' %}" data-dashboard-tab>Purchase History</a>
+    <a{% if active_buyer_tab == 'watchlist' %} class="active" aria-current="page"{% endif %} href="{% url 'buyer-watchlist' %}" data-dashboard-tab>Watchlist</a>
+  </nav></section>
+</div>
