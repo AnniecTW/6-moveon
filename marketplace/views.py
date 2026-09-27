@@ -387,7 +387,7 @@ class ListingFormContextMixin:
         return reverse("home")
 
 
-class ListingCreateView(ListingFormContextMixin, LoginRequiredMixin, CreateView):
+class ListingCreateView(LoginRequiredMixin, ListingFormContextMixin, CreateView):
     model = Listing
     form_class = ListingCreateForm
     template_name = "marketplace/listing_form.html"
@@ -399,7 +399,7 @@ class ListingCreateView(ListingFormContextMixin, LoginRequiredMixin, CreateView)
         return super().form_valid(form)
 
 
-class ListingUpdateView(ListingFormContextMixin, LoginRequiredMixin, UpdateView):
+class ListingUpdateView(LoginRequiredMixin, ListingFormContextMixin, UpdateView):
     model = Listing
     form_class = ListingCreateForm
     template_name = "marketplace/listing_form.html"

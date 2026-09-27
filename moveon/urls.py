@@ -24,6 +24,7 @@ from messaging import api as messaging_api
 from bundles import messaging as bundle_messaging
 
 urlpatterns = [
+    path("", views.listing_render_view, name="home"),
     path("messages/", messaging_api.page, name="messages"),
     path("api/messaging/bundles/<int:bundle_id>/send-requests/", messaging_api.api_guard(bundle_messaging.send_requests), name="bundle_send_requests"),
     path("api/messaging/conversations/", messaging_api.api_guard(messaging_api.conversations), name="messaging_conversations"),
@@ -34,7 +35,6 @@ urlpatterns = [
     path("api/messaging/requests/<str:request_id>/decision/", messaging_api.api_guard(messaging_api.request_decision), name="messaging_request_decision"),
     path("api/messaging/uploads/", messaging_api.api_guard(messaging_api.upload), name="messaging_upload"),
     path("api/messaging/attachments/<str:image_id>/", messaging_api.api_guard(messaging_api.attachment), name="messaging_attachment"),
-    path("", views.listing_render_view, name="home"),
     path("account/", views.account_view, name="account"),
     path("account/logout/", views.account_logout_view, name="account_logout"),
     path("account/verify/", views.account_verify_view, name="account_verify"),
