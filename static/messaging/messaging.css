@@ -23,6 +23,21 @@
   --green-soft: #e2efe4;
   --red: #b3453b;
   --red-soft: #f6e2df;
+  --state-neutral-bg: #f1eee7;
+  --state-neutral-ink: #5f5a51;
+  --state-neutral-dot: #8b8579;
+  --state-attention-bg: #f7edcf;
+  --state-attention-ink: #755717;
+  --state-attention-dot: #bb922f;
+  --state-waiting-bg: #e9eef1;
+  --state-waiting-ink: #485f70;
+  --state-waiting-dot: #7390a2;
+  --state-success-bg: #e3efe4;
+  --state-success-ink: #356340;
+  --state-success-dot: #4f9161;
+  --state-negative-bg: #f5e7e5;
+  --state-negative-ink: #853f39;
+  --state-negative-dot: #ae625b;
 
   --radius-card: 14px;
   --radius-pill: 99px;
@@ -50,6 +65,17 @@
 .messaging *::before,
 .messaging *::after {
   box-sizing: border-box;
+}
+.messaging__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .messaging h1,
@@ -142,6 +168,7 @@
   padding: 12px;
   border-bottom: 1px solid var(--border);
 }
+.messaging__filters .messaging__pill { font-size: 11px; white-space: nowrap; }
 .messaging__pill {
   flex: 1;
   font: inherit;
@@ -191,6 +218,14 @@
   width: 3px;
   background: var(--ink);
   border-radius: 0 2px 2px 0;
+}
+.messaging__row-rail {
+  width: 46px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
 }
 .messaging__thumb {
   width: 42px;
@@ -268,15 +303,62 @@
   font-weight: 500;
   color: #7a5f1a;
 }
+.messaging__row-state {
+  --state-ink: var(--state-neutral-ink);
+  --state-dot: var(--state-neutral-dot);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  color: var(--state-ink);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.messaging__row-state-dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--state-dot);
+}
+.messaging__row-state--action_needed,
+.messaging__status-badge--action_needed {
+  --state-bg: var(--state-attention-bg);
+  --state-ink: var(--state-attention-ink);
+  --state-dot: var(--state-attention-dot);
+}
+.messaging__row-state--waiting,
+.messaging__status-badge--waiting {
+  --state-bg: var(--state-waiting-bg);
+  --state-ink: var(--state-waiting-ink);
+  --state-dot: var(--state-waiting-dot);
+}
+.messaging__row-state--pending_pickup,
+.messaging__status-badge--pending_pickup {
+  --state-bg: var(--state-success-bg);
+  --state-ink: var(--state-success-ink);
+  --state-dot: var(--state-success-dot);
+}
+.messaging__row-state--declined,
+.messaging__row-state--unavailable,
+.messaging__status-badge--declined,
+.messaging__status-badge--unavailable {
+  --state-bg: var(--state-negative-bg);
+  --state-ink: var(--state-negative-ink);
+  --state-dot: var(--state-negative-dot);
+}
 
 /* role tag + unread pill */
 .messaging__tag {
-  font-size: 10px;
-  padding: 0 5px;
+  font-size: 9px;
+  padding: 1px 4px;
   border-radius: 4px;
   border: 1px solid var(--border);
   color: var(--gold);
-  flex-shrink: 0;
+  line-height: 1.2;
 }
 .messaging__unread {
   flex-shrink: 0;
@@ -313,7 +395,6 @@
   min-height: 0;
 }
 .messaging__chat-inner[hidden] { display: none; }
-
 /* compact listing / contact header */
 .messaging__chat-header {
   display: flex;
@@ -330,19 +411,39 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .messaging__chat-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
   font-size: 14.5px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.messaging__status-badge {
+  color: var(--state-ink, var(--state-neutral-ink));
+  background: var(--state-bg, var(--state-neutral-bg));
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+  font-size: 10.5px;
+  font-weight: 650;
+  white-space: nowrap;
+}
 .messaging__chat-sub {
   font-size: 13px;
   color: var(--muted);
   margin-top: 1px;
 }
+.messaging__chat-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.messaging__chat-actions .messaging__btn { white-space: nowrap; }
 .messaging__chat-thumb {
   width: 44px;
   height: 44px;
@@ -561,11 +662,12 @@
   border: 1px solid var(--border);
   border-left: 3px solid var(--gold);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 9px 12px;
 }
+.messaging__request-card.is-history { background: var(--surface); }
 .messaging__request-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
@@ -574,7 +676,7 @@
   gap: 9px;
   min-width: 0;
 }
-.messaging__request-icon { color: var(--gold); flex-shrink: 0; margin-top: 2px; display: flex; }
+.messaging__request-icon { color: var(--gold); flex-shrink: 0; display: flex; }
 .messaging__request-label {
   font-size: 12.5px;
   font-weight: 600;
@@ -585,23 +687,11 @@
   color: var(--muted);
   margin-top: 1px;
 }
-.messaging__request-price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-top: 10px;
-}
-.messaging__request-price-label { font-size: 11.5px; color: var(--muted); }
-.messaging__request-price {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink);
-}
 .messaging__status-pill {
   font-size: 11px;
   font-weight: 500;
   text-transform: capitalize;
-  padding: 3px 12px;
+  padding: 2px 9px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--border);
   flex-shrink: 0;
@@ -621,7 +711,7 @@
   background: var(--red-soft);
   border-color: var(--red);
 }
-.messaging__request-body { margin-top: 12px; }
+.messaging__request-body { margin-top: 8px; }
 .messaging__request-actions {
   display: flex;
   gap: 8px;
@@ -664,6 +754,77 @@
   gap: 6px;
   margin-bottom: 8px;
 }
+
+/* Final offers live above chat history and are never message bubbles. */
+.messaging__offer-card {
+  align-self: stretch;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--state-waiting-dot);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--state-waiting-bg);
+}
+.messaging__offer-card.is-history {
+  background: var(--surface);
+  border-left-color: var(--border);
+  padding: 7px 12px;
+}
+.messaging__offer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.messaging__offer-description {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+}
+.messaging__offer-description strong { font-weight: 650; }
+.messaging__offer-description span { font-weight: 700; }
+.messaging__offer-card.is-history .messaging__offer-description { color: var(--muted); font-size: 11.5px; }
+.messaging__offer-state { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.messaging__offer-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.messaging__offer-feedback,
+.messaging__offer-error { display: block; margin-top: 7px; font-size: 11.5px; }
+.messaging__offer-feedback { color: var(--muted); }
+.messaging__offer-error { color: var(--red); }
+
+.messaging__deal-dialog {
+  width: min(440px, calc(100vw - 28px));
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 20%);
+  font: inherit;
+}
+.messaging__deal-dialog::backdrop { background: rgb(25 21 17 / 45%); }
+.messaging__deal-top { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.messaging__deal-title { margin: 0 0 8px; font-size: 22px; }
+.messaging__deal-close { border: 0; background: transparent; color: var(--muted); font-size: 24px; line-height: 1; cursor: pointer; }
+.messaging__deal-listing { font-weight: 650; overflow-wrap: anywhere; }
+.messaging__deal-listed { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.messaging__deal-price { font-size: 26px; font-weight: 700; margin: 16px 0 4px; }
+.messaging__deal-note { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 12px 0; }
+.messaging__deal-field { display: flex; flex-direction: column; gap: 5px; margin-top: 16px; font-size: 12px; font-weight: 650; }
+.messaging__deal-field input { font: inherit; font-size: 16px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--canvas); color: var(--ink); }
+.messaging__deal-field input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.messaging__deal-confirm { display: flex; align-items: start; gap: 8px; margin-top: 12px; font-size: 12px; line-height: 1.45; }
+.messaging__deal-confirm input { margin: 2px 0 0; accent-color: var(--ink); }
+.messaging__deal-warning,
+.messaging__deal-error { border-radius: 8px; padding: 8px 10px; margin: 10px 0; font-size: 12px; }
+.messaging__deal-warning { background: var(--state-negative-bg); color: var(--state-negative-ink); }
+.messaging__deal-error { background: var(--red-soft); color: var(--red); }
+.messaging__deal-warning[hidden],
+.messaging__deal-error[hidden] { display: none; }
+.messaging__deal-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
 
 /* ============================================================
    COMPOSER

@@ -1,12 +1,14 @@
 import uuid
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.db import models
+from django.db import models, transaction
 from django.db.models.signals import post_delete
 from django.core.exceptions import ValidationError
 from django.dispatch import receiver
 from django.urls import reverse
+from django.utils import timezone
 
 from .validation import ValidatedSaveModel, database_for, participant_errors
 
@@ -188,6 +190,22 @@ class Listing(ValidatedSaveModel):
 
     class Meta:
         ordering = ["-created_at"]
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        status_written = update_fields is None or "status" in update_fields
+        if self._state.adding or not status_written or self.status == self.Status.ACTIVE:
+            return super().save(*args, **kwargs)
+
+        database = kwargs.get("using") or database_for(self)
+        with transaction.atomic(using=database):
+            result = super().save(*args, **kwargs)
+            DealProposal = apps.get_model("messaging", "DealProposal")
+            DealProposal.objects.using(database).filter(
+                conversation__listing_id=self.pk,
+                status=DealProposal.Status.AWAITING_BUYER,
+            ).update(status=DealProposal.Status.UNAVAILABLE, updated_at=timezone.now())
+        return result
 
     def clean(self):
         super().clean()

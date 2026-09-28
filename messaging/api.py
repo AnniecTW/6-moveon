@@ -1,7 +1,10 @@
 """Authenticated, participant-scoped Messaging page and JSON endpoints."""
 
 import json
+import logging
+import re
 import uuid
+from decimal import Decimal
 from functools import wraps
 
 from django.core.exceptions import ValidationError
@@ -18,12 +21,138 @@ from PIL import Image, UnidentifiedImageError
 from bundles.models import Bundle, BundleItem
 from marketplace.auth_backend import has_campus_access
 from marketplace.models import Listing, Transaction
-from .models import Conversation, Message, MessageImage
+from .models import Conversation, DealProposal, Message, MessageImage
 
 PAGE_SIZE = 30
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 IMAGE_FORMATS = {"JPEG": ("image/jpeg", ".jpg"), "PNG": ("image/png", ".png"),
                  "WEBP": ("image/webp", ".webp"), "GIF": ("image/gif", ".gif")}
+logger = logging.getLogger(__name__)
+PRICE_PATTERN = re.compile(r"^(?:0|[1-9][0-9]{0,5})(?:\.[0-9]{1,2})?$")
+ACTIVE_TRANSACTION_STATUSES = [Transaction.Status.PENDING_PICKUP, Transaction.Status.COMPLETED]
+
+
+class DealConflict(Exception):
+    def __init__(self, message, code):
+        super().__init__(message)
+        self.code = code
+
+
+class IdempotentRetry(Exception):
+    def __init__(self, proposal_id):
+        self.proposal_id = proposal_id
+
+
+def conflict_response(exc):
+    return error(str(exc), 409, exc.code)
+
+
+def proposal_data(proposal):
+    return {
+        "id": str(proposal.pk),
+        "agreedPrice": f"{proposal.agreed_price:.2f}",
+        "status": proposal.status,
+        "createdAt": proposal.created_at.isoformat(),
+        "updatedAt": proposal.updated_at.isoformat(),
+        "replacesProposalId": str(proposal.replaces_id) if proposal.replaces_id else None,
+        "transactionId": str(proposal.transaction_id) if proposal.transaction_id else None,
+    }
+
+
+def parse_offer_payload(request):
+    payload = data(request)
+    if payload is None or payload.get("sellerConfirmed") is not True:
+        return None
+    raw_price = payload.get("agreedPrice")
+    if isinstance(raw_price, bool) or not isinstance(raw_price, (str, int)):
+        return None
+    raw_price = str(raw_price)
+    if not PRICE_PATTERN.fullmatch(raw_price):
+        return None
+    price = Decimal(raw_price)
+    if not Decimal("0.01") <= price <= Decimal("999999.99"):
+        return None
+    try:
+        key = uuid.UUID(payload.get("clientRequestId"))
+    except (ValueError, TypeError, AttributeError):
+        return None
+    return price, key
+
+
+def pending_bundle_request(conversation):
+    return BundleItem.objects.filter(
+        bundle__buyer_id=conversation.buyer_id,
+        listing_id=conversation.listing_id,
+        item_status=BundleItem.ItemStatus.REQUESTED,
+    ).exists()
+
+
+def active_transaction_exists(listing_id):
+    return Transaction.objects.filter(
+        listing_id=listing_id, status__in=ACTIVE_TRANSACTION_STATUSES
+    ).exists()
+
+
+def touch_available_listing(listing_id):
+    # A write before checking offer state serializes quote writes with both sale paths on SQLite.
+    if not Listing.objects.filter(pk=listing_id, status=Listing.Status.ACTIVE).update(
+        updated_at=timezone.now()
+    ):
+        raise DealConflict("This listing is unavailable.", "listing_unavailable")
+
+
+def reserve_listing(listing_id):
+    # Status alone changes; Listing.clean() only guards owner changes.
+    if not Listing.objects.filter(pk=listing_id, status=Listing.Status.ACTIVE).update(
+        status=Listing.Status.RESERVED, updated_at=timezone.now()
+    ):
+        raise DealConflict("This listing is unavailable.", "listing_unavailable")
+
+
+def invalidate_other_offers(listing_id, *, except_proposal_id=None):
+    offers = DealProposal.objects.filter(
+        conversation__listing_id=listing_id, status=DealProposal.Status.AWAITING_BUYER
+    )
+    if except_proposal_id:
+        offers = offers.exclude(pk=except_proposal_id)
+    offers.update(status=DealProposal.Status.UNAVAILABLE, updated_at=timezone.now())
+
+
+def offer_result(request, proposal_id, status=200):
+    proposal = DealProposal.objects.get(pk=proposal_id)
+    conversation = participant(request, proposal.conversation_id)
+    current = conversation_data(conversation, request.user)
+    return JsonResponse({
+        "proposal": proposal_data(proposal),
+        "dealProposals": current["dealProposals"],
+        "trade": current["trade"],
+        "listing": current["listing"],
+    }, status=status)
+
+
+def matching_request(conversation_id, key, price, replaces_id):
+    existing = DealProposal.objects.filter(
+        conversation_id=conversation_id, client_request_id=key
+    ).first()
+    if existing and (existing.agreed_price != price or existing.replaces_id != replaces_id):
+        raise DealConflict("This request ID was used for another offer.", "idempotency_conflict")
+    return existing
+
+
+def visible_proposal(request, proposal_id):
+    return get_object_or_404(
+        DealProposal.objects.select_related("conversation", "conversation__listing", "transaction")
+        .filter(Q(conversation__buyer=request.user) | Q(conversation__seller=request.user)),
+        pk=proposal_id,
+    )
+
+
+def unavailable_offers_if_needed(listing_id):
+    # Also covers a listing made unavailable outside either Messaging sale path.
+    with transaction.atomic():
+        listing = Listing.objects.filter(pk=listing_id).values_list("status", flat=True).first()
+        if listing != Listing.Status.ACTIVE or active_transaction_exists(listing_id):
+            invalidate_other_offers(listing_id)
 
 
 def error(message, status=400, code="invalid_request"):
@@ -56,7 +185,7 @@ def data(request):
 def participant(request, conversation_id):
     return get_object_or_404(
         Conversation.objects.select_related("listing", "buyer", "seller")
-        .prefetch_related("listing__images")
+        .prefetch_related("listing__images", "deal_proposals")
         .filter(Q(buyer=request.user) | Q(seller=request.user)),
         pk=conversation_id,
     )
@@ -90,20 +219,107 @@ def request_data(item):
     }
 
 
+def trade_data(conversation, user, requests, proposals):
+    """Derive both inbox and detail state from transactions and this buyer's requests."""
+    listing = conversation.listing
+    role = "buyer" if conversation.buyer_id == user.pk else "seller"
+    result = {
+        "currentProposalId": None,
+        "transaction": None,
+        "summaryState": "negotiating",
+        "detailState": "negotiating",
+        "allowedActions": {"bundleRequestIds": [], "bundleDeclineRequestIds": [], "deal": []},
+    }
+    awaiting = [item for item in requests if item.item_status == BundleItem.ItemStatus.REQUESTED]
+    if role == "seller":
+        result["allowedActions"]["bundleDeclineRequestIds"] = [str(item.pk) for item in awaiting]
+    if listing is None:
+        result.update(summaryState="unavailable", detailState="unavailable")
+        return result
+
+    request_ids = {item.pk for item in requests}
+    transactions = list(Transaction.objects.filter(
+        listing=listing,
+        status__in=ACTIVE_TRANSACTION_STATUSES,
+    ))
+    own_pending = [deal for deal in transactions if
+                   deal.status == Transaction.Status.PENDING_PICKUP and
+                   deal.buyer_id == conversation.buyer_id and
+                   deal.seller_id == conversation.seller_id and
+                   (deal.conversation_id == conversation.pk or
+                    (deal.conversation_id is None and deal.bundle_item_id in request_ids))]
+    if len(own_pending) > 1:
+        logger.error("Multiple pending transactions match conversation %s", conversation.pk)
+        result.update(summaryState="unavailable", detailState="unavailable")
+        return result
+    if own_pending:
+        deal = own_pending[0]
+        result.update(
+            summaryState="pending_pickup", detailState="pending_pickup",
+            transaction={
+                "id": str(deal.pk),
+                "source": "bundle" if deal.bundle_item_id else "deal",
+                "status": deal.status,
+                "agreedPrice": f"{deal.agreed_price:.2f}",
+            },
+        )
+        return result
+    if listing.status != Listing.Status.ACTIVE or transactions:
+        if any(deal.buyer_id == conversation.buyer_id and
+               deal.seller_id == conversation.seller_id and
+               deal.conversation_id is None and deal.bundle_item_id is None
+               for deal in transactions):
+            logger.warning("Unlinked transaction cannot be attributed to conversation %s", conversation.pk)
+        result.update(summaryState="unavailable", detailState="unavailable")
+        return result
+
+    current = next((proposal for proposal in proposals
+                    if proposal.status == DealProposal.Status.AWAITING_BUYER), None)
+    if role == "seller":
+        result["allowedActions"]["bundleRequestIds"] = [str(item.pk) for item in awaiting]
+    if current:
+        result["currentProposalId"] = str(current.pk)
+        if role == "buyer":
+            result.update(summaryState="action_needed", detailState="review_deal")
+            result["allowedActions"]["deal"] = ["confirm", "decline"]
+        else:
+            result["allowedActions"]["deal"] = ["withdraw"]
+            if awaiting:
+                result.update(summaryState="action_needed", detailState="review_bundle_request")
+            else:
+                result.update(summaryState="waiting", detailState="awaiting_buyer")
+                result["allowedActions"]["deal"].append("edit")
+    elif awaiting:
+        result.update(
+            summaryState="action_needed" if role == "seller" else "waiting",
+            detailState="review_bundle_request" if role == "seller" else "waiting_for_seller",
+        )
+    elif proposals and proposals[-1].status == DealProposal.Status.DECLINED:
+        result.update(summaryState="declined", detailState="deal_declined")
+    elif any(item.item_status == BundleItem.ItemStatus.DECLINED for item in requests):
+        result.update(summaryState="declined", detailState="bundle_declined")
+    if role == "seller" and not awaiting and not current:
+        result["allowedActions"]["deal"] = ["create"]
+    return result
+
+
 def conversation_data(conversation, user):
     listing = conversation.listing
     contact = conversation.seller if conversation.buyer_id == user.pk else conversation.buyer
     last = conversation.messages.order_by("-pk").prefetch_related("images").first()
-    requests = BundleItem.objects.filter(
+    requests = list(BundleItem.objects.filter(
         bundle__buyer_id=conversation.buyer_id, listing_id=conversation.listing_id,
         item_status__in=[BundleItem.ItemStatus.REQUESTED, BundleItem.ItemStatus.ACCEPTED,
                          BundleItem.ItemStatus.DECLINED],
-    ).select_related("bundle") if conversation.listing_id else BundleItem.objects.none()
+    ).select_related("bundle")) if conversation.listing_id else []
+    proposals = list(conversation.deal_proposals.all())
+    trade = trade_data(conversation, user, requests, proposals)
     return {
         "id": str(conversation.pk),
         "role": "buyer" if conversation.buyer_id == user.pk else "seller",
         "listing": {
             "id": str(listing.pk) if listing else None,
+            "status": listing.status if listing else None,
             "title": listing.title if listing else conversation.listing_title_snapshot or "Deleted listing",
             "listedPrice": float(listing.listing_price) if listing else (
                 float(conversation.listing_price_snapshot) if conversation.listing_price_snapshot is not None else None),
@@ -116,6 +332,8 @@ def conversation_data(conversation, user):
         "unreadCount": conversation.messages.filter(is_read=False).exclude(sender=user).count(),
         "lastActivity": (conversation.last_message_at or conversation.created_at).isoformat(),
         "bundleRequests": [request_data(item) for item in requests],
+        "dealProposals": [proposal_data(proposal) for proposal in proposals],
+        "trade": trade,
         "messages": [message_data(last, user)] if last else [],
     }
 
@@ -130,6 +348,10 @@ def page(request):
             "messages": reverse("messaging_messages", args=["__id__"]),
             "read": reverse("messaging_read", args=["__id__"]),
             "decision": reverse("messaging_request_decision", args=["__id__"]),
+            "dealCreate": reverse("messaging_deal_proposals", args=["__id__"]),
+            "dealRevise": reverse("messaging_deal_proposal", args=["__id__"]),
+            "dealWithdraw": reverse("messaging_deal_withdraw", args=["__id__"]),
+            "dealDecision": reverse("messaging_deal_decision", args=["__id__"]),
             "upload": reverse("messaging_upload"),
             "attachment": reverse("messaging_attachment", args=["__id__"]),
             "account": reverse("account"), "home": reverse("home"),
@@ -142,7 +364,7 @@ def conversations(request):
     qs = (
         Conversation.objects.filter(Q(buyer=request.user) | Q(seller=request.user))
         .select_related("buyer", "seller", "listing")
-        .prefetch_related("listing__images")
+        .prefetch_related("listing__images", "deal_proposals")
     )
     role = request.GET.get("role")
     if role == "buying":
@@ -159,7 +381,9 @@ def conversations(request):
             Q(seller=request.user, buyer__display_name__icontains=term)
         )
     qs = qs.order_by("-last_message_at", "-created_at", "-pk")
-    return JsonResponse({"conversations": [conversation_data(c, request.user) for c in qs]})
+    response = JsonResponse({"conversations": [conversation_data(c, request.user) for c in qs]})
+    response["Cache-Control"] = "private, no-store"
+    return response
 
 
 @require_GET
@@ -327,45 +551,270 @@ def attachment(request, image_id):
 
 
 @require_POST
+def create_deal_proposal(request, conversation_id):
+    parsed = parse_offer_payload(request)
+    if parsed is None:
+        return error("Enter a price from $0.01 to $999,999.99, confirm the sale, and provide a request ID.")
+    price, key = parsed
+    conversation = participant(request, conversation_id)
+    if conversation.seller_id != request.user.pk:
+        return error("Only the seller can submit an offer.", 403, "forbidden")
+    try:
+        existing = matching_request(conversation.pk, key, price, None)
+        if existing:
+            return offer_result(request, existing.pk)
+        with transaction.atomic():
+            touch_available_listing(conversation.listing_id)
+            conversation = Conversation.objects.get(pk=conversation.pk)
+            if conversation.seller_id != request.user.pk:
+                raise DealConflict("The conversation changed.", "stale_conversation")
+            existing = matching_request(conversation.pk, key, price, None)
+            if existing:
+                raise IdempotentRetry(existing.pk)
+            if active_transaction_exists(conversation.listing_id):
+                raise DealConflict("This listing is unavailable.", "listing_unavailable")
+            if pending_bundle_request(conversation):
+                raise DealConflict("Resolve the pending Bundle request before making an offer.",
+                                   "bundle_request_pending")
+            if DealProposal.objects.filter(conversation=conversation,
+                    status=DealProposal.Status.AWAITING_BUYER).exists():
+                raise DealConflict("An offer is already awaiting the buyer.", "offer_already_pending")
+            proposal = DealProposal.objects.create(
+                conversation=conversation, agreed_price=price, client_request_id=key,
+            )
+    except IdempotentRetry as exc:
+        return offer_result(request, exc.proposal_id)
+    except DealConflict as exc:
+        return conflict_response(exc)
+    except (IntegrityError, ValidationError):
+        try:
+            existing = matching_request(conversation.pk, key, price, None)
+        except DealConflict as exc:
+            return conflict_response(exc)
+        if existing:
+            return offer_result(request, existing.pk)
+        if DealProposal.objects.filter(
+            conversation=conversation, status=DealProposal.Status.AWAITING_BUYER
+        ).exists():
+            return error("An offer is already awaiting the buyer.", 409, "offer_already_pending")
+        if not Listing.objects.filter(pk=conversation.listing_id,
+                                      status=Listing.Status.ACTIVE).exists() or \
+                active_transaction_exists(conversation.listing_id):
+            return error("This listing is unavailable.", 409, "listing_unavailable")
+        return error("The offer could not be saved. Retry with the same request ID.",
+                     503, "offer_save_failed")
+    return offer_result(request, proposal.pk, status=201)
+
+
+@require_http_methods(["PATCH"])
+def revise_deal_proposal(request, proposal_id):
+    parsed = parse_offer_payload(request)
+    if parsed is None:
+        return error("Enter a price from $0.01 to $999,999.99, confirm the sale, and provide a request ID.")
+    price, key = parsed
+    previous = visible_proposal(request, proposal_id)
+    conversation = previous.conversation
+    if conversation.seller_id != request.user.pk:
+        return error("Only the seller can revise an offer.", 403, "forbidden")
+    try:
+        existing = matching_request(conversation.pk, key, price, previous.pk)
+        if existing:
+            return offer_result(request, existing.pk)
+        if previous.status != DealProposal.Status.AWAITING_BUYER:
+            raise DealConflict("This offer is no longer current.", "stale_proposal")
+        with transaction.atomic():
+            touch_available_listing(conversation.listing_id)
+            conversation = Conversation.objects.get(pk=conversation.pk)
+            if conversation.seller_id != request.user.pk:
+                raise DealConflict("The conversation changed.", "stale_conversation")
+            existing = matching_request(conversation.pk, key, price, previous.pk)
+            if existing:
+                raise IdempotentRetry(existing.pk)
+            if active_transaction_exists(conversation.listing_id):
+                raise DealConflict("This listing is unavailable.", "listing_unavailable")
+            if pending_bundle_request(conversation):
+                raise DealConflict("Resolve the pending Bundle request before revising an offer.",
+                                   "bundle_request_pending")
+            changed = DealProposal.objects.filter(
+                pk=previous.pk, conversation=conversation,
+                status=DealProposal.Status.AWAITING_BUYER,
+            ).update(status=DealProposal.Status.SUPERSEDED, updated_at=timezone.now())
+            if changed != 1:
+                raise DealConflict("This offer is no longer current.", "stale_proposal")
+            proposal = DealProposal.objects.create(
+                conversation=conversation, agreed_price=price, replaces=previous,
+                client_request_id=key,
+            )
+    except IdempotentRetry as exc:
+        return offer_result(request, exc.proposal_id)
+    except DealConflict as exc:
+        if exc.code == "listing_unavailable" and DealProposal.objects.filter(
+            pk=previous.pk
+        ).exclude(status=DealProposal.Status.AWAITING_BUYER).exists():
+            return error("This offer is no longer current.", 409, "stale_proposal")
+        return conflict_response(exc)
+    except (IntegrityError, ValidationError):
+        try:
+            existing = matching_request(conversation.pk, key, price, previous.pk)
+        except DealConflict as exc:
+            return conflict_response(exc)
+        if existing:
+            return offer_result(request, existing.pk)
+        if not DealProposal.objects.filter(
+            pk=previous.pk, status=DealProposal.Status.AWAITING_BUYER
+        ).exists():
+            return error("This offer is no longer current.", 409, "stale_proposal")
+        if not Listing.objects.filter(pk=conversation.listing_id,
+                                      status=Listing.Status.ACTIVE).exists() or \
+                active_transaction_exists(conversation.listing_id):
+            return error("This listing is unavailable.", 409, "listing_unavailable")
+        return error("The offer could not be saved. Retry with the same request ID.",
+                     503, "offer_save_failed")
+    return offer_result(request, proposal.pk, status=201)
+
+
+@require_POST
+def withdraw_deal_proposal(request, proposal_id):
+    proposal = visible_proposal(request, proposal_id)
+    if proposal.conversation.seller_id != request.user.pk:
+        return error("Only the seller can withdraw an offer.", 403, "forbidden")
+    try:
+        with transaction.atomic():
+            changed = DealProposal.objects.filter(
+                pk=proposal.pk, status=DealProposal.Status.AWAITING_BUYER,
+            ).update(status=DealProposal.Status.WITHDRAWN, updated_at=timezone.now())
+            if changed != 1:
+                raise DealConflict("This offer is no longer current.", "stale_proposal")
+    except DealConflict as exc:
+        return conflict_response(exc)
+    return offer_result(request, proposal.pk)
+
+
+@require_POST
+def decide_deal_proposal(request, proposal_id):
+    payload = data(request)
+    decision = payload.get("decision") if payload else None
+    if decision not in ("confirmed", "declined"):
+        return error("Choose confirm or decline.")
+    proposal = visible_proposal(request, proposal_id)
+    conversation = proposal.conversation
+    if conversation.buyer_id != request.user.pk:
+        return error("Only the buyer can decide an offer.", 403, "forbidden")
+    if decision == "confirmed" and proposal.status == DealProposal.Status.CONFIRMED:
+        return offer_result(request, proposal.pk)
+    if proposal.status == DealProposal.Status.UNAVAILABLE:
+        if Listing.objects.filter(pk=conversation.listing_id,
+                                  status=Listing.Status.ACTIVE).exists() and not \
+                active_transaction_exists(conversation.listing_id):
+            return error("This offer is no longer current.", 409, "stale_proposal")
+        return error("This listing is unavailable.", 409, "listing_unavailable")
+    if proposal.status != DealProposal.Status.AWAITING_BUYER:
+        return error("This offer is no longer current.", 409, "stale_proposal")
+    if decision == "declined":
+        try:
+            with transaction.atomic():
+                changed = DealProposal.objects.filter(
+                    pk=proposal.pk, status=DealProposal.Status.AWAITING_BUYER,
+                ).update(status=DealProposal.Status.DECLINED, updated_at=timezone.now())
+                if changed != 1:
+                    raise DealConflict("This offer is no longer current.", "stale_proposal")
+        except DealConflict as exc:
+            return conflict_response(exc)
+        return offer_result(request, proposal.pk)
+
+    try:
+        with transaction.atomic():
+            reserve_listing(conversation.listing_id)
+            proposal = DealProposal.objects.select_related("conversation", "transaction").get(pk=proposal.pk)
+            conversation = proposal.conversation
+            if conversation.buyer_id != request.user.pk:
+                raise DealConflict("The conversation changed.", "stale_conversation")
+            if proposal.status != DealProposal.Status.AWAITING_BUYER:
+                raise DealConflict("This offer is no longer current.", "stale_proposal")
+            if active_transaction_exists(conversation.listing_id):
+                raise DealConflict("This listing is unavailable.", "listing_unavailable")
+            listing = Listing.objects.get(pk=conversation.listing_id)
+            deal = Transaction.objects.create(
+                conversation=conversation, listing=listing, buyer_id=conversation.buyer_id,
+                seller_id=conversation.seller_id, agreed_price=proposal.agreed_price,
+                benchmark_price_snapshot=listing.benchmark_price,
+                status=Transaction.Status.PENDING_PICKUP,
+            )
+            proposal.status = DealProposal.Status.CONFIRMED
+            proposal.transaction = deal
+            proposal.save(update_fields=["status", "transaction", "updated_at"])
+            invalidate_other_offers(listing.pk, except_proposal_id=proposal.pk)
+    except DealConflict as exc:
+        latest = DealProposal.objects.get(pk=proposal.pk)
+        if latest.status == DealProposal.Status.CONFIRMED and latest.transaction_id:
+            return offer_result(request, latest.pk)
+        if exc.code == "listing_unavailable":
+            unavailable_offers_if_needed(conversation.listing_id)
+        return conflict_response(exc)
+    except (IntegrityError, ValidationError):
+        return error("The transaction could not be saved. Retry the same offer.", 503,
+                     "transaction_failed")
+    return offer_result(request, proposal.pk)
+
+
+@require_POST
 def request_decision(request, request_id):
     payload = data(request)
     decision = payload.get("decision") if payload else None
     if decision not in ("accepted", "declined"):
         return error("Choose accept or decline.")
-    with transaction.atomic():
-        item = get_object_or_404(BundleItem.objects.select_for_update().select_related("bundle", "listing"),
-                                 pk=request_id, listing__seller=request.user)
-        if not Conversation.objects.filter(buyer=item.bundle.buyer, seller=request.user,
-                                           listing=item.listing).exists():
-            return error("Request conversation not found.", 404, "not_found")
-        target = BundleItem.ItemStatus.ACCEPTED if decision == "accepted" else BundleItem.ItemStatus.DECLINED
-        if item.item_status == target:
-            return JsonResponse(request_data(item))
-        if item.item_status != BundleItem.ItemStatus.REQUESTED:
-            return error("This request has already been handled.", 409, "stale_request")
-        listing = Listing.objects.select_for_update().get(pk=item.listing_id)
-        if decision == "accepted":
-            if listing.status != Listing.Status.ACTIVE or Transaction.objects.filter(
-                listing=listing, status__in=[Transaction.Status.PENDING_PICKUP, Transaction.Status.COMPLETED]
-            ).exists():
-                return error("This listing is unavailable.", 409, "listing_unavailable")
-            price = item.proposed_bundle_price if item.proposed_bundle_price is not None else item.listing_price_snapshot
-            Transaction.objects.create(listing=listing, buyer=item.bundle.buyer, seller=request.user,
-                bundle=item.bundle, bundle_item=item, agreed_price=price,
-                benchmark_price_snapshot=listing.benchmark_price)
-            item.final_price = price
-            listing.status = Listing.Status.RESERVED
-            listing.save(update_fields=["status", "updated_at"])
-        item.item_status = target
-        item.responded_at = timezone.now()
-        item.save(update_fields=["item_status", "responded_at", "final_price"])
-        bundle = item.bundle
-        states = list(bundle.bundle_items.values_list("item_status", flat=True))
-        if states and all(s == BundleItem.ItemStatus.ACCEPTED for s in states):
-            bundle.status = Bundle.Status.CONFIRMED
-        elif BundleItem.ItemStatus.ACCEPTED in states:
-            bundle.status = Bundle.Status.PARTIALLY_ACCEPTED
-        else:
-            bundle.status = Bundle.Status.REQUESTS_SENT
-        bundle.save(update_fields=["status", "updated_at"])
+    item = get_object_or_404(BundleItem.objects.select_related("bundle", "listing"),
+                             pk=request_id, listing__seller=request.user)
+    if not Conversation.objects.filter(buyer=item.bundle.buyer, seller=request.user,
+                                       listing=item.listing).exists():
+        return error("Request conversation not found.", 404, "not_found")
+    target = BundleItem.ItemStatus.ACCEPTED if decision == "accepted" else BundleItem.ItemStatus.DECLINED
+    if item.item_status == target:
+        return JsonResponse(request_data(item))
+    if item.item_status != BundleItem.ItemStatus.REQUESTED:
+        return error("This request has already been handled.", 409, "stale_request")
+    try:
+        with transaction.atomic():
+            if decision == "accepted":
+                reserve_listing(item.listing_id)
+            item = get_object_or_404(
+                BundleItem.objects.select_for_update().select_related("bundle", "listing"),
+                pk=item.pk, listing__seller=request.user,
+            )
+            if not Conversation.objects.filter(buyer=item.bundle.buyer, seller=request.user,
+                                               listing=item.listing).exists():
+                raise Http404
+            if item.item_status != BundleItem.ItemStatus.REQUESTED:
+                raise DealConflict("This request has already been handled.", "stale_request")
+            if decision == "accepted":
+                if active_transaction_exists(item.listing_id):
+                    raise DealConflict("This listing is unavailable.", "listing_unavailable")
+                listing = Listing.objects.get(pk=item.listing_id)
+                price = item.proposed_bundle_price if item.proposed_bundle_price is not None else item.listing_price_snapshot
+                Transaction.objects.create(listing=listing, buyer=item.bundle.buyer, seller=request.user,
+                    bundle=item.bundle, bundle_item=item, agreed_price=price,
+                    benchmark_price_snapshot=listing.benchmark_price)
+                item.final_price = price
+            item.item_status = target
+            item.responded_at = timezone.now()
+            item.save(update_fields=["item_status", "responded_at", "final_price"])
+            bundle = item.bundle
+            states = list(bundle.bundle_items.values_list("item_status", flat=True))
+            if states and all(s == BundleItem.ItemStatus.ACCEPTED for s in states):
+                bundle.status = Bundle.Status.CONFIRMED
+            elif BundleItem.ItemStatus.ACCEPTED in states:
+                bundle.status = Bundle.Status.PARTIALLY_ACCEPTED
+            else:
+                bundle.status = Bundle.Status.REQUESTS_SENT
+            bundle.save(update_fields=["status", "updated_at"])
+            if decision == "accepted":
+                invalidate_other_offers(item.listing_id)
+    except DealConflict as exc:
+        latest = BundleItem.objects.select_related("bundle").get(pk=item.pk)
+        if latest.item_status == target:
+            return JsonResponse(request_data(latest))
+        return conflict_response(exc)
+    except (IntegrityError, ValidationError):
+        return error("The Bundle transaction could not be saved. Retry the request.",
+                     503, "transaction_failed")
     return JsonResponse(request_data(item))

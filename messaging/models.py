@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 import uuid
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -182,6 +183,81 @@ class Message(ValidatedSaveModel):
 
     def __str__(self):
         return f"{self.sender}: {self.body_text[:30]}"
+
+
+class DealProposal(ValidatedSaveModel):
+    """One seller's final offer in a conversation, kept after later revisions."""
+
+    class Status(models.TextChoices):
+        AWAITING_BUYER = "awaiting_buyer", "Awaiting buyer"
+        DECLINED = "declined", "Declined"
+        WITHDRAWN = "withdrawn", "Withdrawn"
+        SUPERSEDED = "superseded", "Superseded"
+        CONFIRMED = "confirmed", "Confirmed"
+        UNAVAILABLE = "unavailable", "Unavailable"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name="deal_proposals"
+    )
+    agreed_price = models.DecimalField(max_digits=8, decimal_places=2)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.AWAITING_BUYER
+    )
+    replaces = models.ForeignKey(
+        "self", on_delete=models.PROTECT, null=True, blank=True, related_name="revisions"
+    )
+    client_request_id = models.UUIDField()
+    transaction = models.OneToOneField(
+        "marketplace.Transaction", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="deal_proposal",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["created_at", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["conversation"], condition=models.Q(status="awaiting_buyer"),
+                name="one_awaiting_deal_per_conversation",
+            ),
+            models.UniqueConstraint(
+                fields=["conversation", "client_request_id"],
+                name="unique_deal_request_per_conversation",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(agreed_price__gte=Decimal("0.01")) &
+                          models.Q(agreed_price__lte=Decimal("999999.99")),
+                name="deal_price_in_range",
+            ),
+            models.CheckConstraint(
+                condition=(models.Q(status="confirmed", transaction__isnull=False) |
+                           (~models.Q(status="confirmed") & models.Q(transaction__isnull=True))),
+                name="confirmed_deal_has_transaction",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        database = database_for(self)
+        errors = {}
+        if self.replaces_id:
+            previous_conversation = type(self).objects.using(database).filter(
+                pk=self.replaces_id
+            ).values_list("conversation_id", flat=True).first()
+            if previous_conversation != self.conversation_id or self.replaces_id == self.pk:
+                errors["replaces"] = "The previous offer must belong to this conversation."
+        if self.transaction_id and self.conversation_id:
+            linked = self.transaction
+            conversation = self.conversation
+            if (linked.conversation_id != conversation.pk or
+                    linked.listing_id != conversation.listing_id or
+                    linked.buyer_id != conversation.buyer_id or
+                    linked.seller_id != conversation.seller_id):
+                errors["transaction"] = "The transaction must belong to this conversation."
+        if errors:
+            raise ValidationError(errors)
 
 
 class MessageImage(models.Model):

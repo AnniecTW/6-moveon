@@ -15,14 +15,36 @@
     const result = await response.json().catch(() => ({ error: "Request failed. Please try again." }));
     if (response.status === 401 || result.code === "campus_access_required" || result.code === "login_required") {
       const error = new Error("Your campus session is no longer available. Sign in again.");
-      error.code = "auth";
+      error.code = result.code || "auth";
+      error.status = response.status;
       throw error;
     }
-    if (!response.ok) throw new Error(result.error || "Request failed. Please try again.");
+    if (!response.ok) {
+      const error = new Error(result.error || "Request failed. Please try again.");
+      error.status = response.status;
+      error.code = result.code || "request_failed";
+      throw error;
+    }
     return result;
   }
 
   const STATUS_LABEL = { awaiting: "Awaiting response", accepted: "Accepted", declined: "Declined" };
+  const TRADE_LABEL = {
+    negotiating: "Negotiating", action_needed: "Action needed",
+    waiting: "Waiting for response", pending_pickup: "Pending pickup",
+    declined: "Declined", unavailable: "Unavailable",
+  };
+  const DETAIL_LABEL = {
+    negotiating: "Keep chatting to agree on the next step.",
+    review_bundle_request: "Review this buyer's Bundle request.",
+    waiting_for_seller: "Waiting for the seller to review your Bundle request.",
+    review_deal: "The seller has submitted a final offer for your review.",
+    awaiting_buyer: "Waiting for the buyer to review your final offer.",
+    deal_declined: "The final offer was declined. You can keep chatting.",
+    bundle_declined: "The Bundle request was declined. You can keep chatting.",
+    pending_pickup: "This listing is reserved for your pickup.",
+    unavailable: "This listing is no longer available.",
+  };
 
   /* ==========================================================
      2. STATE (in-memory only)
@@ -41,6 +63,8 @@
     polling: false,
     selectionVersion: 0,
     reqUi: {},                // requestId -> { mode, decision, error } inline action UI
+    offerUi: {},              // proposalId -> { busy, error }
+    dealUi: null,             // active offer/review dialog; kept across polling
   };
 
   // Root + cached DOM references (filled in bootstrap()).
@@ -86,6 +110,22 @@
       return api(endpoint(config.decision, requestId), { method: "POST",
         headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision }) });
     },
+    async createDeal(convId, payload) {
+      return api(endpoint(config.dealCreate, convId), { method: "POST",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    },
+    async reviseDeal(proposalId, payload) {
+      return api(endpoint(config.dealRevise, proposalId), { method: "PATCH",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    },
+    async withdrawDeal(proposalId) {
+      return api(endpoint(config.dealWithdraw, proposalId), { method: "POST",
+        headers: { "Content-Type": "application/json" }, body: "{}" });
+    },
+    async decideDeal(proposalId, decision) {
+      return api(endpoint(config.dealDecision, proposalId), { method: "POST",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision }) });
+    },
     async uploadImage(convId, file) {
       const body = new FormData();
       body.append("conversationId", convId);
@@ -121,6 +161,11 @@
   function money(n) {
     if (n == null) return "";
     return "$" + Number(n).toLocaleString();
+  }
+
+  function dealMoney(n) {
+    return "$" + Number(n).toLocaleString(undefined,
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   function el(tag, className, html) {
@@ -188,6 +233,7 @@
   function matchesFilter(conv) {
     if (state.filter === "buying") return conv.role === "buyer";
     if (state.filter === "selling") return conv.role === "seller";
+    if (state.filter === "needs-action") return conv.trade?.summaryState === "action_needed";
     return true;
   }
 
@@ -214,13 +260,6 @@
     return t;
   }
 
-  function bundleNoteText(conv) {
-    const reqs = conv.bundleRequests || [];
-    if (!reqs.length) return null;
-    if (reqs.length > 1) return "Bundle request · " + reqs.length + " requests";
-    return "Bundle request · " + (STATUS_LABEL[reqs[0].status] || reqs[0].status);
-  }
-
   function renderList() {
     const list = dom.list;
     list.innerHTML = "";
@@ -241,7 +280,9 @@
           "messaging__list-empty-body",
           emptyInbox
             ? "Conversations about your listings and bundle requests will show up here."
-            : "No conversations match your search."
+            : state.search.trim()
+              ? "No conversations match your search."
+              : "No conversations match this filter."
         )
       );
       list.appendChild(li);
@@ -253,7 +294,10 @@
       row.dataset.convId = conv.id;
       if (conv.id === state.activeId) row.classList.add("is-active");
 
-      row.appendChild(thumb("messaging__thumb", conv.listing));
+      const rail = el("div", "messaging__row-rail");
+      rail.appendChild(thumb("messaging__thumb", conv.listing));
+      rail.appendChild(el("span", "messaging__tag", conv.role === "seller" ? "Selling" : "Buying"));
+      row.appendChild(rail);
 
       const main = el("div", "messaging__row-main");
 
@@ -263,10 +307,9 @@
       top.appendChild(el("span", "messaging__row-time", esc(relTime(conv.lastActivity))));
       main.appendChild(top);
 
-      // Contact + role tag.
+      // Contact name.
       const contact = el("div", "messaging__row-contact");
       contact.appendChild(el("span", "messaging__row-contact-name", esc(conv.contact.displayName)));
-      contact.appendChild(el("span", "messaging__tag", conv.role === "seller" ? "Selling" : "Buying"));
       main.appendChild(contact);
 
       // Bottom: failed alert + preview + unread pill.
@@ -282,9 +325,11 @@
       }
       main.appendChild(bottom);
 
-      // Bundle-request note.
-      const note = bundleNoteText(conv);
-      if (note) main.appendChild(el("div", "messaging__row-bundle", esc(note)));
+      const summary = conv.trade?.summaryState || "negotiating";
+      const status = el("div", "messaging__row-state messaging__row-state--" + summary);
+      status.appendChild(el("span", "messaging__row-state-dot"));
+      status.appendChild(document.createTextNode(TRADE_LABEL[summary] || TRADE_LABEL.negotiating));
+      main.appendChild(status);
 
       row.appendChild(main);
       list.appendChild(row);
@@ -302,29 +347,60 @@
     const info = el("div", "messaging__chat-listing");
     const titleRow = el("div", "messaging__chat-title-row");
     titleRow.appendChild(el("span", "messaging__chat-title", esc(listing.title)));
-    if (listing.available === false) {
-      titleRow.appendChild(
-        el("span", "messaging__badge-unavailable", esc(listing.unavailableReason || "Unavailable"))
-      );
-    }
+    const summary = conv.trade?.summaryState || "negotiating";
+    const status = el("span", "messaging__status-badge messaging__status-badge--" + summary,
+      esc(TRADE_LABEL[summary] || TRADE_LABEL.negotiating));
+    status.title = DETAIL_LABEL[conv.trade?.detailState] || "";
+    titleRow.appendChild(status);
     info.appendChild(titleRow);
 
     // "Listed $X · with Name" — price comes from listing data, never chat.
     const subParts = [];
     if (listing.listedPrice != null) subParts.push("Listed " + money(listing.listedPrice));
     subParts.push("with " + conv.contact.displayName);
+    if (conv.trade?.transaction?.agreedPrice) {
+      subParts.push("Agreed " + dealMoney(conv.trade.transaction.agreedPrice));
+    }
     info.appendChild(el("div", "messaging__chat-sub", esc(subParts.join(" · "))));
     h.appendChild(info);
+
+    const actions = el("div", "messaging__chat-actions");
+    const dealActions = conv.trade?.allowedActions?.deal || [];
+    if (dealActions.includes("create")) {
+      const start = el("button", "messaging__btn messaging__btn--solid", "Start Deal");
+      start.type = "button";
+      start.addEventListener("click", () => openDealDialog(conv.id, "create"));
+      actions.appendChild(start);
+    } else if (dealActions.includes("confirm") && conv.trade.currentProposalId) {
+      const review = el("button", "messaging__btn messaging__btn--solid", "Review Deal");
+      review.type = "button";
+      review.addEventListener("click", () => openDealDialog(conv.id, "review", conv.trade.currentProposalId));
+      actions.appendChild(review);
+    }
 
     // View Listing (only when the listing is still available).
     if (listing.available !== false) {
       const link = el("a", "messaging__view-listing", "View Listing " + ICON.external);
       link.href = config.home + "?q=" + encodeURIComponent(listing.title) + "#listing-" + encodeURIComponent(listing.id);
       link.textContent = "View listing";
-      h.appendChild(link);
-    } else {
-      h.appendChild(el("span", "messaging__view-unavailable", "Listing unavailable"));
+      actions.appendChild(link);
     }
+    h.appendChild(actions);
+  }
+
+  function renderTradeStatus(conv) {
+    const announcement = dom.tradeAnnouncement;
+    if (!announcement) return;
+    const trade = conv.trade || {};
+    const summary = trade.summaryState || "negotiating";
+    let detail = DETAIL_LABEL[trade.detailState] || DETAIL_LABEL.negotiating;
+    if (summary === "pending_pickup" && trade.transaction?.agreedPrice) {
+      detail += " Agreed price: " + dealMoney(trade.transaction.agreedPrice) + ".";
+    }
+    const key = JSON.stringify([conv.id, summary, detail]);
+    if (announcement.dataset.tradeKey === key) return;
+    announcement.dataset.tradeKey = key;
+    announcement.textContent = (TRADE_LABEL[summary] || TRADE_LABEL.negotiating) + ". " + detail;
   }
 
   // ----- 5c. Thread (request cards + day-grouped bubbles) -----
@@ -348,6 +424,14 @@
       thread.appendChild(renderRequestCard(conv, req));
     });
 
+    // Offers are persistent conversation context, separate from timestamped messages.
+    const proposals = conv.dealProposals || [];
+    const currentId = conv.trade?.currentProposalId;
+    const current = proposals.find((proposal) => proposal.id === currentId);
+    if (current) thread.appendChild(renderDealProposalCard(conv, current, true));
+    proposals.slice().reverse().filter((proposal) => proposal.id !== currentId)
+      .forEach((proposal) => thread.appendChild(renderDealProposalCard(conv, proposal, false)));
+
     // Messages grouped by day.
     let lastDay = null;
     (conv.messages || []).forEach((msg) => {
@@ -360,7 +444,7 @@
     });
 
     if (forceBottom || nearBottom) thread.scrollTop = thread.scrollHeight;
-    else thread.scrollTop = oldTop + (prepended ? Math.max(0, thread.scrollHeight - oldHeight) : 0);
+    else thread.scrollTop = oldTop + (prepended ? thread.scrollHeight - oldHeight : 0);
     requestAnimationFrame(markVisibleRead);
   }
 
@@ -411,6 +495,7 @@
   function renderRequestCard(conv, req) {
     const card = el("div", "messaging__request-card");
     card.dataset.requestId = req.requestId;
+    if (req.status !== "awaiting") card.classList.add("is-history");
 
     // Top row: icon + fixed "Bundle request" label + meta, then status pill.
     const top = el("div", "messaging__request-top");
@@ -419,7 +504,8 @@
     const headText = el("div");
     headText.appendChild(el("div", "messaging__request-label", "Bundle request"));
     headText.appendChild(
-      el("div", "messaging__request-meta", esc(req.bundleLabel + " · " + req.itemCount + " items"))
+      el("div", "messaging__request-meta",
+        esc(req.bundleLabel + " · " + req.itemCount + " items · " + money(req.requestedPrice)))
     );
     head.appendChild(headText);
     top.appendChild(head);
@@ -432,12 +518,6 @@
     );
     card.appendChild(top);
 
-    // Requested price is a DISTINCT field from the listing's listed price.
-    const priceRow = el("div", "messaging__request-price-row");
-    priceRow.appendChild(el("span", "messaging__request-price-label", "Requested price"));
-    priceRow.appendChild(el("span", "messaging__request-price", esc(money(req.requestedPrice))));
-    card.appendChild(priceRow);
-
     // Seller actions — only while awaiting a response (see TRANSACTION RULES).
     if (canDecide(conv, req)) {
       card.appendChild(renderRequestActions(conv, req));
@@ -447,7 +527,11 @@
 
   // Inline accept/decline flow: idle -> confirming -> processing -> result / failed.
   function renderRequestActions(conv, req) {
-    const ui = state.reqUi[req.requestId] || { mode: "idle", decision: null, error: null };
+    let ui = state.reqUi[req.requestId] || { mode: "idle", decision: null, error: null };
+    if (ui.decision && !canDecide(conv, req, ui.decision)) {
+      ui = { mode: "idle", decision: null, error: null };
+      state.reqUi[req.requestId] = ui;
+    }
     const body = el("div", "messaging__request-body");
 
     if (ui.mode === "processing") {
@@ -496,16 +580,296 @@
 
     // idle
     const actions = el("div", "messaging__request-actions");
-    const accept = el("button", "messaging__btn messaging__btn--solid", "Accept request");
-    accept.type = "button";
-    accept.addEventListener("click", () => startDecision(conv, req, "accepted"));
-    const decline = el("button", "messaging__btn", "Decline request");
-    decline.type = "button";
-    decline.addEventListener("click", () => startDecision(conv, req, "declined"));
-    actions.appendChild(accept);
-    actions.appendChild(decline);
+    if (canDecide(conv, req, "accepted")) {
+      const accept = el("button", "messaging__btn messaging__btn--solid", "Accept request");
+      accept.type = "button";
+      accept.addEventListener("click", () => startDecision(conv, req, "accepted"));
+      actions.appendChild(accept);
+    }
+    if (canDecide(conv, req, "declined")) {
+      const decline = el("button", "messaging__btn", "Decline request");
+      decline.type = "button";
+      decline.addEventListener("click", () => startDecision(conv, req, "declined"));
+      actions.appendChild(decline);
+    }
     body.appendChild(actions);
     return body;
+  }
+
+  // ----- 5e. Final offer cards and review dialog -----
+  const OFFER_LABEL = {
+    awaiting_buyer: "Awaiting buyer", declined: "Declined", withdrawn: "Withdrawn",
+    superseded: "Replaced", confirmed: "Confirmed", unavailable: "Unavailable",
+  };
+
+  function renderDealProposalCard(conv, proposal, isCurrent) {
+    const card = el("div", "messaging__offer-card");
+    card.dataset.proposalId = proposal.id;
+    if (!isCurrent) card.classList.add("is-history");
+    const top = el("div", "messaging__offer-top");
+    const description = el("div", "messaging__offer-description");
+    description.appendChild(el("strong", "", isCurrent ? "Final offer" : "Earlier offer"));
+    description.appendChild(el("span", "", esc(dealMoney(proposal.agreedPrice))));
+    top.appendChild(description);
+    const status = isCurrent ? proposal.status :
+      proposal.status === "awaiting_buyer" ? "unavailable" : proposal.status;
+    top.appendChild(el("span", "messaging__offer-state", esc(OFFER_LABEL[status] || status)));
+    card.appendChild(top);
+
+    if (isCurrent) {
+      const allowed = conv.trade?.allowedActions?.deal || [];
+      const actions = el("div", "messaging__offer-actions");
+      if (allowed.includes("edit")) {
+        const edit = el("button", "messaging__btn", "Edit Offer");
+        edit.type = "button";
+        edit.addEventListener("click", () => openDealDialog(conv.id, "edit", proposal.id));
+        actions.appendChild(edit);
+      }
+      if (allowed.includes("withdraw")) {
+        const withdraw = el("button", "messaging__btn", "Withdraw");
+        withdraw.type = "button";
+        withdraw.disabled = !!state.offerUi[proposal.id]?.busy;
+        withdraw.addEventListener("click", () => withdrawDeal(conv.id, proposal.id));
+        actions.appendChild(withdraw);
+      }
+      if (allowed.includes("confirm")) {
+        const review = el("button", "messaging__btn messaging__btn--solid", "Review Deal");
+        review.type = "button";
+        review.addEventListener("click", () => openDealDialog(conv.id, "review", proposal.id));
+        actions.appendChild(review);
+      }
+      if (actions.childElementCount) card.appendChild(actions);
+      const ui = state.offerUi[proposal.id];
+      if (ui?.busy) card.appendChild(el("span", "messaging__offer-feedback", "Updating offer…"));
+      if (ui?.error) card.appendChild(el("span", "messaging__offer-error", esc(ui.error)));
+    }
+    return card;
+  }
+
+  function applyDealResult(convId, result) {
+    const conv = getConversation(convId);
+    if (!conv) return;
+    conv.listing = { ...conv.listing, ...result.listing };
+    conv.trade = result.trade;
+    conv.dealProposals = result.dealProposals;
+    renderList();
+    if (state.activeId === convId) {
+      renderChatHeader(conv);
+      renderTradeStatus(conv);
+      renderThread(conv, false, true);
+      applyComposerState(conv);
+      syncDealDialog();
+    }
+  }
+
+  async function withdrawDeal(convId, proposalId) {
+    const conv = getConversation(convId);
+    if (conv?.trade?.currentProposalId !== proposalId ||
+        !conv.trade.allowedActions.deal.includes("withdraw")) return;
+    if (state.offerUi[proposalId]?.busy) return;
+    state.offerUi[proposalId] = { busy: true, error: null };
+    if (state.activeId === convId) renderThread(conv);
+    try {
+      const result = await Adapter.withdrawDeal(proposalId);
+      state.offerUi[proposalId] = { busy: false, error: null };
+      applyDealResult(convId, result);
+    } catch (error) {
+      state.offerUi[proposalId] = { busy: false, error: error.message || "Could not withdraw." };
+      if (error.status === 409) await poll();
+      if (state.activeId === convId) renderThread(getConversation(convId) || conv);
+    }
+  }
+
+  function closeDealDialog() {
+    if (dom.dealDialog?.open) dom.dealDialog.close();
+    state.dealUi = null;
+  }
+
+  function openDealDialog(convId, mode, proposalId = null) {
+    const conv = getConversation(convId);
+    if (!conv || !dom.dealDialog) return;
+    const allowed = conv.trade?.allowedActions?.deal || [];
+    const required = { create: "create", edit: "edit", review: "confirm" }[mode];
+    if (!allowed.includes(required)) return;
+    if (mode !== "create" && conv.trade.currentProposalId !== proposalId) return;
+    const proposal = (conv.dealProposals || []).find((item) => item.id === proposalId);
+    if (mode !== "create" && !proposal) return;
+    state.dealUi = {
+      convId, mode, proposalId, reviewPrice: proposal?.agreedPrice || null,
+      request: null, busy: false, stale: false, error: null,
+    };
+    renderDealDialog(conv, proposal);
+    dom.dealDialog.showModal();
+    (dom.dealDialog.querySelector("[data-deal-price]") ||
+      dom.dealDialog.querySelector("[data-deal-submit]"))?.focus();
+  }
+
+  function renderDealDialog(conv, proposal) {
+    const ui = state.dealUi;
+    const content = dom.dealContent;
+    content.replaceChildren();
+    const top = el("div", "messaging__deal-top");
+    const title = el("h2", "messaging__deal-title",
+      ui.mode === "create" ? "Start Deal" : ui.mode === "edit" ? "Edit Offer" : "Review Deal");
+    title.id = "messaging-deal-title";
+    top.appendChild(title);
+    const close = el("button", "messaging__deal-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "Close deal dialog");
+    close.addEventListener("click", closeDealDialog);
+    top.appendChild(close);
+    content.appendChild(top);
+    content.appendChild(el("div", "messaging__deal-listing", esc(conv.listing.title)));
+    content.appendChild(el("div", "messaging__deal-listed",
+      "Public price: " + esc(money(conv.listing.listedPrice))));
+
+    if (ui.mode === "review") {
+      content.appendChild(el("div", "messaging__deal-price", esc(dealMoney(proposal.agreedPrice))));
+      content.appendChild(el("p", "messaging__deal-note",
+        "Confirming reserves this item for pickup. MoveOn does not process real payment."));
+    } else {
+      const label = el("label", "messaging__deal-field");
+      label.appendChild(el("span", "", "Final agreed price"));
+      const input = document.createElement("input");
+      input.type = "text";
+      input.inputMode = "decimal";
+      input.autocomplete = "off";
+      input.placeholder = "0.00";
+      input.value = proposal?.agreedPrice || "";
+      input.dataset.dealPrice = "";
+      input.addEventListener("input", () => {
+        ui.request = null; // Changing parameters must use a new idempotency key.
+        ui.error = null;
+        syncDealDialog();
+      });
+      label.appendChild(input);
+      content.appendChild(label);
+      const confirmation = el("label", "messaging__deal-confirm");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.dataset.dealConfirm = "";
+      checkbox.addEventListener("change", () => { ui.error = null; syncDealDialog(); });
+      confirmation.appendChild(checkbox);
+      confirmation.appendChild(document.createTextNode("I confirm I am willing to sell at this final price."));
+      content.appendChild(confirmation);
+      content.appendChild(el("p", "messaging__deal-note", "The buyer must confirm before the item is reserved."));
+    }
+
+    const stale = el("div", "messaging__deal-warning");
+    stale.dataset.dealStale = "";
+    stale.hidden = true;
+    content.appendChild(stale);
+    const error = el("div", "messaging__deal-error");
+    error.dataset.dealError = "";
+    error.hidden = true;
+    content.appendChild(error);
+    const actions = el("div", "messaging__deal-actions");
+    if (ui.mode === "review") {
+      const decline = el("button", "messaging__btn", "Decline");
+      decline.type = "button";
+      decline.dataset.dealAction = "decline";
+      decline.addEventListener("click", () => submitDealDecision("declined"));
+      actions.appendChild(decline);
+    }
+    const cancel = el("button", "messaging__btn", "Close");
+    cancel.type = "button";
+    cancel.addEventListener("click", closeDealDialog);
+    actions.appendChild(cancel);
+    const submit = el("button", "messaging__btn messaging__btn--solid",
+      ui.mode === "review" ? "Confirm Purchase" :
+        ui.mode === "edit" ? "Update Offer" : "Submit Offer");
+    submit.type = "button";
+    submit.dataset.dealSubmit = "";
+    submit.dataset.dealAction = ui.mode === "review" ? "confirm" : ui.mode;
+    submit.addEventListener("click", ui.mode === "review" ?
+      () => submitDealDecision("confirmed") : submitDealOffer);
+    actions.appendChild(submit);
+    content.appendChild(actions);
+    syncDealDialog();
+  }
+
+  function syncDealDialog() {
+    const ui = state.dealUi;
+    if (!ui || !dom.dealDialog?.open && !dom.dealContent?.childElementCount) return;
+    const conv = getConversation(ui.convId);
+    const allowed = conv?.trade?.allowedActions?.deal || [];
+    const current = (conv?.dealProposals || []).find((item) => item.id === ui.proposalId);
+    const valid = ui.mode === "create" ? allowed.includes("create") :
+      ui.mode === "edit" ? allowed.includes("edit") &&
+        conv.trade.currentProposalId === ui.proposalId :
+        allowed.includes("confirm") && allowed.includes("decline") &&
+        conv.trade.currentProposalId === ui.proposalId &&
+        current?.agreedPrice === ui.reviewPrice;
+    ui.stale = !valid;
+    const stale = dom.dealContent.querySelector("[data-deal-stale]");
+    if (stale) {
+      stale.hidden = !ui.stale;
+      stale.textContent = ui.stale ? "This offer changed or is no longer available. Close and refresh the conversation." : "";
+    }
+    const error = dom.dealContent.querySelector("[data-deal-error]");
+    if (error) {
+      error.hidden = !ui.error;
+      error.textContent = ui.error || "";
+    }
+    dom.dealContent.querySelectorAll("[data-deal-action]").forEach((button) => {
+      button.disabled = ui.busy || ui.stale;
+    });
+  }
+
+  async function submitDealOffer() {
+    const ui = state.dealUi;
+    if (!ui || ui.busy || ui.stale || ui.mode === "review") return;
+    const price = dom.dealContent.querySelector("[data-deal-price]")?.value.trim() || "";
+    const confirmed = dom.dealContent.querySelector("[data-deal-confirm]")?.checked;
+    if (!/^(?:0|[1-9][0-9]{0,5})(?:\.[0-9]{1,2})?$/.test(price) ||
+        Number(price) < 0.01 || Number(price) > 999999.99 || !confirmed) {
+      ui.error = "Enter a price from $0.01 to $999,999.99 and confirm you will sell.";
+      syncDealDialog();
+      return;
+    }
+    if (!ui.request || ui.request.price !== price) {
+      ui.request = { price, key: crypto.randomUUID() };
+    }
+    ui.busy = true;
+    ui.error = null;
+    syncDealDialog();
+    const payload = { agreedPrice: price, sellerConfirmed: true, clientRequestId: ui.request.key };
+    try {
+      const result = ui.mode === "edit" ?
+        await Adapter.reviseDeal(ui.proposalId, payload) :
+        await Adapter.createDeal(ui.convId, payload);
+      const convId = ui.convId;
+      closeDealDialog();
+      applyDealResult(convId, result);
+    } catch (error) {
+      ui.busy = false;
+      ui.error = error.message || "Could not save the offer. Retry the same request.";
+      if (error.status === 409) await poll();
+      if (state.dealUi === ui) syncDealDialog();
+    }
+  }
+
+  async function submitDealDecision(decision) {
+    const ui = state.dealUi;
+    if (!ui || ui.busy || ui.stale || ui.mode !== "review") return;
+    const conv = getConversation(ui.convId);
+    const required = decision === "confirmed" ? "confirm" : "decline";
+    if (conv?.trade?.currentProposalId !== ui.proposalId ||
+        !conv.trade.allowedActions.deal.includes(required)) return;
+    ui.busy = true;
+    ui.error = null;
+    syncDealDialog();
+    try {
+      const result = await Adapter.decideDeal(ui.proposalId, decision);
+      const convId = ui.convId;
+      closeDealDialog();
+      applyDealResult(convId, result);
+    } catch (error) {
+      ui.busy = false;
+      ui.error = error.message || "Could not submit the decision. Try again.";
+      if (error.status === 409) await poll();
+      if (state.dealUi === ui) syncDealDialog();
+    }
   }
 
   /* ==========================================================
@@ -607,11 +971,14 @@
      ----------------------------------------------------------
      Only a SELLER may accept/decline, and only while the request
      is still 'awaiting'. Buyers never act on their own request.
-     These rules are intentionally isolated so backend-confirmed
-     policy (see README "Open questions") can replace them.
+     The server supplies separate accept and decline permissions.
      ========================================================== */
-  function canDecide(conv, req) {
-    return conv.role === "seller" && req.status === "awaiting";
+  function canDecide(conv, req, decision) {
+    if (req.status !== "awaiting") return false;
+    const allowed = conv.trade?.allowedActions || {};
+    if (decision === "accepted") return (allowed.bundleRequestIds || []).includes(req.requestId);
+    if (decision === "declined") return (allowed.bundleDeclineRequestIds || []).includes(req.requestId);
+    return canDecide(conv, req, "accepted") || canDecide(conv, req, "declined");
   }
 
   function refreshActiveThread() {
@@ -620,7 +987,7 @@
   }
 
   function startDecision(conv, req, decision) {
-    if (!canDecide(conv, req)) return;
+    if (!canDecide(conv, req, decision)) return;
     state.reqUi[req.requestId] = { mode: "confirming", decision: decision, error: null };
     refreshActiveThread();
   }
@@ -634,6 +1001,7 @@
     const ui = state.reqUi[req.requestId];
     const decision = ui && ui.decision;
     if (!decision || ui.mode === "processing") return;
+    if (!canDecide(getConversation(conv.id) || conv, req, decision)) return;
     state.reqUi[req.requestId] = { mode: "processing", decision: decision, error: null };
     refreshActiveThread();
     try {
@@ -642,6 +1010,7 @@
       state.reqUi[req.requestId] = { mode: "idle", decision: null, error: null };
       if (state.activeId === conv.id) refreshActiveThread();
       renderList();
+      await poll();
     } catch (e) {
       state.reqUi[req.requestId] = { mode: "failed", decision: decision, error: e.message || "Couldn't submit." };
       if (state.activeId === conv.id) refreshActiveThread();
@@ -653,9 +1022,9 @@
      ========================================================== */
 
   function composerDisabled(conv) {
-    // Match the React rule: only disabled for an unavailable listing that
-    // never had any messages. Otherwise the history + composer stay usable.
-    return conv.listing.available === false && (conv.messages || []).length === 0;
+    // Keep the chat usable for the buyer and seller of a reserved listing.
+    return conv.trade?.summaryState !== "pending_pickup" &&
+      conv.listing.available === false && (conv.messages || []).length === 0;
   }
 
   function applyComposerState(conv) {
@@ -681,6 +1050,7 @@
 
   async function selectConversation(id) {
     const version = ++state.selectionVersion;
+    if (state.dealUi && state.dealUi.convId !== id) closeDealDialog();
     // Preserve the draft of the conversation we're leaving.
     if (state.activeId && dom.messageInput) {
       state.drafts.set(state.activeId, dom.messageInput.value);
@@ -694,6 +1064,7 @@
     dom.chatInner.hidden = false;
 
     renderChatHeader(conv);
+    renderTradeStatus(conv);
     renderThread(conv, true);
     renderAttachments();
     applyComposerState(conv);
@@ -760,7 +1131,10 @@
       renderList();
       window.dispatchEvent(new Event("messaging:unread-changed"));
     } catch (e) {
-      if (e.code === "auth") showError(e.message);
+      if (e.status === 401 || e.code === "auth" ||
+          e.code === "login_required" || e.code === "campus_access_required") {
+        showError(e.message);
+      }
     } finally {
       ids.forEach((id) => state.readInFlight.delete(id));
     }
@@ -897,6 +1271,7 @@
     try {
       const fresh = await Adapter.fetchConversations();
       const old = new Map(state.conversations.map((conv) => [conv.id, conv]));
+      const previousActive = old.get(state.activeId);
       state.conversations = fresh.map((conv) => {
         const prior = old.get(conv.id);
         if (!prior) return conv;
@@ -909,6 +1284,16 @@
       const id = state.activeId;
       const conv = getConversation(id);
       if (conv) {
+        renderChatHeader(conv);
+        renderTradeStatus(conv);
+        applyComposerState(conv);
+        syncDealDialog();
+        if (previousActive && (
+          JSON.stringify(previousActive.trade) !== JSON.stringify(conv.trade) ||
+          JSON.stringify(previousActive.bundleRequests) !== JSON.stringify(conv.bundleRequests) ||
+          JSON.stringify(previousActive.dealProposals) !== JSON.stringify(conv.dealProposals) ||
+          previousActive.listing.status !== conv.listing.status
+        )) renderThread(conv, false, true);
         const latest = Math.max(0, ...conv.messages.map((m) => /^\d+$/.test(m.id) ? Number(m.id) : 0));
         let page = await Adapter.fetchMessages(id, "?after=" + latest);
         if (state.activeId !== id) return;
@@ -955,6 +1340,7 @@
     dom.chatEmpty = root.querySelector("[data-chat-empty]");
     dom.chatInner = root.querySelector("[data-chat-inner]");
     dom.chatHeader = root.querySelector("[data-chat-header]");
+    dom.tradeAnnouncement = root.querySelector("[data-trade-announcement]");
     dom.thread = root.querySelector("[data-thread]");
     dom.composer = root.querySelector("[data-composer]");
     dom.composerRow = root.querySelector(".messaging__composer-row");
@@ -966,6 +1352,9 @@
     dom.notice = root.querySelector("[data-messaging-notice]");
     dom.imageViewer = document.querySelector("[data-image-viewer]");
     dom.imageViewerImage = dom.imageViewer?.querySelector("[data-image-viewer-image]");
+    dom.dealDialog = document.querySelector("[data-deal-dialog]");
+    dom.dealContent = dom.dealDialog?.querySelector("[data-deal-content]");
+    dom.dealDialog?.addEventListener("cancel", () => { state.dealUi = null; });
     dom.imageViewer?.querySelector("[data-image-viewer-close]")?.addEventListener("click", () => dom.imageViewer.close());
     dom.imageViewer?.addEventListener("close", () => {
       dom.imageViewerImage.removeAttribute("src");

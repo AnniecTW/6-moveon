@@ -54,6 +54,7 @@
         <button class="messaging__pill is-active" type="button" data-filter="all">All</button>
         <button class="messaging__pill" type="button" data-filter="buying">Buying</button>
         <button class="messaging__pill" type="button" data-filter="selling">Selling</button>
+        <button class="messaging__pill" type="button" data-filter="needs-action">Needs action</button>
       </div>
       <!-- JS populates conversation rows here -->
       <ul class="messaging__list" data-conversation-list>
@@ -82,6 +83,8 @@
         <div class="messaging__chat-header" data-chat-header>
           <!-- JS populates: thumbnail, listing title, availability, price + contact, View Listing -->
         </div>
+
+        <span class="messaging__sr-only" data-trade-announcement aria-live="polite"></span>
 
         <!-- Scrollable thread: request cards + day-grouped bubbles -->
         <div class="messaging__thread" data-thread>
@@ -133,6 +136,9 @@
     </section><!-- /.messaging__chat -->
 
   </div><!-- /.messaging__body -->
+  <dialog class="messaging__deal-dialog" data-deal-dialog aria-labelledby="messaging-deal-title">
+    <div data-deal-content></div>
+  </dialog>
 </main><!-- /.messaging -->
 <dialog class="messaging__image-viewer" data-image-viewer aria-label="Image preview">
   <button type="button" class="messaging__image-viewer-close" data-image-viewer-close aria-label="Close image preview">×</button>
