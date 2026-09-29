@@ -354,14 +354,17 @@
     titleRow.appendChild(status);
     info.appendChild(titleRow);
 
-    // "Listed $X · with Name" — price comes from listing data, never chat.
-    const subParts = [];
-    if (listing.listedPrice != null) subParts.push("Listed " + money(listing.listedPrice));
-    subParts.push("with " + conv.contact.displayName);
-    if (conv.trade?.transaction?.agreedPrice) {
-      subParts.push("Agreed " + dealMoney(conv.trade.transaction.agreedPrice));
+    // Prices come from server listing/transaction data, never chat text.
+    const sub = el("div", "messaging__chat-sub");
+    if (listing.listedPrice != null) {
+      sub.append("Listed ", el("span", "messaging__chat-price", esc(money(listing.listedPrice))), " · ");
     }
-    info.appendChild(el("div", "messaging__chat-sub", esc(subParts.join(" · "))));
+    sub.append("with " + conv.contact.displayName);
+    if (conv.trade?.transaction?.agreedPrice) {
+      sub.append(" · Agreed ", el("span", "messaging__chat-price",
+        esc(dealMoney(conv.trade.transaction.agreedPrice))));
+    }
+    info.appendChild(sub);
     h.appendChild(info);
 
     const actions = el("div", "messaging__chat-actions");
@@ -726,7 +729,7 @@
     if (ui.mode === "review") {
       content.appendChild(el("div", "messaging__deal-price", esc(dealMoney(proposal.agreedPrice))));
       content.appendChild(el("p", "messaging__deal-note",
-        "Confirming reserves this item for pickup. MoveOn does not process real payment."));
+        "Accepting reserves this item for pickup. MoveOn does not process real payment."));
     } else {
       const label = el("label", "messaging__deal-field");
       label.appendChild(el("span", "", "Final agreed price"));
@@ -771,12 +774,14 @@
       decline.addEventListener("click", () => submitDealDecision("declined"));
       actions.appendChild(decline);
     }
-    const cancel = el("button", "messaging__btn", "Close");
-    cancel.type = "button";
-    cancel.addEventListener("click", closeDealDialog);
-    actions.appendChild(cancel);
+    if (ui.mode !== "review") {
+      const cancel = el("button", "messaging__btn", "Close");
+      cancel.type = "button";
+      cancel.addEventListener("click", closeDealDialog);
+      actions.appendChild(cancel);
+    }
     const submit = el("button", "messaging__btn messaging__btn--solid",
-      ui.mode === "review" ? "Confirm Purchase" :
+      ui.mode === "review" ? "Accept" :
         ui.mode === "edit" ? "Update Offer" : "Submit Offer");
     submit.type = "button";
     submit.dataset.dealSubmit = "";
@@ -839,7 +844,7 @@
         await Adapter.reviseDeal(ui.proposalId, payload) :
         await Adapter.createDeal(ui.convId, payload);
       const convId = ui.convId;
-      closeDealDialog();
+      if (state.dealUi === ui) closeDealDialog();
       applyDealResult(convId, result);
     } catch (error) {
       ui.busy = false;
@@ -862,7 +867,7 @@
     try {
       const result = await Adapter.decideDeal(ui.proposalId, decision);
       const convId = ui.convId;
-      closeDealDialog();
+      if (state.dealUi === ui) closeDealDialog();
       applyDealResult(convId, result);
     } catch (error) {
       ui.busy = false;

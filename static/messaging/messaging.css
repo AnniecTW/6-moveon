@@ -170,12 +170,13 @@
 }
 .messaging__filters .messaging__pill { font-size: 11px; white-space: nowrap; }
 .messaging__pill {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   font: inherit;
   font-size: 12.5px;
   font-weight: 500;
   text-transform: capitalize;
-  padding: 7px 0;
+  padding: 7px 4px;
   border: none;
   border-radius: 32px;
   background: var(--soft);
@@ -437,6 +438,7 @@
   color: var(--muted);
   margin-top: 1px;
 }
+.messaging__chat-price { color: var(--ink); font-weight: 650; }
 .messaging__chat-actions {
   display: flex;
   align-items: center;
@@ -835,8 +837,10 @@
 }
 .messaging__composer-note {
   padding: 4px 4px 2px;
-  font-size: 12.5px;
-  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.4;
   text-align: center;
 }
 .messaging__composer-note[hidden] { display: none; }

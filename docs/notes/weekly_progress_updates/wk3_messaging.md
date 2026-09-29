@@ -1,5 +1,8 @@
 # Week 3: Messaging phase two
 
+> Historical MVP snapshot. For the current offer, transaction, and status flow,
+> see [Week 4 Messaging offers and trade status](wk4_messaging_deals.md).
+
 This update covers the desktop `/messages/` MVP and its integration with the
 existing Django accounts, listings, and Bundle data. It uses the approved
 exported HTML, scoped CSS, and vanilla JavaScript with the shared marketplace

@@ -136,10 +136,12 @@ verified `@illinois.edu` accounts: A is the buyer and B is the seller, with at
 least one active listing owned by B. Use one of these setup paths:
 
 - **Isolated preview data:** `messaging_preview` uses its own SQLite database.
-  Its seed command creates demo data, including active listings, and verified
-  accounts `alex` and `maya`. It prints their temporary passwords in the
-  terminal; use them locally and never paste them into README, notes, or other
-  tracked files.
+  Its seed command creates demo data, including all six Messaging trade states,
+  Bundle request outcomes, and verified accounts `alex`, `maya`, and `jamie`.
+  It prints passwords for newly enabled accounts in the terminal; rerunning
+  keeps existing passwords. Use them locally and never paste them into tracked
+  files. If an existing preview password is unknown, reset it with
+  `python manage.py changepassword <username> --settings=moveon.settings.messaging_preview`.
 - **Regular development data:** Register A and B through the site, verify both
   accounts using the six-digit codes printed in the `runserver` terminal, then
   sign in as B and use **Sell Item** to create and publish an active listing.
@@ -147,6 +149,10 @@ least one active listing owned by B. Use one of these setup paths:
   workflow.
 
 Start an isolated preview server from the repository root:
+
+These `migrate` commands update only the database selected by `--settings`.
+Use the preview settings to try the new `messaging.0007_deal_proposal` migration
+without changing an existing development database.
 
 ```bash
 # macOS / Linux
@@ -189,38 +195,62 @@ python manage.py runserver --settings=moveon.settings.development
    and **Log in**; after verification and sign-in, the browser should return to
    the listing conversation. As a separate check, use the header profile icon
    to sign in; that general account entry should return to the home page.
+4. As B, click **Start Deal**, enter a final price, check the seller confirmation,
+   and submit. B should see **Waiting for response**; A should see **Action
+   needed** and **Review Deal**. The listing's public price should stay the same.
+5. As B, use **Edit Offer** to change the price. A should see the old price as a
+   non-actionable **Replaced** offer. In a second browser session, leave A's
+   review dialog open while B edits: polling should show the new offer and
+   disable confirmation of the old one without clearing a chat draft.
+6. As A, review and **Accept** the current offer. Both sides should
+   show **Pending pickup** and the agreed price. Another buyer with an existing
+   conversation for that listing should see **Unavailable**, without A's price.
+   On another active listing, submit and withdraw one offer, then submit a new
+   offer for A to **Decline**. Neither old offer should remain actionable.
+7. Use the seeded pending Bundle request to check **Accept request** or
+   **Decline request**; create another pending request to test both actions.
+   The seeded accepted and declined rows show historical results. Acceptance
+   reserves its listing without a second buyer confirmation. While a request
+   is pending, the seller cannot start or edit an ordinary offer in that
+   conversation.
 
-Run automated checks with the development settings:
+Run the focused Messaging tests against an automatically created test database.
+`test` does not write to the preview or regular development database:
 
 ```bash
 # macOS / Linux
-python manage.py test --settings=moveon.settings.development
-python manage.py check --settings=moveon.settings.development
-python manage.py makemigrations --check --dry-run --settings=moveon.settings.development
+python manage.py test tests.messaging --settings=moveon.settings.messaging_preview
+python manage.py check --settings=moveon.settings.messaging_preview
+python manage.py makemigrations --check --dry-run --settings=moveon.settings.messaging_preview
+node --check static/messaging/messaging.js  # optional, if Node.js is installed
 ```
 
 ```powershell
 # Windows PowerShell
-& .\.venv\Scripts\python.exe manage.py test --settings=moveon.settings.development
-& .\.venv\Scripts\python.exe manage.py check --settings=moveon.settings.development
-& .\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run --settings=moveon.settings.development
+& .\.venv\Scripts\python.exe manage.py test tests.messaging --settings=moveon.settings.messaging_preview
+& .\.venv\Scripts\python.exe manage.py check --settings=moveon.settings.messaging_preview
+& .\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run --settings=moveon.settings.messaging_preview
+node --check static/messaging/messaging.js  # optional, if Node.js is installed
 ```
+
+For a broader regression check, run
+`python manage.py test --settings=moveon.settings.messaging_preview` once.
 
 ### Common questions
 
-- **Conflicting migrations:** Once the conflicting branches are present in
-  your checkout, run
-  `python manage.py makemigrations --merge --settings=moveon.settings.development`,
-  review the generated merge migration, and then run `migrate`.
+- **Messaging migration:** This checkout already has the merge migration
+  `messaging.0006_merge_20260923_2310`; `messaging.0007_deal_proposal` follows
+  it. Run `migrate` with the settings for the database you intend to update.
 - **Why can't a Django Admin account open Messages?** Admin access does not
   grant student access. Use active accounts with verified `@illinois.edu`
   addresses.
 - **Which settings should I use?** Use `moveon.settings.messaging_preview`
-  only for the isolated seeded preview database. Use
-  `moveon.settings.development` for ordinary registration and listing creation
-  and for automated checks.
+  for isolated seeded preview data and Messaging tests. Use
+  `moveon.settings.development` for ordinary registration and listing creation.
+  Django tests create a separate test database under either settings module.
 
-See [Messaging implementation and local setup](docs/notes/weekly_progress_updates/wk3_messaging.md)
-for the broader Messages workflow, and the
+See [current Messaging deals and trade status](docs/notes/weekly_progress_updates/wk4_messaging_deals.md)
+for the offer flow, [the Week 3 Messaging snapshot](docs/notes/weekly_progress_updates/wk3_messaging.md)
+for the original chat MVP, and the
 [Message seller wiring note](docs/notes/weekly_progress_updates/wk3_detail_message_wiring.md)
 for this listing-to-conversation integration.
