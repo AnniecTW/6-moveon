@@ -17,6 +17,8 @@ PUBLIC_ROUTES = frozenset({
     "account", "account_logout", "account_verify", "account_verify_resend",
     "listing_image_upload",
     "password_reset", "password_reset_done", "password_reset_confirm", "account_google",
+    "profile-earned-spent-data", "profile-earned-spent-timeline-data",
+    "profile-listing-inquiry-data",
 })
 
 

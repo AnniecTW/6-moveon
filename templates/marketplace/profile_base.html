@@ -1,6 +1,6 @@
 {% extends "marketplace/base.html" %}
 {% load static %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/marketplace/seller.css' %}?v=a3-1" />{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/marketplace/seller.css' %}?v=vega1" />{% endblock %}
 {% block listing_content %}
 <div class="seller-dashboard buyer-dashboard">
   <div class="seller-layout">
@@ -27,25 +27,15 @@
       <div class="profile-summary-heading"><h2>Marketplace Summary</h2></div>
       <section class="buyer-summary profile-financial-chart" aria-label="Money in and money out">
         <article class="buyer-spending-card">
-          <header class="buyer-chart-header"><div><h3>Total Earned vs. Total Spent</h3><p data-chart-summary>Your marketplace sales and purchases.</p></div>
-            <div class="buyer-chart-filters" aria-label="Chart filters">
-              <label><span>From</span><input type="date" data-chart-date="start" /></label>
-              <label><span>To</span><input type="date" data-chart-date="end" /></label>
-              <details class="buyer-chart-type-filter"><summary>Activity types <span data-chart-type-count>2 selected</span></summary><div>
-                <label><input type="checkbox" value="purchase" data-chart-type checked /> Purchases</label>
-                <label><input type="checkbox" value="sale" data-chart-type checked /> Sales</label>
-              </div></details>
-            </div>
-          </header>
-          <div class="buyer-bar-chart" role="img" aria-label="Total spent ${{ buyer_summary.amount_paid|floatformat:0 }} and total earned ${{ buyer_summary.total_earned|floatformat:0 }}">
-            <div class="buyer-chart-axis" aria-hidden="true"><span data-chart-max>${{ buyer_summary.chart_max|floatformat:0 }}</span><span>$0</span></div>
-            <div class="buyer-chart-plot"><span class="buyer-grid-line line-top"></span><span class="buyer-grid-line line-middle"></span><span class="buyer-grid-line line-bottom"></span>
-              <div class="buyer-bar-group"><strong data-chart-value="spent">${{ buyer_summary.amount_paid|floatformat:0 }}</strong><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="12" y="{{ buyer_summary.spent_bar_height|add:'-100'|cut:'-' }}" width="76" height="{{ buyer_summary.spent_bar_height }}" rx="3" class="spent-bar" data-chart-bar="spent"/></svg><span>Total Spent<small>(Purchases)</small></span></div>
-              <div class="buyer-bar-group"><strong data-chart-value="earned">${{ buyer_summary.total_earned|floatformat:0 }}</strong><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="12" y="{{ buyer_summary.earned_bar_height|add:'-100'|cut:'-' }}" width="76" height="{{ buyer_summary.earned_bar_height }}" rx="3" class="savings-bar" data-chart-bar="earned"/></svg><span>Total Earned<small>(Completed Sales)</small></span></div>
-            </div>
-          </div>
-          <div class="buyer-chart-legend" aria-label="Chart legend"><div><i class="spent-dot"></i><span>Total Spent<strong data-chart-legend="spent">${{ buyer_summary.amount_paid|floatformat:0 }}</strong></span></div><div><i class="savings-dot"></i><span>Total Earned<strong data-chart-legend="earned">${{ buyer_summary.total_earned|floatformat:0 }}</strong></span></div></div>
-          {{ buyer_summary.chart_points|json_script:"buyer-chart-data" }}
+          <header class="buyer-chart-header"><div><h3>Total Earned vs. Total Spent</h3><p>Completed sales and non-cancelled purchases.</p></div></header>
+          <section class="profile-chart-half" aria-label="Earned and spent totals">
+            <h4>Totals</h4>
+            <div class="profile-vega-chart" data-vega-spec="{% url 'vega-earned-spent-spec' %}" role="img" aria-label="Bar chart comparing total earned and total spent"></div>
+          </section>
+          <section class="profile-chart-half" aria-label="Earned and spent over time">
+            <h4>Over time</h4>
+            <div class="profile-vega-chart" data-vega-spec="{% url 'vega-earned-spent-timeline-spec' %}" role="img" aria-label="Line chart comparing cumulative earned and spent over time"></div>
+          </section>
         </article>
       </section>
 
@@ -57,9 +47,9 @@
       </section>
 
       <article class="listing-inquiry-card" aria-labelledby="listing-inquiry-title">
-        <header><div><h3 id="listing-inquiry-title">Top Listings by Inquiries</h3><p>Conversations awaiting a buyer response and inquiries that still need your reply.</p></div></header>
+        <header><div><h3 id="listing-inquiry-title">Top Listings by Inquiries</h3><p>Conversations split by whether you have replied.</p></div></header>
         <figure class="listing-inquiry-chart">
-          <img class="inquiry-chart-image" src="{% url 'listing-inquiry-chart' %}" alt="Top listings by inquiry count, split into awaiting response and unanswered conversations." />
+          <div class="profile-vega-chart" data-vega-spec="{% url 'vega-listing-inquiries-spec' %}" role="img" aria-label="Stacked bars of answered and unanswered inquiries for your top listings"></div>
           <figcaption class="sr-only">Your six non-sold listings with the most conversations.</figcaption>
         </figure>
       </article>
@@ -69,4 +59,4 @@
   </div>
 </div>
 {% endblock %}
-{% block extra_scripts %}<script type="module" src="{% static 'js/marketplace.js' %}?v=a3-1"></script>{% endblock %}
+{% block extra_scripts %}<script type="module" src="{% static 'js/marketplace.js' %}?v=a3-1"></script><script type="module" src="{% static 'js/marketplace/vega-charts.js' %}?v=vega1"></script>{% endblock %}

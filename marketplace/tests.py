@@ -321,11 +321,8 @@ class SellerListingsViewTests(TestCase):
 		self.assertNotContains(response, "vs. estimated value")
 		self.assertContains(response, "Confirm Item Received &amp; Complete Order")
 		self.assertContains(response, 'aria-current="page" href="/profile/pickups/"')
-		self.assertContains(response, 'data-chart-date="start"')
-		self.assertContains(response, 'data-chart-date="end"')
-		self.assertContains(response, 'value="purchase" data-chart-type checked')
-		self.assertContains(response, 'value="sale" data-chart-type checked')
-		self.assertContains(response, 'id="buyer-chart-data"')
+		self.assertContains(response, 'data-vega-spec="/vega-lite/earned-spent.json"')
+		self.assertContains(response, 'data-vega-spec="/vega-lite/listing-inquiries.json"')
 		for removed_text in (
 			"Download Purchase Receipts",
 			"Good finds. A brighter tomorrow",

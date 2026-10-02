@@ -23,46 +23,6 @@ function paintWatchlist() {
   page.querySelector("[data-watchlist-empty]")?.classList.toggle("is-visible", visible === 0);
 }
 
-function updateBuyerChart() {
-  const card = document.querySelector(".buyer-spending-card");
-  const dataNode = document.querySelector("#buyer-chart-data");
-  if (!card || !dataNode) return;
-  let points = [];
-  try { points = JSON.parse(dataNode.textContent); } catch { return; }
-  const selectedTypes = new Set(
-    [...card.querySelectorAll("[data-chart-type]:checked")].map((input) => input.value),
-  );
-  const start = card.querySelector('[data-chart-date="start"]')?.value || "";
-  const end = card.querySelector('[data-chart-date="end"]')?.value || "";
-  const filtered = points.filter((point) => (
-    selectedTypes.has(point.type) && (!start || point.date >= start) && (!end || point.date <= end)
-  ));
-  const spent = filtered.reduce((sum, point) => sum + Number(point.spent || 0), 0);
-  const earned = filtered.reduce((sum, point) => sum + Number(point.earned || 0), 0);
-  const scale = Math.max(spent, earned, 1);
-  const money = (value) => `$${Math.round(value).toLocaleString()}`;
-  for (const key of ["spent", "earned"]) {
-    const value = key === "spent" ? spent : earned;
-    const height = Math.round(value / scale * 100);
-    const bar = card.querySelector(`[data-chart-bar="${key}"]`);
-    bar?.setAttribute("height", String(height));
-    bar?.setAttribute("y", String(100 - height));
-    const label = card.querySelector(`[data-chart-value="${key}"]`);
-    const legend = card.querySelector(`[data-chart-legend="${key}"]`);
-    if (label) label.textContent = money(value);
-    if (legend) legend.textContent = money(value);
-  }
-  const maxLabel = card.querySelector("[data-chart-max]");
-  if (maxLabel) maxLabel.textContent = money(Math.max(spent, earned));
-  const summary = card.querySelector("[data-chart-summary]");
-  if (summary) summary.textContent = `${money(earned)} earned and ${money(spent)} spent across the selected activity.`;
-  const count = card.querySelector("[data-chart-type-count]");
-  if (count) count.textContent = `${selectedTypes.size} selected`;
-  card.querySelector(".buyer-bar-chart")?.setAttribute(
-    "aria-label", `Total spent ${money(spent)} and total earned ${money(earned)}`,
-  );
-}
-
 export function setupBuyerPickups() {
   if (document.documentElement.dataset.buyerPickupsReady) return;
   document.documentElement.dataset.buyerPickupsReady = "true";
@@ -127,7 +87,6 @@ export function setupBuyerPickups() {
   });
 
   document.addEventListener("change", (event) => {
-    if (event.target.matches("[data-chart-date], [data-chart-type]")) updateBuyerChart();
     if (event.target.matches("[data-watchlist-category], [data-watchlist-sort]")) paintWatchlist();
   });
 
@@ -148,8 +107,6 @@ export function setupBuyerPickups() {
 
   document.addEventListener("dashboard:content-loaded", () => {
     paintWatchlist();
-    updateBuyerChart();
   });
   paintWatchlist();
-  updateBuyerChart();
 }

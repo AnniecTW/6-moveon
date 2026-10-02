@@ -29,7 +29,8 @@ from django.db import transaction
 from django.utils import timezone
 
 from marketplace.featured import DEMO_USERNAME
-from marketplace.models import ItemCategory, ItemType, Listing
+from marketplace.models import ItemCategory, ItemType, Listing, Transaction
+from messaging.models import Conversation, Message
 
 User = get_user_model()
 
@@ -111,10 +112,14 @@ class Command(BaseCommand):
         added += self._seed_listings(LIVING_ROOM_SPECS, users, item_types)
         added += self._seed_listings(OTHER_SPECS, users, item_types)
         verified = self._verify_demo_sellers(users)
+        inquiries = self._seed_maya_inquiries(users)
+        purchases = self._seed_maya_purchases(users)
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Added {added} bundle-eligible listing(s). "
+                f"Seeded {inquiries} Maya inquiry thread(s) and "
+                f"{purchases} Maya purchase(s). "
                 f"{verified} demo seller(s) are campus-access-eligible "
                 f"(password: {LOCAL_PASSWORD!r}, local development only)."
             )
@@ -233,7 +238,77 @@ class Command(BaseCommand):
                 user.save()
             user.email_verified = True
             user.email_verified_at = timezone.now()
-            user.set_password(LOCAL_PASSWORD)
+            if not user.check_password(LOCAL_PASSWORD):
+                user.set_password(LOCAL_PASSWORD)
             user.save()
             verified += 1
         return verified
+
+    def _seed_maya_inquiries(self, users):
+        maya = users["maya"]
+        specs = [
+            ("Gray Rug", "alex", True, "Is the gray rug still available?", "Yes, it is available."),
+            ("Gray Rug", "sam", False, "Is the gray rug available for pickup?", ""),
+            ("32-inch TV", "jamie", False, "Could you share the TV dimensions?", ""),
+            ("Modern Floor Lamp", "sam", False, "Is the floor lamp still available?", ""),
+            ("Decorative Vase Set", "alex", True, "Can I pick up the vase set this week?", "Yes, pickup this week works."),
+            ("Bluetooth Speaker", "jamie", True, "Does the speaker include its charger?", "Yes, the charger is included."),
+            ("Compact Microwave", "sam", True, "Does the microwave work normally?", "Yes, it works normally."),
+        ]
+        created = 0
+        for title, buyer_name, answered, question, reply in specs:
+            listing = Listing.objects.filter(seller=maya, title=title).first()
+            if listing is None:
+                continue
+            buyer = users[buyer_name]
+            conversation, was_created = Conversation.objects.get_or_create(
+                buyer=buyer,
+                seller=maya,
+                listing=listing,
+                defaults={"last_message_at": timezone.now()},
+            )
+            created += int(was_created)
+            buyer_message, _ = Message.objects.get_or_create(
+                conversation=conversation,
+                sender=buyer,
+                body_text=question,
+                defaults={"is_read": answered},
+            )
+            Message.objects.filter(pk=buyer_message.pk).update(is_read=answered)
+            if answered:
+                Message.objects.get_or_create(
+                    conversation=conversation,
+                    sender=maya,
+                    body_text=reply,
+                )
+                Message.objects.filter(
+                    conversation=conversation, sender=buyer
+                ).update(is_read=True)
+        return created
+
+    def _seed_maya_purchases(self, users):
+        maya = users["maya"]
+        specs = [
+            ("Blue Sofa", "alex", "60.00", 90),
+            ("Floor Lamp", "jamie", "13.00", 55),
+            ("Desk", "alex", "40.00", 20),
+        ]
+        created = 0
+        for title, seller_name, amount, days_ago in specs:
+            seller = users[seller_name]
+            listing = Listing.objects.filter(seller=seller, title=title).first()
+            if listing is None:
+                continue
+            _, was_created = Transaction.objects.get_or_create(
+                listing=listing,
+                buyer=maya,
+                seller=seller,
+                defaults={
+                    "agreed_price": Decimal(amount),
+                    "benchmark_price_snapshot": listing.retail_price,
+                    "status": Transaction.Status.COMPLETED,
+                    "completed_at": timezone.now() - timedelta(days=days_ago),
+                },
+            )
+            created += int(was_created)
+        return created

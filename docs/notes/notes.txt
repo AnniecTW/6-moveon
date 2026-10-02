@@ -48,20 +48,26 @@ Section 3: Static files and styling
   Some CSS and JavaScript links use a version such as `?v=a3-1`, which prompts the browser
   to load the updated file. Screenshot: `section3_static_css.png`.
 
-Section 4: Chart image
+Section 4: Vega-Lite Charts
 
-- Built on the profile's existing Top Listings by Inquiries chart. In
-  `marketplace/charts.py`, `listing_inquiry_data()` counts conversations for each seller's
-  listings.
-- `listing_inquiry_chart()` serves a PNG at `/profile/inquiries.png`. It draws the bars
-  with Matplotlib, keeps the image in a `BytesIO` buffer, and returns it from a Django
-  `HttpResponse` as `image/png`.
-- The chart appears on the profile page in `templates/marketplace/profile_base.html`.
-  The card has its own heading, so the duplicate title inside the chart has been removed.
-  The image also has a caption and alt text. If there are no inquiries, the chart shows
-  an empty-state message instead. Matplotlib is listed in `requirements.txt`.
-- The chart is drawn in memory for each request, and the number of listings shown is
-  limited. Screenshot: `section4_data_visualization.png`.
+- The profile page embeds a Vega-Lite bar chart and cumulative line chart for total earned
+  vs. total spent, plus a stacked answered/unanswered inquiry bar chart for top listings.
+- Vega-Lite specs are available at `/vega-lite/earned-spent.json` and
+  `/vega-lite/earned-spent-timeline.json` and `/vega-lite/listing-inquiries.json`. Each
+  spec uses a URL-backed data source rather than inline values. Authenticated JSON data
+  is served by endpoints under `/api/profile/charts/`.
+- PNG chart outputs are available at `/vega-lite/earned-spent.png`,
+  `/vega-lite/earned-spent-timeline.png`, and `/vega-lite/listing-inquiries.png`.
+  They are generated from the same Vega-Lite specs and private API data.
+- Vega-Embed renders the specs in `templates/marketplace/profile_base.html`; its browser
+  module is loaded from jsDelivr, so the local browser needs internet access for that
+  library. The chart encodings are Vega-Lite specs validated in the Vega-Lite Editor;
+  Django supplies the same-origin API URL at runtime. The chart data comes from the
+  signed-in user's database records.
+- `seed_bundle_inventory` creates seven inquiry threads across six Maya listings, with four
+  answered and three unanswered. Gray Rug has one of each, so its stacked bar shows both
+  response states. The seed also creates three completed purchases totaling $113. The
+  command is idempotent; transactions and inquiry/message read states are stored in models.
 
 Section 5: Forms and user input
 
@@ -84,3 +90,39 @@ Section 6: JSON API
   filters can be tried and the response type viewed. Regular pages return `text/html`,
   the API returns `application/json`, and the chart returns `image/png`.
 - The README includes the API details and example URLs. Screenshot: `section6_json_api.png`.
+
+
+Week 4:
+
+Section 1: Internal API and Vega-Lite Charts
+
+- The public internal JSON endpoint `GET /api/listings/` returns clean, database-backed
+  JSON for active listings. The profile charts use three dedicated, authenticated internal
+  JSON endpoints under `/api/profile/charts/` so each chart only exposes the signed-in
+  user's data.
+
+Grading requirements and evidence:
+
+- One aggregated bar chart is embedded on the profile HTML page: **Total Earned vs.
+  Total Spent**. Its Vega-Lite JSON specification is available at
+  `/vega-lite/earned-spent.json` and its dedicated PNG output endpoint is
+  `/vega-lite/earned-spent.png`.
+- One line chart is embedded on the same HTML page: **Earned and Spent Over Time**.
+  Its Vega-Lite JSON specification is available at
+  `/vega-lite/earned-spent-timeline.json` and its dedicated PNG output endpoint is
+  `/vega-lite/earned-spent-timeline.png`.
+- A third embedded stacked bar chart, **Top Listings by Inquiries**, is also available at
+  `/vega-lite/listing-inquiries.json` and `/vega-lite/listing-inquiries.png`
+- All three specifications use `data: { "url": "..." }` to fetch JSON from the internal
+  API. The bar and line specifications use the API routes
+  `/api/profile/charts/earned-spent/` and
+  `/api/profile/charts/earned-spent-timeline/`, respectively.
+- The charts are embedded by `templates/marketplace/profile_base.html`. The browser code
+  in `static/js/marketplace/vega-charts.js` fetches each JSON specification and renders it
+  with Vega-Embed. The specifications use the Vega-Lite v5 schema and can be submitted as
+  the JSON returned by their `.json` endpoints.
+- Screenshot evidence is in `docs/notes/week4_screenshots/`:
+  `section1_bar_chart.png` shows the aggregated bar-chart output and
+  `section1_line_chart.png` shows the line-chart output. The existing full profile-page
+  screenshot at `docs/notes/week3_screenshots/section4_data_visualization.png` demonstrates
+  that a Vega-Lite chart is embedded in the website HTML.
