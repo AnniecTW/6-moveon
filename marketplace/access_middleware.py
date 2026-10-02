@@ -12,6 +12,7 @@ from .auth_backend import has_campus_access
 PUBLIC_ROUTES = frozenset({
     "home",
     "listing-api",
+    "listing-report", "listing-export-csv", "listing-export-json",
     "listing_manual", "listing_render", "listing_cbv_base", "listing_cbv_generic",
     "listing-detail-url",
     "account", "account_logout", "account_verify", "account_verify_resend",

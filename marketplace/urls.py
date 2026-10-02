@@ -1,7 +1,7 @@
 from django.urls import path
 
 from marketplace import views
-from marketplace import api, charts
+from marketplace import api, charts, reports
 from marketplace.views import (
     ListingCreateView,
     ListingDetailView,
@@ -15,6 +15,9 @@ from marketplace.views import (
 urlpatterns = [
     path("api/listings/demo/", api.listings_documentation, name="listing-api-demo"),
     path("api/listings/", api.listings, name="listing-api"),
+    path("reports/", reports.listing_report, name="listing-report"),
+    path("reports/listings.csv", reports.listings_csv, name="listing-export-csv"),
+    path("reports/listings.json", reports.listings_json, name="listing-export-json"),
     path("profile/inquiries.png", charts.listing_inquiry_chart, name="listing-inquiry-chart"),
     path("profile/listings/", views.seller_listings_view, name="seller-listings"),
     path("profile/settings/", views.seller_settings_view, name="seller-settings"),
