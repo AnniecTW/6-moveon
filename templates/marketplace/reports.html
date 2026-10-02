@@ -1,0 +1,58 @@
+{% extends "marketplace/base.html" %}
+{% block title %}Listing Reports | MoveOn{% endblock %}
+{% block listing_content %}
+<section class="reports-page" aria-labelledby="reports-title">
+  <header class="reports-heading">
+    <p class="eyebrow">Marketplace data</p>
+    <h2 id="reports-title">Listing Reports</h2>
+    <p class="muted">Active listings{% if query_string %} matching your current filters{% endif %}, as of {{ generated_at|date:"M j, Y g:i A" }}.</p>
+    <div class="reports-actions">
+      <a class="button primary" href="{% url 'listing-export-csv' %}{% if query_string %}?{{ query_string }}{% endif %}" download>Download CSV</a>
+      <a class="button primary" href="{% url 'listing-export-json' %}{% if query_string %}?{{ query_string }}{% endif %}" download>Download JSON</a>
+      <a class="button" href="{% url 'home' %}{% if query_string %}?{{ query_string }}{% endif %}">Back to listings</a>
+    </div>
+  </header>
+
+  <p class="reports-total"><strong>Total listings: {{ total_listings }}</strong>{% if average_price is not None %} &middot; Average price: ${{ average_price|floatformat:2 }}{% endif %}</p>
+
+  <h3>Listings by category</h3>
+  <table class="reports-table">
+    <caption class="sr-only">Listings per category</caption>
+    <thead>
+      <tr><th scope="col">Category</th><th scope="col">Listings</th><th scope="col">Average price</th><th scope="col">Lowest</th><th scope="col">Highest</th></tr>
+    </thead>
+    <tbody>
+      {% for row in by_category %}
+      <tr>
+        <th scope="row">{{ row.item_type__category__category_name }}</th>
+        <td>{{ row.total }}</td>
+        <td>${{ row.average|floatformat:2 }}</td>
+        <td>${{ row.lowest|floatformat:2 }}</td>
+        <td>${{ row.highest|floatformat:2 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No listings to summarize yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Listings by condition</h3>
+  <table class="reports-table">
+    <caption class="sr-only">Listings per condition</caption>
+    <thead>
+      <tr><th scope="col">Condition</th><th scope="col">Listings</th><th scope="col">Average price</th></tr>
+    </thead>
+    <tbody>
+      {% for row in by_condition %}
+      <tr>
+        <th scope="row">{{ row.label }}</th>
+        <td>{{ row.total }}</td>
+        <td>${{ row.average|floatformat:2 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">No listings to summarize yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
