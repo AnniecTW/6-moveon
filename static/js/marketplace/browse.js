@@ -4,8 +4,13 @@ export function setupBrowse({ drawer, favorites }) {
   const searchForm = document.querySelector("[data-search-form]");
   const search = document.querySelector("#search");
   const sort = document.querySelector("#id_sort");
+  const currency = document.querySelector("[data-currency-select]");
+  const currencyStatus = document.querySelector("[data-currency-status]");
+  const currencyApi = document.querySelector("[data-marketplace]")?.dataset.currencyApi;
   const status = document.querySelector("[data-browse-status]");
+  currency.closest(".currency-label").hidden = false;
   let controller,
+    currencyController,
     timer,
     view = "grid";
   const mapping = JSON.parse(
@@ -31,7 +36,52 @@ export function setupBrowse({ drawer, favorites }) {
     }
     search.value = params.get("q") || "";
     sort.value = params.get("sort") || "newest";
+    currency.value = params.get("currency") || "USD";
     syncTypes();
+  }
+  function paintCurrencyPrices(rows, displayCurrency) {
+    const byId = new Map(rows.map((row) => [String(row.id), row]));
+    const formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: displayCurrency,
+    });
+    document.querySelectorAll("[data-listing-card]").forEach((card) => {
+      const row = byId.get(card.dataset.id);
+      card.querySelectorAll("[data-price-kind]").forEach((price) => {
+        const amount = displayCurrency === "USD"
+          ? price.dataset.usdPrice
+          : row?.[price.dataset.priceKind + "_price"];
+        if (amount === undefined || amount === null) return;
+        price.textContent = price.dataset.priceKind === "listing" && Number(amount) === 0
+          ? "Free"
+          : formatter.format(Number(amount));
+      });
+    });
+  }
+  async function updateCurrencyPrices() {
+    currencyController?.abort();
+    const current = new AbortController();
+    currencyController = current;
+    const displayCurrency = currency.value;
+    const params = new URLSearchParams(location.search);
+    params.set("currency", displayCurrency);
+    try {
+      const response = await fetch(currencyApi + "?" + params.toString(), {
+        signal: current.signal,
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Conversion failed");
+      if (current.signal.aborted) return;
+      paintCurrencyPrices(data.results, displayCurrency);
+      currencyStatus.textContent = displayCurrency === "USD" || !data.rate_date
+        ? ""
+        : "Approximate conversion from USD using the " + data.rate_date + " rate.";
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      paintCurrencyPrices([], "USD");
+      currencyStatus.textContent = "Conversion unavailable. Prices are shown in USD.";
+    }
   }
   function paintView() {
     results.querySelector("[data-listing-grid]").dataset.view = view;
@@ -72,6 +122,7 @@ export function setupBrowse({ drawer, favorites }) {
       if (history) window.history.pushState({}, "", url);
       paintView();
       favorites.refresh();
+      await updateCurrencyPrices();
       status.textContent = "";
       const hasErrors = !!document.querySelector(
         "[data-form-errors] .errorlist",
@@ -90,6 +141,7 @@ export function setupBrowse({ drawer, favorites }) {
   function submit(close = false) {
     form.elements.q.value = search.value;
     const params = new URLSearchParams(new FormData(form));
+    params.set("currency", currency.value);
     for (const [key, value] of [...params]) if (!value) params.delete(key);
     load(location.pathname + (params.size ? "?" + params : ""), true, close);
   }
@@ -111,6 +163,12 @@ export function setupBrowse({ drawer, favorites }) {
     timer = setTimeout(submit, 250);
   });
   sort.addEventListener("change", () => submit());
+  currency.addEventListener("change", () => {
+    const next = new URL(location.href);
+    next.searchParams.set("currency", currency.value);
+    window.history.pushState({}, "", next);
+    updateCurrencyPrices();
+  });
   document.addEventListener("click", (event) => {
     const link = event.target.closest("[data-filter-link],[data-reset]");
     if (
@@ -138,4 +196,5 @@ export function setupBrowse({ drawer, favorites }) {
   );
   syncTypes();
   paintView();
+  updateCurrencyPrices();
 }

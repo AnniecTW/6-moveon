@@ -56,6 +56,20 @@
   padding: 10px 0;
   color: var(--ink);
 }
+.currency-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.currency-label select {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 6px 28px 6px 10px;
+  color: var(--ink);
+}
 .view-controls,
 .carousel-controls {
   display: flex;

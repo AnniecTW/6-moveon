@@ -1,14 +1,25 @@
 """Read-only public listing data, using the same filters as marketplace browsing."""
 
 import json
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.core.paginator import EmptyPage, Paginator
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET
+import requests
 
 from .browse import filtered_listings
 from .forms import BrowseForm
+
+SUPPORTED_CURRENCIES = {"USD", "CAD", "EUR", "GBP"}
+FRANKFURTER_RATES_URL = "https://api.frankfurter.dev/v2/rates"
+
+
+def _display_amount(amount, rate):
+    if amount is None:
+        return None
+    return str((amount * rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
 @require_GET
@@ -41,6 +52,78 @@ def listings(request):
             "url": request.build_absolute_uri(item.get_absolute_url()),
         } for item in page],
     }, json_dumps_params={"indent": 2})
+
+
+@require_GET
+def converted_listings(request):
+    """Return currently browsable listings with prices converted from USD."""
+    currency = request.GET.get("currency", "USD").upper()
+    if currency not in SUPPORTED_CURRENCIES:
+        return JsonResponse({"error": "Unsupported currency."}, status=400)
+
+    form = BrowseForm(request.GET)
+    if not form.is_valid():
+        return JsonResponse(
+            {"error": "Invalid filters.", "fields": form.errors.get_json_data()},
+            status=400,
+        )
+    listings = list(filtered_listings(form))
+
+    rate = Decimal("1")
+    rate_date = None
+    if currency != "USD" and listings:
+        try:
+            response = requests.get(
+                FRANKFURTER_RATES_URL,
+                params={"base": "USD", "quotes": currency},
+                timeout=5,
+            )
+            response.raise_for_status()
+            rate_rows = response.json()
+            rate_row = next(
+                (
+                    row for row in rate_rows
+                    if isinstance(row, dict)
+                    and row.get("base") == "USD"
+                    and row.get("quote") == currency
+                ),
+                None,
+            ) if isinstance(rate_rows, list) else None
+            if rate_row is None:
+                raise ValueError("Exchange rate missing from response.")
+            rate = Decimal(str(rate_row["rate"]))
+            rate_date = rate_row["date"]
+            if not rate.is_finite() or rate <= 0:
+                raise ValueError("Exchange rate is invalid.")
+        except requests.Timeout:
+            return JsonResponse(
+                {"error": "Exchange rate service timed out."}, status=504
+            )
+        except (
+            requests.RequestException,
+            InvalidOperation,
+            KeyError,
+            TypeError,
+            ValueError,
+        ):
+            return JsonResponse(
+                {"error": "Exchange rate service is unavailable."}, status=502
+            )
+
+    return JsonResponse({
+        "base_currency": "USD",
+        "currency": currency,
+        "rate": str(rate),
+        "rate_date": rate_date,
+        "results": [
+            {
+                "id": item.pk,
+                "listing_price": _display_amount(item.listing_price, rate),
+                "retail_price": _display_amount(item.retail_price, rate),
+            }
+            for item in listings
+        ],
+    })
 
 
 @require_GET

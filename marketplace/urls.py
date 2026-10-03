@@ -15,6 +15,7 @@ from marketplace.views import (
 urlpatterns = [
     path("api/listings/demo/", api.listings_documentation, name="listing-api-demo"),
     path("api/listings/", api.listings, name="listing-api"),
+    path("api/listings/converted/", api.converted_listings, name="listing-currency-api"),
     path("api/profile/charts/earned-spent/", charts.earned_spent_data, name="profile-earned-spent-data"),
     path("api/profile/charts/earned-spent-timeline/", charts.earned_spent_timeline_data, name="profile-earned-spent-timeline-data"),
     path("api/profile/charts/listing-inquiries/", charts.listing_inquiry_chart_data, name="profile-listing-inquiry-data"),

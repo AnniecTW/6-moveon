@@ -1,7 +1,7 @@
 import { setupCarousel } from "./marketplace/carousel.js";
 import { setupDrawer } from "./marketplace/drawer.js";
 import { setupFavorites } from "./marketplace/favorites.js";
-import { setupBrowse } from "./marketplace/browse.js";
+import { setupBrowse } from "./marketplace/browse.js?v=currency-1";
 import { setupHotspots } from "./marketplace/hotspots.js";
 import { setupHeader } from "./marketplace/header.js?v=2";
 import { setupDashboardNavigation } from "./marketplace/dashboard.js";

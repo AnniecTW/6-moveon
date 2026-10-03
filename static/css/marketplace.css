@@ -1,6 +1,6 @@
 @import url("./marketplace/theme.css");
-@import url("./marketplace/layout.css");
-@import url("./marketplace/components.css");
+@import url("./marketplace/layout.css?v=currency-1");
+@import url("./marketplace/components.css?v=currency-1");
 @import url("./marketplace/featured.css");
 @import url("./marketplace/account.css");
 @import url("./marketplace/detail.css");

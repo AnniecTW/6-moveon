@@ -158,6 +158,9 @@
 [data-browse-status]:not(:empty) {
   margin-top: 14px;
 }
+[data-currency-status]:not(:empty) {
+  margin-top: 8px;
+}
 @media (max-width: 1050px) {
   .hero {
     gap: 28px;

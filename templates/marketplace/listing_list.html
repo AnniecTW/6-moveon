@@ -1,6 +1,6 @@
 {% extends "marketplace/base.html" %} {% load static %} {% block title %}Browse Listings |
 MoveOn{% endblock %} {% block listing_content %} {% include "marketplace/partials/_hero.html" %}
-<div data-marketplace>
+<div data-marketplace data-currency-api="{% url 'listing-currency-api' %}">
   <div class="toolbar">
     <div>
       <p class="eyebrow">A fresh start, for less</p>
@@ -11,6 +11,15 @@ MoveOn{% endblock %} {% block listing_content %} {% include "marketplace/partial
       <button class="button" type="button" data-open-filters hidden>
         ☷ Filters
       </button>
+      <label class="currency-label" for="id_currency" hidden>
+        Display currency
+        <select id="id_currency" data-currency-select>
+          <option value="USD" {% if request.GET.currency == "USD" or not request.GET.currency %}selected{% endif %}>USD</option>
+          <option value="CAD" {% if request.GET.currency == "CAD" %}selected{% endif %}>CAD</option>
+          <option value="EUR" {% if request.GET.currency == "EUR" %}selected{% endif %}>EUR</option>
+          <option value="GBP" {% if request.GET.currency == "GBP" %}selected{% endif %}>GBP</option>
+        </select>
+      </label>
       <label class="sort-label" for="id_sort">Sort by {{ filter_form.sort }}</label>
       <button class="button no-js-sort" type="submit" form="filter-form">
         Apply sort
@@ -40,11 +49,12 @@ MoveOn{% endblock %} {% block listing_content %} {% include "marketplace/partial
     </div>
   </div>
   {% include "marketplace/partials/_filters.html" %}
+  <p data-currency-status class="muted" role="status" aria-live="polite"></p>
   <p data-browse-status class="muted" role="status" aria-live="polite"></p>
   <section data-results aria-labelledby="listings-heading">
     {% include "marketplace/partials/_results.html" %}
   </section>
 </div>
 {% endblock %} {% block extra_scripts %}
-<script type="module" src="{% static 'js/marketplace.js' %}?v=a3-1"></script>
+<script type="module" src="{% static 'js/marketplace.js' %}?v=currency-1"></script>
 {% endblock %}
