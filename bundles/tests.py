@@ -372,3 +372,87 @@ class BundleWizardTests(TestCase):
                 response = self.client.get(reverse(name))
                 self.assertEqual(response.status_code, 302)
                 self.assertIn(reverse("account"), response["Location"])
+
+
+@override_settings(GEMINI_API_KEY="test-key", GEMINI_MODEL_CHAIN=["model-a", "model-b"])
+class GeminiFallbackTests(TestCase):
+    """Mocked Gemini: overloaded models must fall through to the next model."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.buyer = User.objects.create_user(
+            username="b", email="b@illinois.edu", password="x", display_name="B"
+        )
+        seller = User.objects.create_user(
+            username="s", email="s@illinois.edu", password="x", display_name="S"
+        )
+        category = ItemCategory.objects.create(category_name="Furniture")
+        cls.sofa_type = ItemType.objects.create(category=category, item_type_name="Sofa")
+        cls.sofas = [
+            Listing.objects.create(
+                seller=seller, item_type=cls.sofa_type, title=f"Sofa {price}",
+                condition=Listing.Condition.GOOD, listing_price=price,
+                fulfillment_option=Listing.Fulfillment.PICKUP,
+                status=Listing.Status.ACTIVE, bundle_eligible=True,
+            )
+            for price in (40, 80, 120)
+        ]
+
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        self.response = {
+            tier: {"items": {str(self.sofa_type.id): sofa.id}, "rationale": tier}
+            for tier, sofa in zip(("BUDGET", "BEST_VALUE", "PREMIUM"), self.sofas)
+        }
+
+    def _generate(self):
+        from .services import generate_bundle_tiers
+
+        return generate_bundle_tiers("LIVING_ROOM", [self.sofa_type.id], self.buyer)
+
+    @staticmethod
+    def _overloaded():
+        from google.api_core.exceptions import ServiceUnavailable
+
+        return ServiceUnavailable("503 high demand")
+
+    def test_falls_through_to_next_model_when_first_is_overloaded(self):
+        from unittest.mock import patch
+
+        with patch("bundles.services._call_gemini",
+                   side_effect=[self._overloaded(), self.response]) as call:
+            result = self._generate()
+        self.assertEqual(result["source"], "llm")
+        self.assertEqual(result["model"], "model-b")
+        self.assertEqual([c.args[2] for c in call.call_args_list], ["model-a", "model-b"])
+
+    def test_second_identical_request_is_served_from_cache(self):
+        from unittest.mock import patch
+
+        with patch("bundles.services._call_gemini", return_value=self.response) as call:
+            first = self._generate()
+            second = self._generate()
+        self.assertEqual(call.call_count, 1)
+        self.assertFalse(first["cached"])
+        self.assertTrue(second["cached"])
+
+    def test_all_models_failing_uses_heuristic_not_an_error(self):
+        from unittest.mock import patch
+
+        with patch("bundles.services._call_gemini", side_effect=self._overloaded()), \
+                patch("bundles.services.time.sleep"):
+            result = self._generate()
+        self.assertEqual(result["source"], "heuristic")
+        self.assertEqual(result["tiers"]["BUDGET"]["items"][self.sofa_type.id], self.sofas[0].id)
+
+    def test_invalid_ids_from_model_are_rejected(self):
+        from unittest.mock import patch
+
+        bad = {t: {"items": {str(self.sofa_type.id): 99999}, "rationale": ""}
+               for t in ("BUDGET", "BEST_VALUE", "PREMIUM")}
+        with patch("bundles.services._call_gemini", return_value=bad), \
+                patch("bundles.services.time.sleep"):
+            result = self._generate()
+        self.assertEqual(result["source"], "heuristic")

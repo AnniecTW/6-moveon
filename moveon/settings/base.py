@@ -32,6 +32,11 @@ ALLOWED_HOSTS = []
 # Left blank, that feature falls back to a plain price-based heuristic
 # instead of failing.
 GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+# Tried in order; a model returning 503/429/timeout moves on to the next one.
+GEMINI_MODEL_CHAIN = env.list(
+    "GEMINI_MODEL_CHAIN",
+    default=["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-3.5-flash"],
+)
 
 
 # Application definition

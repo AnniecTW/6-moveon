@@ -6,27 +6,61 @@ export function setupBundleStartLauncher() {
   if (!triggers.length) return;
 
   triggers.forEach((trigger) => {
-    trigger.addEventListener("click", async (event) => {
+    trigger.addEventListener("click", (event) => {
       event.preventDefault();
-
-      let dialog = document.querySelector("[data-bundle-start-dialog]");
-      if (!dialog) {
-        const response = await fetch(trigger.dataset.modalUrl, {
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        });
-        if (!response.ok) {
-          window.location.href = trigger.href;
-          return;
-        }
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = await response.text();
-        dialog = wrapper.querySelector("[data-bundle-start-dialog]");
-        document.body.appendChild(dialog);
-        wireDialog(dialog);
-      }
-      dialog.showModal();
+      openDialog(trigger, false);
     });
   });
+
+  // After signing in from the bundle flow, the browser returns here with
+  // ?open_bundle=1: reopen the popup once and tidy the address bar.
+  const url = new URL(window.location.href);
+  if (url.searchParams.get("open_bundle") === "1") {
+    url.searchParams.delete("open_bundle");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    openDialog(triggers[0], true);
+  }
+}
+
+async function openDialog(trigger, returningFromLogin) {
+  let dialog = document.querySelector("[data-bundle-start-dialog]");
+  if (!dialog) {
+    let response;
+    try {
+      response = await fetch(trigger.dataset.modalUrl, {
+        credentials: "same-origin",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+    } catch (error) {
+      window.location.href = trigger.href;
+      return;
+    }
+    // Signed-out visitors are redirected to the account page, which still
+    // comes back as a normal 200 page. Send them to log in, then back here.
+    if (response.redirected) {
+      if (returningFromLogin) return;
+      const login = new URL(response.url);
+      const back = new URL(window.location.href);
+      back.searchParams.set("open_bundle", "1");
+      login.searchParams.set("next", back.pathname + back.search);
+      window.location.href = login.toString();
+      return;
+    }
+    if (!response.ok) {
+      window.location.href = trigger.href;
+      return;
+    }
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = await response.text();
+    dialog = wrapper.querySelector("[data-bundle-start-dialog]");
+    if (!dialog) {
+      window.location.href = trigger.href;
+      return;
+    }
+    document.body.appendChild(dialog);
+    wireDialog(dialog);
+  }
+  dialog.showModal();
 }
 
 function wireDialog(dialog) {
