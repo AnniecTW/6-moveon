@@ -1,22 +1,27 @@
-"""Private chart data and Vega-Lite specs for the profile dashboard."""
+"""URL-backed Vega-Lite charts, public for the fictional A4 dataset."""
 
 import json
 import subprocess
 import sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from threading import Thread
 from decimal import Decimal
 from functools import wraps
 from urllib.parse import urlencode
 
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core import signing
 from django.db.models import Count, F, Q, Sum
 from django.http import HttpResponse, JsonResponse
-from django.urls import reverse
+from django.shortcuts import render
+from django.urls import resolve, reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
 from .auth_backend import has_campus_access
+from .assignment import demo_user
 from .models import Listing, Transaction
 
 _RENDER_TOKEN_SALT = "profile-chart-render"
@@ -29,9 +34,16 @@ _RENDER_SCRIPT = (
 
 
 def chart_data_access_required(view):
-    """Allow the owner session or a short-lived token issued by a PNG view."""
+    """Use the fictional demo identity in A4; otherwise retain owner access."""
     @wraps(view)
     def wrapped(request, *args, **kwargs):
+        if settings.A4_ASSIGNMENT_MODE:
+            request.chart_user = demo_user()
+            if request.chart_user is None:
+                return JsonResponse({"error": "A4 demo data has not been loaded."}, status=404)
+            response = view(request, *args, **kwargs)
+            response["Access-Control-Allow-Origin"] = "https://vega.github.io"
+            return response
         user = request.user
         if not (user.is_authenticated and has_campus_access(user)):
             try:
@@ -59,15 +71,70 @@ def chart_data_access_required(view):
     return wrapped
 
 
+def chart_page_access_required(view):
+    private_view = login_required(view)
+
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if settings.A4_ASSIGNMENT_MODE:
+            return view(request, *args, **kwargs)
+        return private_view(request, *args, **kwargs)
+
+    return wrapped
+
+
+@require_GET
+def demo_charts(request):
+    return render(request, "marketplace/assignment_charts.html")
+
+
 def _render_png(request, spec_view, data_route):
     spec_response = spec_view(request)
     spec = json.loads(spec_response.content)
+    if settings.A4_ASSIGNMENT_MODE:
+        # Relay the same JSON API response on a temporary loopback HTTP endpoint.
+        # Vega keeps URL-backed data without requesting a second web-app worker.
+        data_response = resolve(reverse(data_route)).func(request)
+        if data_response.status_code != 200:
+            return data_response
+        data_path = reverse(data_route)
+
+        class ApiResponseHandler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                if self.path != data_path:
+                    self.send_error(404)
+                    return
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(data_response.content)))
+                self.end_headers()
+                self.wfile.write(data_response.content)
+
+            def log_message(self, format, *args):
+                pass
+
+        with ThreadingHTTPServer(("127.0.0.1", 0), ApiResponseHandler) as local_api:
+            thread = Thread(target=local_api.serve_forever,
+                            kwargs={"poll_interval": 0.05}, daemon=True)
+            thread.start()
+            base_url = f"http://127.0.0.1:{local_api.server_port}"
+            spec["data"]["url"] = base_url + data_path
+            spec["width"] = 560
+            try:
+                return _render_spec_png(spec, base_url + "/")
+            finally:
+                local_api.shutdown()
+                thread.join(timeout=1)
     token = signing.dumps({"user_id": request.user.pk}, salt=_RENDER_TOKEN_SALT)
     data_url = request.build_absolute_uri(reverse(data_route))
     spec["data"]["url"] = f"{data_url}?{urlencode({'render_token': token})}"
+    return _render_spec_png(spec, request.build_absolute_uri("/"))
+
+
+def _render_spec_png(spec, allowed_base_url):
     try:
         result = subprocess.run(
-            [sys.executable, "-c", _RENDER_SCRIPT, request.build_absolute_uri("/")],
+            [sys.executable, "-c", _RENDER_SCRIPT, allowed_base_url],
             input=json.dumps(spec).encode("utf-8"),
             capture_output=True,
             check=True,
@@ -170,7 +237,7 @@ def listing_inquiry_chart_data(request):
     return JsonResponse(listing_inquiry_data(request.chart_user), safe=False)
 
 
-@login_required
+@chart_page_access_required
 @require_GET
 @never_cache
 def earned_spent_spec(request):
@@ -212,7 +279,7 @@ def earned_spent_spec(request):
     })
 
 
-@login_required
+@chart_page_access_required
 @require_GET
 @never_cache
 def earned_spent_timeline_spec(request):
@@ -229,7 +296,8 @@ def earned_spent_timeline_spec(request):
                 "field": "date",
                 "type": "temporal",
                 "title": "Date",
-                "axis": {"grid": False},
+                "scale": {"type": "utc"},
+                "axis": {"grid": False, "format": "%b %d", "tickCount": 5},
             },
             "y": {
                 "field": "amount",
@@ -264,7 +332,7 @@ def earned_spent_timeline_spec(request):
     })
 
 
-@login_required
+@chart_page_access_required
 @require_GET
 @never_cache
 def listing_inquiry_spec(request):
@@ -312,7 +380,7 @@ def listing_inquiry_spec(request):
     })
 
 
-@login_required
+@chart_page_access_required
 @require_GET
 @never_cache
 def earned_spent_png(request):
@@ -321,7 +389,7 @@ def earned_spent_png(request):
     )
 
 
-@login_required
+@chart_page_access_required
 @require_GET
 @never_cache
 def earned_spent_timeline_png(request):
@@ -332,7 +400,7 @@ def earned_spent_timeline_png(request):
     )
 
 
-@login_required
+@chart_page_access_required
 @require_GET
 @never_cache
 def listing_inquiry_png(request):

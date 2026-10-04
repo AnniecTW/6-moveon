@@ -59,7 +59,12 @@ cover/
 *.log
 local_settings.py
 *.sqlite3
-data/db.sqlite3
+# A4 explicitly requires the clean demonstration database in Git.
+!data/db.sqlite3
+data/backups/
+data/a4-build/
+staticfiles/
+.venv-a4/
 data/media/
 data/messaging_preview_media/
 db.sqlite3-journal

@@ -1,5 +1,8 @@
 Weekly progress notes
 
+Weeks 1-3 below describe historical implementations. Current A4 mode exposes
+only public assignment features; account workflows are retained for later work.
+
 Week 1:
 - Implemented the initial Django data model, migrations, Admin setup, and demo seed data.
 - Integrity follow-up: Added participant validation, database constraints, integrity tests, and documentation.
@@ -97,13 +100,13 @@ Week 4:
 Section 1: Internal API and Vega-Lite Charts
 
 - The public internal JSON endpoint `GET /api/listings/` returns clean, database-backed
-  JSON for active listings. The profile charts use three dedicated, authenticated internal
-  JSON endpoints under `/api/profile/charts/` so each chart only exposes the signed-in
-  user's data.
+  JSON for active listings. In A4 mode, the three JSON endpoints under
+  `/api/profile/charts/` publicly return only the fictional Maya demonstration data.
+  No sign-in or registration is required. Existing account routes redirect home.
 
 Grading requirements and evidence:
 
-- One aggregated bar chart is embedded on the profile HTML page: **Total Earned vs.
+- One aggregated bar chart is embedded on the public `/charts/` HTML page: **Total Earned vs.
   Total Spent**. Its Vega-Lite JSON specification is available at
   `/vega-lite/earned-spent.json` and its dedicated PNG output endpoint is
   `/vega-lite/earned-spent.png`.
@@ -117,12 +120,17 @@ Grading requirements and evidence:
   API. The bar and line specifications use the API routes
   `/api/profile/charts/earned-spent/` and
   `/api/profile/charts/earned-spent-timeline/`, respectively.
-- The charts are embedded by `templates/marketplace/profile_base.html`. The browser code
+- The charts are embedded by `templates/marketplace/assignment_charts.html`. The browser code
   in `static/js/marketplace/vega-charts.js` fetches each JSON specification and renders it
   with Vega-Embed. The specifications use the Vega-Lite v5 schema and can be submitted as
   the JSON returned by their `.json` endpoints.
-- Screenshot evidence is in `docs/notes/week4_screenshots/`:
-  `section1_bar_chart.png` shows the aggregated bar-chart output and
-  `section1_line_chart.png` shows the line-chart output. The existing full profile-page
-  screenshot at `docs/notes/week3_screenshots/section4_data_visualization.png` demonstrates
-  that a Vega-Lite chart is embedded in the website HTML.
+- Current screenshots are `a4_charts_page.jpg` and `a4_reports_page.jpg` under
+  `docs/notes/week4_screenshots/`; the three matching PNG files are actual endpoint
+  outputs. Earlier section1/profile screenshots are historical evidence.
+- URL-backed JSON specifications are saved under `docs/notes/week4_specs/`.
+  Replace the local preview API host with the deployed host before online submission.
+- The clean `data/db.sqlite3` contains only fictional, non-login identities.
+  Original database backups are local and ignored. Static output is also ignored.
+- Parts 2-3 provide Frankfurter currency conversion and filtered listing reports
+  with timestamped CSV/JSON downloads. Full verification and remaining deployment
+  steps are in `docs/notes/weekly_progress_updates/wk4_A4_integration.md`.

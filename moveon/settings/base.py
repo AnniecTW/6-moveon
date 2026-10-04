@@ -28,6 +28,11 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
+# This integration branch is the public, read-only A4 submission.
+# Set False when resuming the preserved account workflows for A5.
+A4_ASSIGNMENT_MODE = env.bool("A4_ASSIGNMENT_MODE", default=True)
+A4_DEMO_USERNAME = "maya"
+
 # Optional: powers the AI Bundle Builder's tier classification (bundles app).
 # Left blank, that feature falls back to a plain price-based heuristic
 # instead of failing.
@@ -74,6 +79,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "marketplace.assignment.context",
             ],
         },
     },
@@ -133,6 +139,7 @@ MEDIA_URL = "/media/"
 # The browse page uses authored CSS and browser ES modules, with no build step.
 # The older Tailwind source/output remain available but are not loaded by it.
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_ROOT = BASE_DIR / "data" / "media"
 CSRF_FAILURE_VIEW = "messaging.csrf.csrf_failure"
 

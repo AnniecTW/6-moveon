@@ -1,4 +1,4 @@
-import embed from "https://cdn.jsdelivr.net/npm/vega-embed@6/+esm";
+import embed from "https://esm.sh/vega-embed@6.29.0?deps=vega@5.30.0,vega-lite@5.21.0";
 
 for (const target of document.querySelectorAll("[data-vega-spec]")) {
   try {

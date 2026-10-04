@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.core.management import call_command
 from io import StringIO
-from .models import User, ItemCategory, ItemType, Listing
+from marketplace.models import User, ItemCategory, ItemType, Listing
 
 
 class BrowseTests(TestCase):

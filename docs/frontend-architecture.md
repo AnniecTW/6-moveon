@@ -90,7 +90,7 @@ Do not maintain duplicate handwritten JavaScript and TypeScript implementations.
 
 Run `python manage.py test` and `python manage.py check` from the project directory
 with the project's environment activated and a local SECRET_KEY configured.
-`marketplace/test_browse.py` covers all four view styles, active-only visibility,
+`tests/marketplace/test_browse.py` covers all four view styles, active-only visibility,
 combined filters, fulfillment semantics, invalid inputs, escaping, removable
 filters, free listings, and bounded database queries.
 
@@ -108,7 +108,7 @@ a browser run with JavaScript disabled was not performed.
 The demo seed command now uses Decimal arithmetic for money so strict model
 validation accepts benchmark and minimum prices without float precision errors.
 
-`marketplace/test_featured.py` covers discount edge cases, bundle totals, edited
+`tests/marketplace/test_featured.py` covers discount edge cases, bundle totals, edited
 prices, unavailable items, idempotent seeding, and inquiry-based Popular ordering.
 
 Featured-scene browser verification: desktop and 390px mobile preview placement,

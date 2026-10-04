@@ -5,7 +5,7 @@ import re
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import ItemCategory, ItemType, Listing, User
+from marketplace.models import ItemCategory, ItemType, Listing, User
 
 
 class ListingExportTests(TestCase):
@@ -18,16 +18,31 @@ class ListingExportTests(TestCase):
         cls.tech = ItemCategory.objects.create(category_name="Exp Tech")
         desk = ItemType.objects.create(category=cls.furniture, item_type_name="Desk")
         lamp = ItemType.objects.create(category=cls.tech, item_type_name="Lamp")
+        cls.active_ids = []
         for title, kind, price, status in [
             ("Oak Desk", desk, 40, "ACTIVE"),
             ("=HYPERLINK(1)", desk, 20, "ACTIVE"),
             ("Desk Lamp", lamp, 10, "ACTIVE"),
             ("Draft Chair", desk, 99, "DRAFT"),
         ]:
-            Listing.objects.create(
+            listing = Listing.objects.create(
                 seller=seller, item_type=kind, title=title, listing_price=price,
                 condition="GOOD", fulfillment_option="PICKUP", status=status,
             )
+            if status == "ACTIVE":
+                cls.active_ids.append(listing.pk)
+
+    def test_csv_and_json_exports_order_by_id(self):
+        csv_response = self.client.get(reverse("listing-export-csv"))
+        self.assertEqual(csv_response.status_code, 200)
+        rows = list(csv.DictReader(io.StringIO(csv_response.content.decode())))
+        self.assertEqual([int(row["id"]) for row in rows], self.active_ids)
+
+        json_response = self.client.get(reverse("listing-export-json"))
+        self.assertEqual(json_response.status_code, 200)
+        self.assertEqual(
+            [row["id"] for row in json_response.json()["listings"]], self.active_ids
+        )
 
     def test_csv_download(self):
         response = self.client.get(reverse("listing-export-csv"))

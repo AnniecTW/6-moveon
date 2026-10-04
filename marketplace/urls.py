@@ -13,21 +13,28 @@ from marketplace.views import (
 )
 
 urlpatterns = [
+    # Public chart page and listing API examples.
+    path("charts/", charts.demo_charts, name="a4-charts"),
     path("api/listings/demo/", api.listings_documentation, name="listing-api-demo"),
+    # Internal listing data and external currency conversion.
     path("api/listings/", api.listings, name="listing-api"),
     path("api/listings/converted/", api.converted_listings, name="listing-currency-api"),
+    # Database-backed chart data.
     path("api/profile/charts/earned-spent/", charts.earned_spent_data, name="profile-earned-spent-data"),
     path("api/profile/charts/earned-spent-timeline/", charts.earned_spent_timeline_data, name="profile-earned-spent-timeline-data"),
     path("api/profile/charts/listing-inquiries/", charts.listing_inquiry_chart_data, name="profile-listing-inquiry-data"),
+    # Vega-Lite specifications and rendered images.
     path("vega-lite/earned-spent.json", charts.earned_spent_spec, name="vega-earned-spent-spec"),
     path("vega-lite/earned-spent-timeline.json", charts.earned_spent_timeline_spec, name="vega-earned-spent-timeline-spec"),
     path("vega-lite/listing-inquiries.json", charts.listing_inquiry_spec, name="vega-listing-inquiries-spec"),
     path("vega-lite/earned-spent.png", charts.earned_spent_png, name="vega-earned-spent-png"),
     path("vega-lite/earned-spent-timeline.png", charts.earned_spent_timeline_png, name="vega-earned-spent-timeline-png"),
     path("vega-lite/listing-inquiries.png", charts.listing_inquiry_png, name="vega-listing-inquiries-png"),
+    # Public reports and downloads.
     path("reports/", reports.listing_report, name="listing-report"),
     path("reports/listings.csv", reports.listings_csv, name="listing-export-csv"),
     path("reports/listings.json", reports.listings_json, name="listing-export-json"),
+    # Marketplace pages and preserved account workflows.
     path("profile/inquiries.png", charts.listing_inquiry_png, name="listing-inquiry-chart"),
     path("profile/listings/", views.seller_listings_view, name="seller-listings"),
     path("profile/settings/", views.seller_settings_view, name="seller-settings"),

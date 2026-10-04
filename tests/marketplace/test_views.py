@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import ItemCategory, ItemType, Listing, ListingImage, Transaction, User, WatchlistItem
+from marketplace.models import ItemCategory, ItemType, Listing, ListingImage, Transaction, User, WatchlistItem
 from bundles.models import Bundle, BundleItem
 from messaging.models import Conversation, Message
 

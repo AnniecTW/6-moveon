@@ -36,12 +36,12 @@ COLUMNS = [
 
 
 def _export_queryset(request):
-    """Active listings matching the query string, newest first (ties by id)."""
+    """Active listings matching the query string, ordered by primary key."""
     form = BrowseForm(request.GET)
     listings = filtered_listings(form)
     if not form.is_valid():
         return form, listings
-    return form, listings.order_by("-created_at", "pk")
+    return form, listings.order_by("pk")
 
 
 def _timestamp():

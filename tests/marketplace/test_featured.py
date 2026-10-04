@@ -4,8 +4,8 @@ from django.core.management import call_command
 from django.test import TestCase, SimpleTestCase
 from django.urls import reverse
 from messaging.models import Conversation
-from .featured import discount_percent, featured_bundles, DEMO_USERNAME
-from .models import Listing, User
+from marketplace.featured import discount_percent, featured_bundles, DEMO_USERNAME
+from marketplace.models import Listing, User
 
 
 class DiscountTests(SimpleTestCase):

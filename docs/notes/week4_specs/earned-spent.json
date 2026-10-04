@@ -1,0 +1,65 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "url": "http://127.0.0.1:8014/api/profile/charts/earned-spent/"
+  },
+  "mark": {
+    "type": "bar",
+    "cornerRadiusEnd": 3
+  },
+  "encoding": {
+    "x": {
+      "field": "amount",
+      "type": "quantitative",
+      "title": "Amount ($)",
+      "scale": {
+        "zero": true
+      },
+      "axis": {
+        "grid": false,
+        "tickMinStep": 10
+      }
+    },
+    "y": {
+      "field": "activity",
+      "type": "nominal",
+      "title": null,
+      "axis": {
+        "grid": false
+      }
+    },
+    "color": {
+      "field": "activity",
+      "type": "nominal",
+      "scale": {
+        "domain": [
+          "Total Spent",
+          "Total Earned"
+        ],
+        "range": [
+          "#85877f",
+          "#4d8069"
+        ]
+      },
+      "legend": null
+    },
+    "tooltip": [
+      {
+        "field": "activity",
+        "type": "nominal",
+        "title": "Activity"
+      },
+      {
+        "field": "amount",
+        "type": "quantitative",
+        "format": "$,.2f"
+      }
+    ]
+  },
+  "width": "container",
+  "height": 240,
+  "autosize": {
+    "type": "fit",
+    "contains": "padding"
+  }
+}

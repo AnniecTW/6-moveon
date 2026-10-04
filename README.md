@@ -1,12 +1,30 @@
 # MoveOn (INFO 490 - Project 1)
 
+This branch is the **A4 assignment submission**, with public, read-only demo
+features and user sign-in/registration disabled (`A4_ASSIGNMENT_MODE=True`).
+The assignment database `data/db.sqlite3` contains fictional `example.invalid` identities
+with unusable passwords, 14 listings and four demo transactions. No sessions,
+email verification challenges, Google identities or administrator accounts are
+included. Existing account code is retained for A5 and requires
+`A4_ASSIGNMENT_MODE=False` to use.
+
+Start the A4 preview with `python manage.py runserver 127.0.0.1:8014`.
+Browse `/`, `/charts/`, `/reports/`, `/api/listings/` and
+`/api/listings/converted/?currency=CAD`. Submitted chart JSON specifications
+and current screenshots are in `docs/notes/week4_specs/` and
+`docs/notes/week4_screenshots/`.
+See [Week 4 A4 integration changes](docs/notes/weekly_progress_updates/wk4_A4_integration.md)
+for the adjustments made to align the existing project with the assignment.
+Account and messaging code is retained for later coursework; A4 demonstrations
+use the public routes below.
+
 MoveOn is a student marketplace for buying, selling, giving away, and reusing
 dorm and apartment items. It helps students find affordable secondhand goods
 from other students during move-in and move-out seasons.
 
-The project includes a searchable and filterable listing page, featured bundles,
-saved items, and responsive browser interactions. The application uses Django templates, plain CSS, and
-JavaScript modules. See [Frontend architecture](docs/frontend-architecture.md)
+The A4 demo includes searchable listings, public charts, currency conversion,
+summary reports and CSV/JSON downloads. The application uses Django templates,
+plain CSS and JavaScript modules. See [Frontend architecture](docs/frontend-architecture.md)
 for implementation details.
 
 ---
@@ -69,6 +87,7 @@ Open `.env` and replace the placeholder value with a local Django secret key:
 
 ```env
 SECRET_KEY=your-local-secret-key
+A4_ASSIGNMENT_MODE=True
 ```
 
 You can generate a secure local key with:
@@ -92,9 +111,8 @@ Create the local database, populate it with demo data, and start the server:
 
 ```bash
 python manage.py migrate
-python manage.py seed_demo_data
-python manage.py seed_featured_bundles
-python manage.py runserver
+python manage.py seed_a4_data
+python manage.py runserver 127.0.0.1:8014
 ```
 
 The entry points default to `moveon.settings.development`. For production, override the setting module through the environment:
@@ -103,134 +121,123 @@ The entry points default to `moveon.settings.development`. For production, overr
 DJANGO_SETTINGS_MODULE=moveon.settings.production python manage.py check --deploy
 ```
 
-Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) to browse MoveOn.
+Open [http://127.0.0.1:8014/](http://127.0.0.1:8014/) to browse MoveOn.
 The original `/listings/manual/`, `/listings/render/`, `/listings/cbv-base/`,
 and `/listings/cbv-generic/` routes all share the new layout and filtering behavior.
-The six featured demo listings use local reference images and power the interactive
-bundle scenes. Other listings without image URLs show a photo placeholder.
+Featured listing cards use local reference images. Other listings without image
+URLs show a photo placeholder.
 
-Run checks with `python manage.py check` and `python manage.py test`.
+Marketplace tests are grouped under `tests/marketplace/`; the original
+`marketplace/tests.py` is now `tests/marketplace/test_views.py`.
+Run checks with `python manage.py check` and the anonymous A4 tests with
+`python manage.py test tests.marketplace.test_a4_assignment`.
+To exercise the entire suite, including the preserved authentication workflows,
+run `A4_ASSIGNMENT_MODE=False python manage.py test` (PowerShell equivalents
+are shown below). A4-specific tests enable A4 mode themselves.
 
-## Assignment 3: navigation, forms, chart, and JSON API
-
-The homepage lists active database-backed items; each listing card uses its model's `get_absolute_url()` to reach a primary-key detail page. Header links use Django named URLs. The purchase-history form demonstrates a private, CSRF-protected POST search while the marketplace search keeps filters in shareable GET query parameters.
-
-The profile embeds three Vega-Lite views using URL-backed JSON, not inline chart data: an earned/spent summary bar chart, a cumulative earned/spent line chart over time, and a stacked answered/unanswered inquiry bar chart. Their specs are `/vega-lite/earned-spent.json`, `/vega-lite/earned-spent-timeline.json`, and `/vega-lite/listing-inquiries.json`; authenticated JSON data is served by matching routes under `/api/profile/charts/`. The chart encodings are maintained as Vega-Lite specs and validated in the [Vega-Lite Editor](https://vega.github.io/editor/); Django supplies same-origin API URLs at runtime. Static PNG renders are available at `/vega-lite/earned-spent.png`, `/vega-lite/earned-spent-timeline.png`, and `/vega-lite/listing-inquiries.png`. PNG generation runs in a separate renderer process and fetches the same private JSON API using a short-lived signed URL, so the rasterized Vega-Lite spec also remains URL-backed. All specs, data, and images are private to the signed-in user. The local demo seed adds Maya inquiry and purchase history, including one answered and one unanswered conversation on Gray Rug, so the same listing bar demonstrates both response states. Vega-Embed is loaded from jsDelivr, so the browser needs internet access to load the chart library.
-
-A separate public, read-only listing API is available at `/api/listings/`. For example, `/api/listings/?q=desk&category=1&page=1` filters active items and returns at most 20 results with count/page metadata. Browse filters (`q`, `category`, `item_type`, `condition`, `fulfillment`, `min_price`, `max_price`, `bundle`, `sort`) can be supplied as query parameters. `/api/listings/demo/?q=desk` displays a formatted example response and its `application/json` content type. Each response includes listing IDs, title, price, condition, category and detail URL; private seller and messaging data are excluded. The API is public and read-only; messaging endpoints remain protected.
-
-Assignment 3 browser evidence is in [`docs/notes/week3_screenshots/`](docs/notes/week3_screenshots/), with the requirement-by-requirement implementation notes in [`docs/notes/notes.txt`](docs/notes/notes.txt).
-
-## Account access and email
-
-For a local check, register with an `@illinois.edu` address, copy the six-digit
-code from the `runserver` terminal, verify, log in, and log out. Then use
-**Forgot password?** and open its reset link from that terminal. The local
-console backend does **not** deliver real email. A developer can create a
-full-access Django Admin account once per new database; Admin login does not
-require campus email verification.
-
-```bash
-python manage.py createsuperuser
-python manage.py test tests.marketplace.test_auth
+```powershell
+$env:A4_ASSIGNMENT_MODE = "False"
 python manage.py test
+Remove-Item Env:A4_ASSIGNMENT_MODE
 ```
 
-See [Week 3 authentication details](docs/notes/weekly_progress_updates/wk3_authentication.md)
-for account rules, configuration, test coverage, and remaining external checks.
+## Assignment 4: APIs, visualizations, exports, and deployment
 
-## Testing Message seller / Messaging locally
+The A4 demonstration uses `A4_ASSIGNMENT_MODE=True`. Visitors can browse data,
+view charts and download reports without registering or signing in. Account
+routes redirect home, and account-dependent features remain unavailable. Django
+Admin retains its own authentication.
 
-The [Messages page](http://127.0.0.1:8000/messages/) requires two active,
-verified `@illinois.edu` accounts: A is the buyer and B is the seller, with at
-least one active listing owned by B. Use one of these setup paths:
+### Part 1: Internal JSON API and Vega-Lite charts
 
-- **Isolated preview data:** `messaging_preview` uses its own SQLite database.
-  Its seed command creates demo data, including active listings, and verified
-  accounts `alex` and `maya`. It prints their temporary passwords in the
-  terminal; use them locally and never paste them into README, notes, or other
-  tracked files.
-- **Regular development data:** Register A and B through the site, verify both
-  accounts using the six-digit codes printed in the `runserver` terminal, then
-  sign in as B and use **Sell Item** to create and publish an active listing.
-  Listing creation is available in the UI; Django Admin is not needed for this
-  workflow.
+- `/api/listings/` is a public, read-only GET endpoint backed by active `Listing`
+  records. It returns count/page metadata and up to 20 results per page. For
+  example, `/api/listings/?q=desk&page=1` filters listings by a search term.
+- `/charts/` embeds the earned/spent bar chart and cumulative line chart, plus
+  the existing inquiry chart. They use fictional Maya activity from the database,
+  with $113 spent and $18 earned.
+- The specifications are `/vega-lite/earned-spent.json`,
+  `/vega-lite/earned-spent-timeline.json` and `/vega-lite/listing-inquiries.json`.
+  Their `data.url` values point to public JSON endpoints under
+  `/api/profile/charts/`; no inline data is used.
+- Matching PNG endpoints replace `.json` with `.png`. Server-side rendering uses
+  the same internal API response through a temporary loopback endpoint so it
+  does not need a second web-app worker to serve the data request.
+- Vega Editor can read the chart APIs. The website uses compatible, pinned Vega
+  libraries from esm.sh, so browser chart rendering requires internet access.
 
-Start an isolated preview server from the repository root:
+Main files: `marketplace/api.py`, `marketplace/charts.py`,
+`templates/marketplace/assignment_charts.html` and
+`static/js/marketplace/vega-charts.js`.
+
+### Part 2: External API integration
+
+`/api/listings/converted/?currency=CAD&q=Oak%20Desk` combines filtered internal
+listing prices with keyless Frankfurter exchange rates. The endpoint accepts
+USD, CAD, EUR and GBP. External requests use query parameters, `timeout=5` and
+`raise_for_status()`; failures return JSON errors. Exchange-rate responses are
+used for the current request and are not stored in the database.
+
+Main file: `marketplace/api.py`.
+
+### Part 3: Reports and CSV/JSON exports
+
+- `/reports/` presents two database summaries: listings by category and listings
+  by condition, together with the total count, average price and empty states.
+- Download buttons lead to `/reports/listings.csv` and `/reports/listings.json`.
+  Both exports use the same active listings and filters, with timestamped filenames.
+  JSON includes `generated_at`, `record_count` and `listings`.
+- Open `/reports/?q=Desk` to demonstrate a filtered report and matching downloads.
+  `/reports/?q=zzzz-no-result` demonstrates the empty state. The header's Reports
+  link opens the unfiltered report.
+- Exports are ordered by ascending ID (`pk`); sold listings are excluded.
+
+Main files: `marketplace/reports.py`, `marketplace/browse.py` and
+`templates/marketplace/reports.html`.
+
+### Part 4: Database and deployment preparation
+
+`data/db.sqlite3` is the assignment demonstration database: five fictional
+identities with unusable passwords, 14 listings (13 active), four transactions
+and sample conversations. It contains no real accounts, administrator accounts,
+sessions, email verification challenges or Google identities. The previous
+working database is backed up locally under ignored `data/backups/`.
+
+The `.gitignore` exception allows this demo database to be submitted to GitHub.
+Private `.env` files, database backups, the local verification environment and
+collected static assets remain ignored. `STATIC_ROOT` is `BASE_DIR / "staticfiles"`;
+run the following before configuring PythonAnywhere's `/static/` mapping:
 
 ```bash
-# macOS / Linux
-python manage.py migrate --settings=moveon.settings.messaging_preview
-python manage.py seed_messaging_preview --settings=moveon.settings.messaging_preview
-python manage.py runserver 127.0.0.1:8000 --settings=moveon.settings.messaging_preview
+python manage.py collectstatic --noinput --settings=moveon.settings.production
 ```
 
-```powershell
-# Windows PowerShell
-& .\.venv\Scripts\python.exe manage.py migrate --settings=moveon.settings.messaging_preview
-& .\.venv\Scripts\python.exe manage.py seed_messaging_preview --settings=moveon.settings.messaging_preview
-& .\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000 --settings=moveon.settings.messaging_preview
-```
+Confirm that the GitHub submission branch includes the complete A4 implementation,
+`requirements.txt`, chart specifications/screenshots and the clean `data/db.sqlite3`.
+Push the final branch, then clone or pull that branch on PythonAnywhere.
+Create a Python 3.12 environment and install `requirements.txt`. Configure a private
+`SECRET_KEY`, the actual `ALLOWED_HOSTS` and `A4_ASSIGNMENT_MODE=True`.
+Configure the Web-tab WSGI file with
+`DJANGO_SETTINGS_MODULE=moveon.settings.production` and the project/virtualenv paths.
+Run production `collectstatic`, map `/static/` to `staticfiles`, and reload the site.
 
-For regular development data, migrate and start the server with the development
-settings instead. Then register the accounts and create B's listing in the UI:
+### A4 demonstration and submission files
 
-```bash
-# macOS / Linux
-python manage.py migrate --settings=moveon.settings.development
-python manage.py runserver --settings=moveon.settings.development
-```
+| Feature | Local route | What to demonstrate |
+| --- | --- | --- |
+| Internal API | `/api/listings/` | Database-backed JSON and a search query |
+| Visualizations | `/charts/` | Bar and line charts, their JSON specifications and PNG outputs |
+| External API | `/api/listings/converted/?currency=CAD` | Converted prices and the returned exchange rate |
+| Reports and downloads | `/reports/` | Both summaries, CSV/JSON downloads, filtering and the empty state |
 
-```powershell
-# Windows PowerShell
-& .\.venv\Scripts\python.exe manage.py migrate --settings=moveon.settings.development
-& .\.venv\Scripts\python.exe manage.py runserver --settings=moveon.settings.development
-```
+Chart JSON specifications are in
+[`docs/notes/week4_specs/`](docs/notes/week4_specs/); website screenshots,
+Vega Editor previews and PNG outputs are in
+[`docs/notes/week4_screenshots/`](docs/notes/week4_screenshots/).
+After deployment, replace the local API host in the submitted specifications
+with the deployed host, or save fresh copies from the deployed `.json` endpoints.
 
-### Manual test
-
-1. Sign in as A. Open B's active listing detail page and click **Message
-   Seller**. The browser should navigate to `/messages/?listing=<id>` and open
-   the matching conversation.
-2. Send a message as A. Confirm B's Messages unread badge increases, then sign
-   in as B, open the conversation, and reply.
-3. Sign out and click **Message Seller** as a guest. The account page should
-   retain the Messages destination when switching between **Create account**
-   and **Log in**; after verification and sign-in, the browser should return to
-   the listing conversation. As a separate check, use the header profile icon
-   to sign in; that general account entry should return to the home page.
-
-Run automated checks with the development settings:
-
-```bash
-# macOS / Linux
-python manage.py test --settings=moveon.settings.development
-python manage.py check --settings=moveon.settings.development
-python manage.py makemigrations --check --dry-run --settings=moveon.settings.development
-```
-
-```powershell
-# Windows PowerShell
-& .\.venv\Scripts\python.exe manage.py test --settings=moveon.settings.development
-& .\.venv\Scripts\python.exe manage.py check --settings=moveon.settings.development
-& .\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run --settings=moveon.settings.development
-```
-
-### Common questions
-
-- **Conflicting migrations:** Once the conflicting branches are present in
-  your checkout, run
-  `python manage.py makemigrations --merge --settings=moveon.settings.development`,
-  review the generated merge migration, and then run `migrate`.
-- **Why can't a Django Admin account open Messages?** Admin access does not
-  grant student access. Use active accounts with verified `@illinois.edu`
-  addresses.
-- **Which settings should I use?** Use `moveon.settings.messaging_preview`
-  only for the isolated seeded preview database. Use
-  `moveon.settings.development` for ordinary registration and listing creation
-  and for automated checks.
-
-See [Messaging implementation and local setup](docs/notes/weekly_progress_updates/wk3_messaging.md)
-for the broader Messages workflow, and the
-[Message seller wiring note](docs/notes/weekly_progress_updates/wk3_detail_message_wiring.md)
-for this listing-to-conversation integration.
+Confirm that the deployed APIs, charts, PNG outputs and CSV/JSON downloads work.
+Grant instructor account `mohitg27` access. Enter the GitHub branch link,
+deployed site link and PythonAnywhere username in Assignment Comments,
+then complete the Canvas submission.

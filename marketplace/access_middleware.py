@@ -2,6 +2,7 @@
 
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -23,6 +24,17 @@ PUBLIC_ROUTES = frozenset({
     "profile-listing-inquiry-data",
 })
 
+ACCOUNT_ROUTES = frozenset({
+    "account", "account_logout", "account_verify", "account_verify_resend",
+    "password_reset", "password_reset_done", "password_reset_confirm", "account_google",
+})
+A4_ROUTES = (PUBLIC_ROUTES - {"listing_image_upload"}) | frozenset({
+    "a4-charts", "listing-api-demo", "listing-list-url",
+    "vega-earned-spent-spec", "vega-earned-spent-timeline-spec", "vega-listing-inquiries-spec",
+    "vega-earned-spent-png", "vega-earned-spent-timeline-png", "vega-listing-inquiries-png",
+    "listing-inquiry-chart",
+})
+
 
 class CampusAccessMiddleware:
     def __init__(self, get_response):
@@ -33,6 +45,12 @@ class CampusAccessMiddleware:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         match = request.resolver_match
+        if settings.A4_ASSIGNMENT_MODE and "admin" not in match.namespaces:
+            if not match.namespaces and match.url_name in ACCOUNT_ROUTES:
+                return redirect("home")
+            if not match.namespaces and match.url_name in A4_ROUTES:
+                return None
+            return HttpResponseForbidden("This account feature is unavailable in the A4 demo.")
         if "admin" in match.namespaces or (not match.namespaces and match.url_name in PUBLIC_ROUTES):
             return None
         if request.user.is_authenticated and has_campus_access(request.user):

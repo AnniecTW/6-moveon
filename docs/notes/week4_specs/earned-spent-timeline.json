@@ -1,0 +1,77 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "url": "http://127.0.0.1:8014/api/profile/charts/earned-spent-timeline/"
+  },
+  "mark": {
+    "type": "line",
+    "point": true,
+    "strokeWidth": 3
+  },
+  "encoding": {
+    "x": {
+      "field": "date",
+      "type": "temporal",
+      "title": "Date",
+      "scale": {
+        "type": "utc"
+      },
+      "axis": {
+        "grid": false,
+        "format": "%b %d",
+        "tickCount": 5
+      }
+    },
+    "y": {
+      "field": "amount",
+      "type": "quantitative",
+      "title": "Cumulative amount ($)",
+      "axis": {
+        "grid": false,
+        "format": "$,.0f"
+      }
+    },
+    "color": {
+      "field": "activity",
+      "type": "nominal",
+      "title": "Activity",
+      "scale": {
+        "domain": [
+          "Total Spent",
+          "Total Earned"
+        ],
+        "range": [
+          "#85877f",
+          "#4d8069"
+        ]
+      },
+      "legend": {
+        "orient": "top"
+      }
+    },
+    "tooltip": [
+      {
+        "field": "date",
+        "type": "temporal",
+        "title": "Date"
+      },
+      {
+        "field": "activity",
+        "type": "nominal",
+        "title": "Activity"
+      },
+      {
+        "field": "amount",
+        "type": "quantitative",
+        "title": "Cumulative total",
+        "format": "$,.2f"
+      }
+    ]
+  },
+  "width": "container",
+  "height": 180,
+  "autosize": {
+    "type": "fit",
+    "contains": "padding"
+  }
+}

@@ -27,6 +27,10 @@
       </button>
     </form>
     <nav class="header-actions" aria-label="Marketplace actions">
+      {% if a4_assignment_mode %}
+      <a class="button" href="{% url 'a4-charts' %}">Demo charts</a>
+      <a class="button" href="{% url 'listing-report' %}">Reports &amp; exports</a>
+      {% else %}
       <a
         class="button primary sell-button"
         href="{% url 'listing-create-url' %}"
@@ -86,6 +90,7 @@
             </svg>
           </a>
         {% endif %}
+      {% endif %}
     </nav>
   </div>
 </header>

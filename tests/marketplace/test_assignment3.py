@@ -13,12 +13,12 @@ from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 
-from .auth_backend import has_campus_access
+from marketplace.auth_backend import has_campus_access
 from bundles.models import Bundle, BundleItem
 from messaging.models import Conversation, Message
-from .charts import listing_inquiry_data
-from .models import ItemCategory, ItemType, Listing, ListingImage, Transaction, User
-from .validation import validate_image_reference
+from marketplace.charts import listing_inquiry_data
+from marketplace.models import ItemCategory, ItemType, Listing, ListingImage, Transaction, User
+from marketplace.validation import validate_image_reference
 
 
 class Assignment3Tests(TestCase):

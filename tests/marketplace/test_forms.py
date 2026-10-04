@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from .forms import ListingCreateForm
-from .models import ItemCategory, ItemType, Listing
+from marketplace.forms import ListingCreateForm
+from marketplace.models import ItemCategory, ItemType, Listing
 
 
 class ListingCreateFormTests(TestCase):

@@ -1,0 +1,101 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "url": "http://127.0.0.1:8014/api/profile/charts/listing-inquiries/"
+  },
+  "transform": [
+    {
+      "fold": [
+        "answered",
+        "unanswered"
+      ],
+      "as": [
+        "response",
+        "inquiries"
+      ]
+    }
+  ],
+  "mark": {
+    "type": "bar",
+    "cornerRadiusEnd": 3
+  },
+  "encoding": {
+    "x": {
+      "field": "inquiries",
+      "type": "quantitative",
+      "title": "Inquiries",
+      "scale": {
+        "zero": true
+      },
+      "stack": "zero",
+      "axis": {
+        "grid": false,
+        "format": "d",
+        "tickMinStep": 1
+      }
+    },
+    "y": {
+      "field": "title",
+      "type": "nominal",
+      "title": "Listing",
+      "sort": {
+        "field": "total",
+        "op": "max",
+        "order": "descending"
+      },
+      "axis": {
+        "grid": false
+      }
+    },
+    "color": {
+      "field": "response",
+      "type": "nominal",
+      "title": "Response",
+      "scale": {
+        "domain": [
+          "answered",
+          "unanswered"
+        ],
+        "range": [
+          "#4d8069",
+          "#c75b5b"
+        ]
+      }
+    },
+    "order": {
+      "field": "response",
+      "sort": [
+        "answered",
+        "unanswered"
+      ]
+    },
+    "tooltip": [
+      {
+        "field": "title",
+        "type": "nominal",
+        "title": "Listing"
+      },
+      {
+        "field": "total",
+        "type": "quantitative",
+        "title": "Total inquiries"
+      },
+      {
+        "field": "response",
+        "type": "nominal",
+        "title": "Response"
+      },
+      {
+        "field": "inquiries",
+        "type": "quantitative",
+        "title": "Count"
+      }
+    ]
+  },
+  "width": "container",
+  "height": 280,
+  "autosize": {
+    "type": "fit",
+    "contains": "padding"
+  }
+}

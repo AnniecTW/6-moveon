@@ -1,18 +1,4 @@
-from pathlib import Path
-
-from django.conf import settings
-from django.core.files import File
 from django.db import migrations, models
-
-
-ASSETS = {
-    "Bookshelf": "bookshelf.png",
-    "Coffee Table": "coffee-table.png",
-    "Desk Lamp": "desk-lamp.png",
-    "Oak Desk": "oak-desk.png",
-    "Rocking Chair": "rocking-chair.png",
-    "Throw Pillow": "gray-pillow.png",
-}
 
 
 def populate_listing_images(apps, schema_editor):

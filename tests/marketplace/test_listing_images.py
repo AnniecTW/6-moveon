@@ -10,8 +10,8 @@ from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
-from .forms import ListingCreateForm
-from .models import ItemCategory, ItemType, Listing, ListingImage
+from marketplace.forms import ListingCreateForm
+from marketplace.models import ItemCategory, ItemType, Listing, ListingImage
 
 
 class ListingImageTestMixin:
