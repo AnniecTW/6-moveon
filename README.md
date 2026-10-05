@@ -234,10 +234,6 @@ Chart JSON specifications are in
 [`docs/notes/week4_specs/`](docs/notes/week4_specs/); website screenshots,
 Vega Editor previews and PNG outputs are in
 [`docs/notes/week4_screenshots/`](docs/notes/week4_screenshots/).
-After deployment, replace the local API host in the submitted specifications
-with the deployed host, or save fresh copies from the deployed `.json` endpoints.
 
-Confirm that the deployed APIs, charts, PNG outputs and CSV/JSON downloads work.
-Grant instructor account `mohitg27` access. Enter the GitHub branch link,
-deployed site link and PythonAnywhere username in Assignment Comments,
-then complete the Canvas submission.
+Confirmed that the deployed APIs, embedded charts and CSV/JSON downloads work.
+Granted instructor account `mohitg27` access.

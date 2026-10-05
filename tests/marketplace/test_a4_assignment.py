@@ -1,6 +1,7 @@
 from datetime import datetime, timezone as datetime_timezone
 from io import BytesIO, StringIO
 from hashlib import sha256
+from unittest.mock import patch
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -97,6 +98,20 @@ class A4AnonymousChartsTests(TestCase):
         self.assertEqual(after.status_code, 200)
         self.assertNotEqual(sha256(before.content).hexdigest(),
                             sha256(after.content).hexdigest())
+
+    def test_all_pngs_render_when_wsgi_executable_is_not_python(self):
+        with patch("marketplace.charts.sys.executable", "/usr/local/bin/uwsgi"):
+            for name in (
+                "vega-earned-spent-png",
+                "vega-earned-spent-timeline-png",
+                "vega-listing-inquiries-png",
+            ):
+                with self.subTest(endpoint=name):
+                    response = self.client.get(reverse(name))
+                    self.assertEqual(response.status_code, 200)
+                    self.assertEqual(response["Content-Type"], "image/png")
+                    with Image.open(BytesIO(response.content)) as image:
+                        image.verify()
 
     def test_a4_does_not_open_other_users_private_routes(self):
         self.assertEqual(self.client.get(reverse("seller-settings")).status_code, 403)

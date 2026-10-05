@@ -1,12 +1,15 @@
 """URL-backed Vega-Lite charts, public for the fictional A4 dataset."""
 
 import json
+import logging
+import os
 import subprocess
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 from decimal import Decimal
 from functools import wraps
+from pathlib import Path
 from urllib.parse import urlencode
 
 from django.contrib.auth import get_user_model
@@ -24,13 +27,8 @@ from .auth_backend import has_campus_access
 from .assignment import demo_user
 from .models import Listing, Transaction
 
+logger = logging.getLogger(__name__)
 _RENDER_TOKEN_SALT = "profile-chart-render"
-_RENDER_SCRIPT = (
-    "import json,sys,vl_convert as vlc; "
-    "spec=json.load(sys.stdin); "
-    "sys.stdout.buffer.write(vlc.vegalite_to_png(" 
-    "vl_spec=spec,allowed_base_urls=[sys.argv[1]]))"
-)
 
 
 def chart_data_access_required(view):
@@ -132,15 +130,34 @@ def _render_png(request, spec_view, data_route):
 
 
 def _render_spec_png(spec, allowed_base_url):
+    # Embedded WSGI hosts may set sys.executable to uwsgi rather than Python.
+    python_executable = str(
+        Path(sys.prefix) / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    )
+    render_script = (
+        "import json,sys,vl_convert as vlc; "
+        "spec=json.load(sys.stdin); "
+        "sys.stdout.buffer.write(vlc.vegalite_to_png("
+        "vl_spec=spec,allowed_base_urls=[sys.argv[1]]))"
+    )
     try:
         result = subprocess.run(
-            [sys.executable, "-c", _RENDER_SCRIPT, allowed_base_url],
+            [python_executable, "-c", render_script, allowed_base_url],
             input=json.dumps(spec).encode("utf-8"),
             capture_output=True,
             check=True,
             timeout=30,
         )
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as exc:
+        stderr = getattr(exc, "stderr", None) or b""
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode("utf-8", errors="replace")
+        logger.error(
+            "PNG rendering failed: executable=%s; error=%s\nstderr:\n%s",
+            python_executable,
+            exc,
+            stderr or "(empty)",
+        )
         return JsonResponse({"error": "Chart rendering failed."}, status=502)
     return HttpResponse(result.stdout, content_type="image/png")
 

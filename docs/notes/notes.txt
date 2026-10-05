@@ -124,7 +124,7 @@ Grading requirements and evidence:
   in `static/js/marketplace/vega-charts.js` fetches each JSON specification and renders it
   with Vega-Embed. The specifications use the Vega-Lite v5 schema and can be submitted as
   the JSON returned by their `.json` endpoints.
-- Current screenshots are `a4_charts_page.jpg` and `a4_reports_page.jpg` under
+- Current screenshots are `a4_charts_page.png` and `a4_reports_page.png` under
   `docs/notes/week4_screenshots/`; the three matching PNG files are actual endpoint
   outputs. Earlier section1/profile screenshots are historical evidence.
 - URL-backed JSON specifications are saved under `docs/notes/week4_specs/`.

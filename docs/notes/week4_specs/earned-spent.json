@@ -1,7 +1,7 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
   "data": {
-    "url": "http://127.0.0.1:8014/api/profile/charts/earned-spent/"
+    "url": "https://moveonbochen.pythonanywhere.com/api/profile/charts/earned-spent/"
   },
   "mark": {
     "type": "bar",

@@ -1,7 +1,7 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
   "data": {
-    "url": "http://127.0.0.1:8014/api/profile/charts/listing-inquiries/"
+    "url": "https://moveonbochen.pythonanywhere.com/api/profile/charts/listing-inquiries/"
   },
   "transform": [
     {

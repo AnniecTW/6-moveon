@@ -99,3 +99,19 @@ Message Seller manual walkthroughs remain in the historical Week 3 notes.
    submitted chart specifications with the deployed host, or save fresh online specs.
 5. Grant instructor `mohitg27` access. Enter the GitHub branch link, deployed URL
    and PythonAnywhere username in Assignment Comments, then submit through Canvas.
+
+## PythonAnywhere PNG rendering fix
+
+The deployed PNG endpoints returned HTTP 502 because `sys.executable` inside
+the uWSGI worker pointed to `/usr/local/bin/uwsgi`. The subprocess therefore
+passed Python rendering code to uWSGI instead of a Python interpreter.
+
+Updated `marketplace/charts.py` to locate the environment's Python through
+`sys.prefix`: `bin/python` on Linux and `Scripts/python.exe` on Windows. Kept
+the existing URL-backed API relay, separate rendering process and 30-second
+timeout. Added error logging for subprocess stderr and interpreter startup
+failures. The fix adds no dependencies or account-specific paths.
+
+Added regression coverage for all three PNG endpoints when the host executable
+is uWSGI. The local correction still requires verification on the deployed PNG
+endpoints after the updated file is synchronized and the web app is reloaded.
