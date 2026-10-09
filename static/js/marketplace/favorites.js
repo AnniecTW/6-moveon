@@ -13,10 +13,11 @@ export function setupFavorites() {
   }
   read();
   const toggle = document.querySelector("[data-saved-toggle]");
-  toggle.hidden = false;
+  if (toggle) toggle.hidden = false;
   function refresh() {
-    document.querySelector("[data-saved-count]").textContent = saved.size;
-    toggle.setAttribute("aria-pressed", String(onlySaved));
+    const count = document.querySelector("[data-saved-count]");
+    if (count) count.textContent = saved.size;
+    toggle?.setAttribute("aria-pressed", String(onlySaved));
     let visible = 0;
     document.querySelectorAll("[data-listing-card]").forEach((card) => {
       const button = card.querySelector("[data-favorite-id]");
@@ -47,7 +48,7 @@ export function setupFavorites() {
     }
     refresh();
   });
-  toggle.addEventListener("click", () => {
+  toggle?.addEventListener("click", () => {
     onlySaved = !onlySaved;
     refresh();
     if (!onlySaved) {

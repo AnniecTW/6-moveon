@@ -13,8 +13,8 @@ from marketplace.views import (
 )
 
 urlpatterns = [
-    # Public chart page and listing API examples.
-    path("charts/", charts.demo_charts, name="a4-charts"),
+    # Personal charts; the existing URL/name is retained for reverse compatibility.
+    path("charts/", charts.personal_charts, name="a4-charts"),
     path("api/listings/demo/", api.listings_documentation, name="listing-api-demo"),
     # Internal listing data and external currency conversion.
     path("api/listings/", api.listings, name="listing-api"),
@@ -30,7 +30,7 @@ urlpatterns = [
     path("vega-lite/earned-spent.png", charts.earned_spent_png, name="vega-earned-spent-png"),
     path("vega-lite/earned-spent-timeline.png", charts.earned_spent_timeline_png, name="vega-earned-spent-timeline-png"),
     path("vega-lite/listing-inquiries.png", charts.listing_inquiry_png, name="vega-listing-inquiries-png"),
-    # Public reports and downloads.
+    # Campus-access reports and downloads.
     path("reports/", reports.listing_report, name="listing-report"),
     path("reports/listings.csv", reports.listings_csv, name="listing-export-csv"),
     path("reports/listings.json", reports.listings_json, name="listing-export-json"),

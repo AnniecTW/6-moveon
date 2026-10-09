@@ -4,6 +4,7 @@ import re
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from marketplace.models import ItemCategory, ItemType, Listing, User
 
@@ -11,8 +12,9 @@ from marketplace.models import ItemCategory, ItemType, Listing, User
 class ListingExportTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        seller = User.objects.create_user(
-            username="exp_seller", email="exp_seller@illinois.edu", display_name="Sam"
+        cls.seller = User.objects.create_user(
+            username="exp_seller", email="exp_seller@illinois.edu", display_name="Sam",
+            email_verified=True, email_verified_at=timezone.now(),
         )
         cls.furniture = ItemCategory.objects.create(category_name="Exp Furniture")
         cls.tech = ItemCategory.objects.create(category_name="Exp Tech")
@@ -26,11 +28,14 @@ class ListingExportTests(TestCase):
             ("Draft Chair", desk, 99, "DRAFT"),
         ]:
             listing = Listing.objects.create(
-                seller=seller, item_type=kind, title=title, listing_price=price,
+                seller=cls.seller, item_type=kind, title=title, listing_price=price,
                 condition="GOOD", fulfillment_option="PICKUP", status=status,
             )
             if status == "ACTIVE":
                 cls.active_ids.append(listing.pk)
+
+    def setUp(self):
+        self.client.force_login(self.seller)
 
     def test_csv_and_json_exports_order_by_id(self):
         csv_response = self.client.get(reverse("listing-export-csv"))

@@ -8,6 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from PIL import Image
 
 from marketplace.forms import ListingCreateForm
@@ -24,13 +25,15 @@ class ListingImageTestMixin:
 
         self.user = get_user_model().objects.create_user(
             username="seller",
-            email="seller@example.invalid",
+            email="seller@illinois.edu",
             display_name="Seller",
+            email_verified=True, email_verified_at=timezone.now(),
         )
         self.other_user = get_user_model().objects.create_user(
             username="other",
-            email="other@example.invalid",
+            email="other@illinois.edu",
             display_name="Other",
+            email_verified=True, email_verified_at=timezone.now(),
         )
         category = ItemCategory.objects.create(category_name="Furniture")
         self.item_type = ItemType.objects.create(category=category, item_type_name="Desk")
@@ -137,7 +140,8 @@ class ListingImageUploadTests(ListingImageTestMixin, TestCase):
 
         response = self.client.post(self.url, {"url": "https://example.invalid/item.jpg"})
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["code"], "login_required")
 
 
 class ListingImageFormTests(ListingImageTestMixin, TestCase):

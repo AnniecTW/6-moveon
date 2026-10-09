@@ -8,7 +8,7 @@ export function setupBrowse({ drawer, favorites }) {
   const currencyStatus = document.querySelector("[data-currency-status]");
   const currencyApi = document.querySelector("[data-marketplace]")?.dataset.currencyApi;
   const status = document.querySelector("[data-browse-status]");
-  currency.closest(".currency-label").hidden = false;
+  if (currency) currency.closest(".currency-label").hidden = false;
   let controller,
     currencyController,
     timer,
@@ -36,7 +36,7 @@ export function setupBrowse({ drawer, favorites }) {
     }
     search.value = params.get("q") || "";
     sort.value = params.get("sort") || "newest";
-    currency.value = params.get("currency") || "USD";
+    if (currency) currency.value = params.get("currency") || "USD";
     syncTypes();
   }
   function paintCurrencyPrices(rows, displayCurrency) {
@@ -59,6 +59,7 @@ export function setupBrowse({ drawer, favorites }) {
     });
   }
   async function updateCurrencyPrices() {
+    if (!currency || !currencyApi) return;
     currencyController?.abort();
     const current = new AbortController();
     currencyController = current;
@@ -141,7 +142,7 @@ export function setupBrowse({ drawer, favorites }) {
   function submit(close = false) {
     form.elements.q.value = search.value;
     const params = new URLSearchParams(new FormData(form));
-    params.set("currency", currency.value);
+    if (currency) params.set("currency", currency.value);
     for (const [key, value] of [...params]) if (!value) params.delete(key);
     load(location.pathname + (params.size ? "?" + params : ""), true, close);
   }
@@ -163,7 +164,7 @@ export function setupBrowse({ drawer, favorites }) {
     timer = setTimeout(submit, 250);
   });
   sort.addEventListener("change", () => submit());
-  currency.addEventListener("change", () => {
+  currency?.addEventListener("change", () => {
     const next = new URL(location.href);
     next.searchParams.set("currency", currency.value);
     window.history.pushState({}, "", next);

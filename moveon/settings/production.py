@@ -11,6 +11,6 @@ SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=3600)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "data" / "db.sqlite3",
+        "NAME": BASE_DIR / env("DATABASE_PATH", default="data/db.sqlite3"),
     }
 }

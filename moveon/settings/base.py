@@ -28,11 +28,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
-# This integration branch is the public, read-only A4 submission.
-# Set False when resuming the preserved account workflows for A5.
-A4_ASSIGNMENT_MODE = env.bool("A4_ASSIGNMENT_MODE", default=True)
-A4_DEMO_USERNAME = "maya"
-
 # Optional: powers the AI Bundle Builder's tier classification (bundles app).
 # Left blank, that feature falls back to a plain price-based heuristic
 # instead of failing.
@@ -48,13 +43,33 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     "marketplace",
     "bundles",
     "messaging",
 ]
 
 AUTH_USER_MODEL = "marketplace.User"
-AUTHENTICATION_BACKENDS = ["marketplace.auth_backend.CampusModelBackend"]
+AUTHENTICATION_BACKENDS = [
+    "marketplace.auth_backend.CampusModelBackend",
+    "marketplace.allauth_adapter.CampusAllauthBackend",
+]
+
+LOGIN_URL = "/account/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_ADAPTER = "marketplace.allauth_adapter.CampusAccountAdapter"
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
+ACCOUNT_SIGNUP_FIELDS = ["username*", "email*", "password1*", "password2*"]
+# The existing six-digit campus challenge is the shared verification gate.
+# The adapter enforces it before allauth can establish a student session.
+ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
+SOCIALACCOUNT_STORE_TOKENS = False
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -64,6 +79,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "marketplace.access_middleware.CampusAccessMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -79,7 +95,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "marketplace.assignment.context",
+                "marketplace.context_processors.campus_access",
             ],
         },
     },
@@ -94,7 +110,7 @@ WSGI_APPLICATION = "moveon.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "data" / "db.sqlite3",
+        "NAME": BASE_DIR / env("DATABASE_PATH", default="data/db.sqlite3"),
     }
 }
 

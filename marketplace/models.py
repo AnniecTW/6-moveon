@@ -56,7 +56,14 @@ class User(AbstractUser):
                 if update_fields is not None:
                     kwargs["update_fields"] = set(update_fields) | {"email_verified", "email_verified_at"}
                 EmailVerification.objects.filter(user_id=self.pk).delete()
-        return super().save(*args, **kwargs)
+        result = super().save(*args, **kwargs)
+        if update_fields is None or {"email", "email_verified", "email_verified_at"} & set(update_fields):
+            from .email_state import sync_campus_email
+
+            # Allauth initializes new social users' emails after saving the User.
+            # Only update metadata that already exists at this point.
+            sync_campus_email(self, existing_only=True)
+        return result
 
 
 class EmailVerification(models.Model):

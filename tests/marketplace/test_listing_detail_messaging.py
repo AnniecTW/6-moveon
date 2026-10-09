@@ -65,10 +65,7 @@ class ListingDetailMessagingTests(TestCase):
     def test_guest_return_destination_survives_account_mode_switch(self):
         detail = self.client.get(self.detail_url)
         self.assertEqual(detail.status_code, 200)
-        self.assertContains(
-            detail,
-            f'href="{self.messages_url}">Message Seller</a>',
-        )
+        self.assertNotContains(detail, "Message Seller")
 
         account_redirect = self.client.get(self.messages_url)
         self.assertEqual(account_redirect.status_code, 302)

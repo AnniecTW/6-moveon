@@ -27,10 +27,7 @@
       </button>
     </form>
     <nav class="header-actions" aria-label="Marketplace actions">
-      {% if a4_assignment_mode %}
-      <a class="button" href="{% url 'a4-charts' %}">Demo charts</a>
-      <a class="button" href="{% url 'listing-report' %}">Reports &amp; exports</a>
-      {% else %}
+      {% if campus_access %}
       <a
         class="button primary sell-button"
         href="{% url 'listing-create-url' %}"
@@ -68,6 +65,8 @@
           <path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg
         ><span data-saved-count>0</span>
       </button>
+      <a class="button" href="{% url 'a4-charts' %}">My charts</a>
+      {% endif %}
         {% if request.user.is_authenticated %}
           {% if campus_access %}
             <a class="header-user" href="{% url 'seller-listings' %}"><span class="header-avatar">{{ request.user.display_name|default:request.user.username|slice:":1"|upper }}</span><span>{{ request.user.display_name|default:request.user.username }}</span></a>
@@ -90,7 +89,6 @@
             </svg>
           </a>
         {% endif %}
-      {% endif %}
     </nav>
   </div>
 </header>

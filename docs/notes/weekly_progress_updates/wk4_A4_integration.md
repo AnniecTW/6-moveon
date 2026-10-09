@@ -1,5 +1,10 @@
 # Week 4: A4 integration changes
 
+Historical A4 record, applicable through `2fbfe4f`. Its public demo mode is
+removed in A5 phase 3. Preserve this record, the specifications, screenshots
+and fictional seed command; replay A4 using that commit and a separate demo
+database. See the [A5 key change log](wk5_A5_phase1&phase2.md) for the fixed permissions.
+
 This integration adapts the existing Week 3 project and the teammates' Week 4
 contributions to the October 3 A4 update. The focus is a public coursework demo:
 internal/external APIs, visualizations, reports, downloads and deployment preparation.

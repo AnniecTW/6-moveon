@@ -26,7 +26,7 @@
       <div class="page">
         <p>MoveOn — a fresh start at a fair price.</p>
         <p>Curated secondhand furniture, built for move-in season.</p>
-        <p><a href="{% url 'listing-report' %}">Listing reports &amp; exports</a></p>
+        {% if campus_access %}<p><a href="{% url 'listing-report' %}">Listing reports &amp; exports</a></p>{% endif %}
       </div>
     </footer>
     {% endblock %}

@@ -1,24 +1,29 @@
-from io import BytesIO
-from io import StringIO
 import json
 from decimal import Decimal
-from types import SimpleNamespace
-from urllib.parse import parse_qs, urlsplit
+from io import BytesIO, StringIO
 from unittest.mock import patch
+from urllib.parse import urlsplit
 
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.test import Client, LiveServerTestCase, TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
 
-from marketplace.auth_backend import has_campus_access
 from bundles.models import Bundle, BundleItem
-from messaging.models import Conversation, Message
+from marketplace.auth_backend import has_campus_access
 from marketplace.charts import listing_inquiry_data
-from marketplace.models import ItemCategory, ItemType, Listing, ListingImage, Transaction, User
+from marketplace.models import (
+    ItemCategory,
+    ItemType,
+    Listing,
+    ListingImage,
+    Transaction,
+    User,
+)
 from marketplace.validation import validate_image_reference
+from messaging.models import Conversation, Message
 
 
 class Assignment3Tests(TestCase):
@@ -121,7 +126,7 @@ class Assignment3Tests(TestCase):
             "profile-listing-inquiry-data",
         )
         for name in data_endpoints:
-            self.assertEqual(self.client.get(reverse(name)).status_code, 403)
+            self.assertEqual(self.client.get(reverse(name)).status_code, 401)
 
         spec_endpoints = (
             "vega-earned-spent-spec",
@@ -129,7 +134,7 @@ class Assignment3Tests(TestCase):
             "vega-listing-inquiries-spec",
         )
         for name in spec_endpoints:
-            self.assertEqual(self.client.get(reverse(name)).status_code, 302)
+            self.assertEqual(self.client.get(reverse(name)).status_code, 401)
 
         Conversation.objects.create(
             buyer=self.buyer, seller=self.seller, listing=self.items[0]
@@ -210,25 +215,31 @@ class Assignment3Tests(TestCase):
             "profile-listing-inquiry-data",
         )
         for endpoint, data_route in zip(png_endpoints, data_routes):
+            expected = self.client.get(reverse(data_route)).json()
+
+            def inspect_snapshot(command, payload, expected=expected, data_route=data_route, **kwargs):
+                envelope = json.loads(payload)
+                self.assertEqual(set(envelope), {"spec", "payload", "data_path"})
+                self.assertEqual(json.loads(envelope["payload"]), expected)
+                self.assertEqual(envelope["data_path"], reverse(data_route))
+                self.assertEqual(kwargs["timeout"], 30)
+                self.assertTrue(kwargs["process_tree"])
+                return b"\x89PNG\r\n\x1a\nchart"
+
             with patch(
-                "marketplace.charts.subprocess.run",
-                return_value=SimpleNamespace(stdout=b"\x89PNG\r\n\x1a\nchart"),
+                "marketplace.charts.run_process",
+                side_effect=inspect_snapshot,
             ) as renderer:
                 response = self.client.get(reverse(endpoint))
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response["Content-Type"], "image/png")
             self.assertTrue(response.content.startswith(b"\x89PNG\r\n\x1a\n"))
-            spec = json.loads(renderer.call_args.kwargs["input"].decode("utf-8"))
+            spec = json.loads(renderer.call_args.args[1])["spec"]
             self.assertIn("url", spec["data"])
             self.assertNotIn("values", spec["data"])
             data_url = urlsplit(spec["data"]["url"])
             self.assertTrue(data_url.path.endswith(reverse(data_route)))
-            token = parse_qs(data_url.query)["render_token"][0]
-            data_response = Client().get(
-                f"{reverse(data_route)}?render_token={token}"
-            )
-            self.assertEqual(data_response.status_code, 200)
-            self.assertEqual(data_response["Content-Type"], "application/json")
+            self.assertEqual(data_url.query, "")
 
     def test_seeded_maya_profile_inquiries_and_spending_are_model_backed(self):
         call_command("seed_demo_data", stdout=StringIO(), verbosity=0)
@@ -329,7 +340,7 @@ class Assignment3Tests(TestCase):
                 validate_image_reference(value)
 
 
-class VegaPngLiveServerTests(LiveServerTestCase):
+class VegaPngRelayTests(TestCase):
     def setUp(self):
         now = timezone.now()
         self.seller = User.objects.create_user(
@@ -353,18 +364,14 @@ class VegaPngLiveServerTests(LiveServerTestCase):
             status=Listing.Status.ACTIVE,
         )
         self.client.force_login(self.seller)
-        self.http_host = urlsplit(self.live_server_url).netloc
-
-    def test_png_exports_fetch_signed_data_from_local_api(self):
+    def test_empty_chart_png_exports_work_without_a_website_worker(self):
         endpoints = (
             "vega-earned-spent-png",
             "vega-earned-spent-timeline-png",
             "vega-listing-inquiries-png",
         )
         for endpoint in endpoints:
-            response = self.client.get(
-                reverse(endpoint), HTTP_HOST=self.http_host
-            )
+            response = self.client.get(reverse(endpoint))
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response["Content-Type"], "image/png")
             with Image.open(BytesIO(response.content)) as image:

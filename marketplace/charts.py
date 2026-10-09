@@ -1,21 +1,14 @@
-"""URL-backed Vega-Lite charts, public for the fictional A4 dataset."""
+"""Private URL-backed Vega-Lite charts scoped to the current campus user."""
 
 import json
 import logging
 import os
 import subprocess
 import sys
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from threading import Thread
 from decimal import Decimal
 from functools import wraps
 from pathlib import Path
-from urllib.parse import urlencode
 
-from django.contrib.auth import get_user_model
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
-from django.core import signing
 from django.db.models import Count, F, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -23,143 +16,78 @@ from django.urls import resolve, reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
+from .access_middleware import access_denied_response
 from .auth_backend import has_campus_access
-from .assignment import demo_user
 from .models import Listing, Transaction
+from .png_renderer import run_process
 
 logger = logging.getLogger(__name__)
-_RENDER_TOKEN_SALT = "profile-chart-render"
+PNG_RENDERER_PATH = Path(__file__).with_name("png_renderer.py").resolve()
+PNG_RENDER_TIMEOUT = 30
 
 
 def chart_data_access_required(view):
-    """Use the fictional demo identity in A4; otherwise retain owner access."""
+    """Authorize before querying; caller-supplied user IDs never select data."""
     @wraps(view)
     def wrapped(request, *args, **kwargs):
-        if settings.A4_ASSIGNMENT_MODE:
-            request.chart_user = demo_user()
-            if request.chart_user is None:
-                return JsonResponse({"error": "A4 demo data has not been loaded."}, status=404)
-            response = view(request, *args, **kwargs)
-            response["Access-Control-Allow-Origin"] = "https://vega.github.io"
-            return response
-        user = request.user
-        if not (user.is_authenticated and has_campus_access(user)):
-            try:
-                payload = signing.loads(
-                    request.GET.get("render_token", ""),
-                    salt=_RENDER_TOKEN_SALT,
-                    max_age=60,
-                )
-            except signing.BadSignature:
-                return JsonResponse({"error": "Chart access denied."}, status=403)
-            if not isinstance(payload, dict):
-                return JsonResponse({"error": "Chart access denied."}, status=403)
-            user = get_user_model().objects.filter(
-                pk=payload.get("user_id"),
-                is_active=True,
-                account_status="ACTIVE",
-                email_verified=True,
-                email_verified_at__isnull=False,
-                email__iendswith="@illinois.edu",
-            ).first()
-            if user is None:
-                return JsonResponse({"error": "Chart access denied."}, status=403)
-        request.chart_user = user
+        if not (request.user.is_authenticated and has_campus_access(request.user)):
+            return access_denied_response(request, json_response=True)
+        request.chart_user = request.user
         return view(request, *args, **kwargs)
     return wrapped
 
 
 def chart_page_access_required(view):
-    private_view = login_required(view)
-
     @wraps(view)
     def wrapped(request, *args, **kwargs):
-        if settings.A4_ASSIGNMENT_MODE:
-            return view(request, *args, **kwargs)
-        return private_view(request, *args, **kwargs)
+        if not (request.user.is_authenticated and has_campus_access(request.user)):
+            return access_denied_response(request, json_response=request.path.endswith(".json"))
+        return view(request, *args, **kwargs)
 
     return wrapped
 
 
+@chart_page_access_required
 @require_GET
-def demo_charts(request):
+def personal_charts(request):
     return render(request, "marketplace/assignment_charts.html")
 
 
 def _render_png(request, spec_view, data_route):
     spec_response = spec_view(request)
+    if spec_response.status_code != 200:
+        return spec_response
     spec = json.loads(spec_response.content)
-    if settings.A4_ASSIGNMENT_MODE:
-        # Relay the same JSON API response on a temporary loopback HTTP endpoint.
-        # Vega keeps URL-backed data without requesting a second web-app worker.
-        data_response = resolve(reverse(data_route)).func(request)
-        if data_response.status_code != 200:
-            return data_response
-        data_path = reverse(data_route)
-
-        class ApiResponseHandler(BaseHTTPRequestHandler):
-            def do_GET(self):
-                if self.path != data_path:
-                    self.send_error(404)
-                    return
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(data_response.content)))
-                self.end_headers()
-                self.wfile.write(data_response.content)
-
-            def log_message(self, format, *args):
-                pass
-
-        with ThreadingHTTPServer(("127.0.0.1", 0), ApiResponseHandler) as local_api:
-            thread = Thread(target=local_api.serve_forever,
-                            kwargs={"poll_interval": 0.05}, daemon=True)
-            thread.start()
-            base_url = f"http://127.0.0.1:{local_api.server_port}"
-            spec["data"]["url"] = base_url + data_path
-            spec["width"] = 560
-            try:
-                return _render_spec_png(spec, base_url + "/")
-            finally:
-                local_api.shutdown()
-                thread.join(timeout=1)
-    token = signing.dumps({"user_id": request.user.pk}, salt=_RENDER_TOKEN_SALT)
-    data_url = request.build_absolute_uri(reverse(data_route))
-    spec["data"]["url"] = f"{data_url}?{urlencode({'render_token': token})}"
-    return _render_spec_png(spec, request.build_absolute_uri("/"))
+    # Authorize/query in Django. The child receives only this frozen snapshot.
+    data_path = reverse(data_route)
+    data_response = resolve(data_path).func(request)
+    if data_response.status_code != 200:
+        return data_response
+    payload = data_response.content
+    return _render_spec_png(spec, payload, data_path)
 
 
-def _render_spec_png(spec, allowed_base_url):
+def _render_spec_png(spec, payload, data_path):
     # Embedded WSGI hosts may set sys.executable to uwsgi rather than Python.
     python_executable = str(
         Path(sys.prefix) / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     )
-    render_script = (
-        "import json,sys,vl_convert as vlc; "
-        "spec=json.load(sys.stdin); "
-        "sys.stdout.buffer.write(vlc.vegalite_to_png("
-        "vl_spec=spec,allowed_base_urls=[sys.argv[1]]))"
-    )
+    envelope = json.dumps({
+        "spec": spec, "payload": payload.decode("utf-8"), "data_path": data_path,
+    }).encode("utf-8")
     try:
-        result = subprocess.run(
-            [python_executable, "-c", render_script, allowed_base_url],
-            input=json.dumps(spec).encode("utf-8"),
-            capture_output=True,
-            check=True,
-            timeout=30,
+        png = run_process(
+            [python_executable, str(PNG_RENDERER_PATH)], envelope,
+            timeout=PNG_RENDER_TIMEOUT, process_tree=True,
         )
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as exc:
-        stderr = getattr(exc, "stderr", None) or b""
-        if isinstance(stderr, bytes):
-            stderr = stderr.decode("utf-8", errors="replace")
+        # Raw child diagnostics can contain private labels or chart data.
         logger.error(
-            "PNG rendering failed: executable=%s; error=%s\nstderr:\n%s",
-            python_executable,
-            exc,
-            stderr or "(empty)",
+            "PNG rendering failed: executable=%s; error=%s; returncode=%s",
+            python_executable, type(exc).__name__, getattr(exc, "returncode", None),
         )
         return JsonResponse({"error": "Chart rendering failed."}, status=502)
-    return HttpResponse(result.stdout, content_type="image/png")
+    return HttpResponse(png, content_type="image/png")
 
 
 def listing_inquiry_data(user):

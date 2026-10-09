@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import URLValidator
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import login, logout
+from allauth.account.utils import perform_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
 from django.conf import settings
@@ -106,8 +107,10 @@ def account_view(request):
                 except EmailDeliveryError:
                     request.session["verification_delivery_error"] = True
                 return redirect("account_verify")
-            login(request, form.get_user())
-            return redirect(_safe_return(request))
+            return perform_login(
+                request, form.get_user(), email_verification="none",
+                redirect_url=_safe_return(request),
+            )
         if mode == "login":
             candidate = credential_user(request.POST.get("username", "").strip(), request.POST.get("password", ""))
             if candidate:

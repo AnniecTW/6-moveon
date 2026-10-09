@@ -11,7 +11,7 @@ from marketplace.models import ItemCategory, ItemType, Listing, User
 class CurrencyApiTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        seller = User.objects.create_user(
+        cls.seller = User.objects.create_user(
             username="currency-seller",
             email="currency-seller@illinois.edu",
             display_name="Currency Seller",
@@ -23,7 +23,7 @@ class CurrencyApiTests(TestCase):
             category=category, item_type_name="Currency Desk"
         )
         cls.listing = Listing.objects.create(
-            seller=seller,
+            seller=cls.seller,
             item_type=item_type,
             title="Oak Currency Desk",
             listing_price=40,
@@ -32,7 +32,10 @@ class CurrencyApiTests(TestCase):
             status=Listing.Status.ACTIVE,
         )
 
-    def test_converts_filtered_public_listings(self):
+    def setUp(self):
+        self.client.force_login(self.seller)
+
+    def test_converts_filtered_listings_for_verified_user(self):
         with patch("marketplace.api.requests.get") as get_rate:
             get_rate.return_value.json.return_value = [
                 {"base": "USD", "quote": "CAD", "rate": 1.25, "date": "2026-10-02"}

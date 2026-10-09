@@ -1,27 +1,27 @@
 {% extends "marketplace/base.html" %}
 {% load static %}
-{% block title %}Demo charts | MoveOn{% endblock %}
+{% block title %}My charts | MoveOn{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/marketplace/seller.css' %}" />{% endblock %}
 {% block listing_content %}
 <section class="seller-dashboard" aria-labelledby="charts-title">
   <header class="seller-heading">
     <p class="eyebrow">Marketplace summary</p>
-    <h1 id="charts-title">Demo charts</h1>
-    <p class="seller-subtitle">Fictional demo data for Maya. No sign-in is required.</p>
+    <h1 id="charts-title">My charts</h1>
+    <p class="seller-subtitle">Your purchases, sales and listing inquiries.</p>
   </header>
   <article class="buyer-spending-card">
     <header class="buyer-chart-header"><div><h2>Total Earned vs. Total Spent</h2><p>Completed sales and non-cancelled purchases, in USD.</p></div></header>
-    <div class="profile-vega-chart" data-vega-spec="{% url 'vega-earned-spent-spec' %}" role="img" aria-label="Bar chart comparing demo earnings and spending"></div>
+    <div class="profile-vega-chart" data-vega-spec="{% url 'vega-earned-spent-spec' %}" role="img" aria-label="Bar chart comparing your earnings and spending"></div>
     <p><a href="{% url 'vega-earned-spent-png' %}">View PNG</a> &middot; <a href="{% url 'vega-earned-spent-spec' %}">Chart specification</a> &middot; <a href="{% url 'profile-earned-spent-data' %}">Chart data</a></p>
   </article>
   <article class="buyer-spending-card">
-    <header class="buyer-chart-header"><div><h2>Earned and Spent Over Time</h2><p>Cumulative totals from the same demo transactions.</p></div></header>
-    <div class="profile-vega-chart" data-vega-spec="{% url 'vega-earned-spent-timeline-spec' %}" role="img" aria-label="Line chart showing cumulative demo earnings and spending"></div>
+    <header class="buyer-chart-header"><div><h2>Earned and Spent Over Time</h2><p>Cumulative totals from your transactions.</p></div></header>
+    <div class="profile-vega-chart" data-vega-spec="{% url 'vega-earned-spent-timeline-spec' %}" role="img" aria-label="Line chart showing your cumulative earnings and spending"></div>
     <p><a href="{% url 'vega-earned-spent-timeline-png' %}">View PNG</a> &middot; <a href="{% url 'vega-earned-spent-timeline-spec' %}">Chart specification</a> &middot; <a href="{% url 'profile-earned-spent-timeline-data' %}">Chart data</a></p>
   </article>
   <article class="listing-inquiry-card">
-    <header><div><h2>Listing Inquiries</h2><p>Demo conversations grouped by whether the seller has replied.</p></div></header>
-    <div class="profile-vega-chart" data-vega-spec="{% url 'vega-listing-inquiries-spec' %}" role="img" aria-label="Bar chart showing answered and unanswered demo inquiries"></div>
+    <header><div><h2>Listing Inquiries</h2><p>Your listing conversations grouped by whether you have replied.</p></div></header>
+    <div class="profile-vega-chart" data-vega-spec="{% url 'vega-listing-inquiries-spec' %}" role="img" aria-label="Bar chart showing your answered and unanswered inquiries"></div>
     <p><a href="{% url 'vega-listing-inquiries-png' %}">View PNG</a> &middot; <a href="{% url 'vega-listing-inquiries-spec' %}">Chart specification</a> &middot; <a href="{% url 'profile-listing-inquiry-data' %}">Chart data</a></p>
   </article>
 </section>

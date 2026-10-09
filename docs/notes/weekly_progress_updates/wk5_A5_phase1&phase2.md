@@ -1,0 +1,88 @@
+# Week 5: A5 Part 1 & Part 2 key changes
+
+## 2026-10-08: Shared accounts and email verification
+
+- Added `django-allauth[socialaccount]==65.19.7`, the account/socialaccount apps,
+  Google provider foundation, custom adapter/backend and account middleware.
+  The existing `marketplace.User`, password hashes and business relationships
+  remain the shared account model.
+- Added `CampusAccountAdapter` to normalize emails, enforce the project's
+  `@illinois.edu` restriction and apply campus verification before allauth
+  establishes a login session. `ListingSignupForm` delegates the email rule
+  to this adapter while retaining duplicate and username/email conflict checks.
+- Added `CampusAllauthBackend` to reuse the existing credential ambiguity and
+  inactive/suspended-account rules in allauth's authentication integration.
+- Password login now uses `perform_login()` and the existing Django session.
+  Successful login returns to `/` or a validated same-host `next` address.
+  Six-digit verification returns to login; POST logout invalidates the session.
+- Added `email_state.py` to mirror MoveOn's campus proof into allauth
+  `EmailAddress`. Registration, successful code verification, login checks and
+  relevant `User.save()` calls synchronize the primary email and verified flag.
+  Old email records become non-primary/unverified after an email change.
+- `User.email_verified` and `email_verified_at`, together with account/domain
+  checks, remain the authority for campus access. Provider email claims do not
+  grant this permission. The save hook uses `existing_only=True` to avoid
+  creating email metadata before allauth initializes a new social user.
+- Retained the six-digit challenge and password-reset flow.
+  `ACCOUNT_EMAIL_VERIFICATION="none"` prevents a second allauth email challenge;
+  the project's campus verification checks still apply.
+- Added `DATABASE_PATH` support to separate local account work from the tracked
+  fictional A4 dataset without changing the custom User schema or demo passwords.
+
+## 2026-10-08: Fixed access rules and navigation
+
+- Removed `A4_ASSIGNMENT_MODE` and `A4_DEMO_USERNAME` dependencies from settings,
+  middleware, adapter, chart code and templates; removed the unused
+  `marketplace/assignment.py`. Feature permissions no longer change with a
+  global environment switch.
+- `CampusAccessMiddleware` applies a fixed public-route list before business
+  views execute. Campus access is required elsewhere; existing object ownership
+  and conversation-participant checks remain in the corresponding views.
+
+| Features | Access rule |
+| --- | --- |
+| Home, active listing browse/details, account workflows, listing API documentation | Public entry; existing method, CSRF and credential checks apply |
+| `/api/listings/` | Public business JSON API; existing fields, filters and pagination retained |
+| Reports HTML/CSV/JSON, currency API, personal chart data/specs/PNGs, messages, uploads, publishing/editing and bundles | Login and campus email verification; applicable ownership checks retained |
+| Django Admin | Django administrator authentication and permissions |
+
+- Private JSON/API requests return structured 401 for anonymous users and 403
+  for authenticated users lacking campus access. Private HTML/PNG GET requests
+  redirect to the account page with `next`; unauthorized ordinary writes return
+  403. Uploads retain their existing login check and gain the shared campus gate.
+- Added a shared campus-access context processor. Protected navigation, report
+  links, Message Seller, Bundle actions and currency controls follow the same
+  permission rule as the server.
+- Made browse/favorites JavaScript tolerate missing protected controls.
+  Anonymous search, filtering, sorting, USD prices and browser-local favorites
+  continue to work without calling the private currency API.
+- `/charts/` now displays personal charts using the current authenticated user.
+  Existing paths and the compatibility name `a4-charts` remain. Removed the
+  demo-user selection and signed `render_token` authorization channel.
+- Preserved A4 specifications, screenshots, the fictional dataset and seed
+  commands as historical materials; business routes and exports remain available.
+
+## 2026-10-09: Private PNG subprocess execution
+
+- `charts.py` authorizes the original request and queries its current-user data
+  before rendering. Failed specification/data responses return immediately.
+  Django sends only `spec`, `payload` and the resolved `data_path` through stdin;
+  it no longer starts a relay server or relay thread.
+- Added standalone `png_renderer.py`. A request-scoped child starts an exact-path
+  HTTP relay on `127.0.0.1` with an ephemeral port, serving only the authorized
+  snapshot. It has no Django/ORM, session or database access.
+- The relay child starts a short-lived rendering descendant because conversion
+  with `vl_convert 1.9.0` blocks Python relay threads in the same process.
+  The descendant reads the local `data.url` and returns real PNG bytes via stdout;
+  rendering does not request the production website or inline `data.values`.
+- Retained virtual-environment interpreter selection through `sys.prefix` and
+  the 30-second worker timeout. The internal renderer uses a 28-second wait to
+  leave time for cleanup. Success/failure closes the relay and joins its thread;
+  worker timeout terminates the request process tree and reaps the child.
+- Private snapshots are absent from command arguments, application logs and
+  product temporary files. Child diagnostics are fixed messages; Django logs
+  only interpreter, exception type and return code. Failures retain the
+  controlled 502 response.
+- Adjusted account/access/chart/renderer tests for the shared account rules,
+  fixed permissions, current-user isolation, real URL-backed PNGs, empty data,
+  sequential requests, startup/render failures and actual timeout cleanup.
