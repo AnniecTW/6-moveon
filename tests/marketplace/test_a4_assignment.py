@@ -120,6 +120,26 @@ class A4AnonymousChartsTests(TestCase):
         response = self.client.get(reverse("profile-earned-spent-data"), {"user_id": "999"})
         self.assertEqual(response.json()[0]["amount"], 40.0)
 
+    def test_public_listings_api_is_readable_by_the_vega_editor(self):
+        category = ItemCategory.objects.get(category_name="Demo Furniture")
+        kind = ItemType.objects.get(category=category, item_type_name="Chair")
+        Listing.objects.create(
+            seller=self.demo, item_type=kind, title="Public chair", listing_price="12.50",
+            condition="GOOD", fulfillment_option="PICKUP", status="ACTIVE",
+        )
+        response = self.client.get(reverse("listing-api"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+        self.assertEqual(response["Access-Control-Allow-Origin"], "*")
+        row = response.json()["results"][0]
+        self.assertEqual(row["price"], "12.50")
+        self.assertEqual(row["category"]["name"], "Demo Furniture")
+        self.assertNotIn("email", str(response.json()))
+        # Protected messaging API stays closed and sends no CORS header.
+        protected = self.client.get("/api/messaging/conversations/")
+        self.assertIn(protected.status_code, (401, 403))
+        self.assertNotIn("Access-Control-Allow-Origin", protected)
+
     def test_a_real_account_cannot_be_used_as_the_public_demo_identity(self):
         User.objects.filter(pk=self.demo.pk).update(email="maya@illinois.edu")
         response = self.client.get(reverse("profile-earned-spent-data"))
