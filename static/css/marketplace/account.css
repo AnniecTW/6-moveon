@@ -110,7 +110,7 @@
 .account-divider { display: flex; align-items: center; gap: 12px; margin: 18px 0 12px; color: var(--muted); font-size: 12px; }
 .account-divider::before, .account-divider::after { content: ""; height: 1px; flex: 1; background: var(--border); }
 .account-google { display: flex; justify-content: center; min-height: 42px; }
-.account-google-error { margin-top: 10px; }
+.account-google-button { width: 100%; min-height: 42px; border: 1px solid var(--border); border-radius: 30px; background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
 .account-google-disabled { display: block; width: 100%; min-height: 42px; border: 1px solid var(--border); border-radius: 30px; background: var(--surface); color: var(--muted); cursor: not-allowed; }
 .account-center { text-align: center; }
 .account-notice { padding: 9px 12px; margin-bottom: 12px; border-radius: 8px; background: #f4f4e8; font-size: 13px; }

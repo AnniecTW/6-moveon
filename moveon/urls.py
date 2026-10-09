@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
 from marketplace import views
+from marketplace import oauth
 from messaging import api as messaging_api
 from bundles import messaging as bundle_messaging
 
@@ -42,7 +43,9 @@ urlpatterns = [
     path("account/forgot/", views.CampusPasswordResetView.as_view(), name="password_reset"),
     path("account/forgot/sent/", views.password_reset_done_view, name="password_reset_done"),
     path("account/reset/<uidb64>/<token>/", views.CampusPasswordResetConfirmView.as_view(), name="password_reset_confirm"),
-    path("account/google/", views.account_google_view, name="account_google"),
+    path("account/google/", oauth.google_login, name="account_google"),
+    path("accounts/google/login/", oauth.google_login, name="google_login"),
+    path("accounts/google/login/callback/", oauth.google_callback, name="google_callback"),
     path("admin/", admin.site.urls),
     path("", include("marketplace.urls")),
     path("bundles/", include("bundles.urls")),

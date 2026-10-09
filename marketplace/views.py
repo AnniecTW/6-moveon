@@ -12,7 +12,7 @@ from uuid import uuid4
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import URLValidator
 from django.http import HttpResponse, JsonResponse
-from django.contrib.auth import login, logout
+from django.contrib.auth import logout
 from allauth.account.utils import perform_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
@@ -25,11 +25,10 @@ from django.template import loader
 from django.views import View
 from django.views.generic import ListView, UpdateView
 from PIL import Image, UnidentifiedImageError
-from google.auth.exceptions import GoogleAuthError
 from .auth_forms import CampusAuthenticationForm, ListingSignupForm
 from .auth_backend import credential_user, has_campus_access
 from .email_verification import EmailDeliveryError, consume_code, issue_code
-from . import google_auth
+from .oauth import google_configured
 from .models import ItemCategory, Listing, ListingImage, Transaction, User, WatchlistItem
 from django.views.generic import CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -51,7 +50,7 @@ def _account_context(request, **extra):
     context = browse_context(request)
     context.update(extra)
     context["auth_overlay"] = True
-    context["google_client_id"] = settings.GOOGLE_CLIENT_ID
+    context["google_configured"] = google_configured()
     context["account_next"] = request.session.get("account_next", reverse("home"))
     context["return_to_messages"] = context["account_next"].startswith(reverse("messages"))
     context["console_email_backend"] = settings.EMAIL_BACKEND in (
@@ -67,6 +66,8 @@ def _pending_user(request):
 
 
 def _account_after_verification(request):
+    if request.session.pop("verification_login_method", None) == "google":
+        request.session["google_verified_notice"] = True
     target = _safe_return(request)
     if target == reverse("home"):
         return redirect("account")
@@ -102,6 +103,7 @@ def account_view(request):
             if mode == "signup":
                 user = form.save()
                 request.session["pending_verification_user_id"] = user.pk
+                request.session["verification_login_method"] = "password"
                 try:
                     issue_code(user)
                 except EmailDeliveryError:
@@ -119,6 +121,7 @@ def account_view(request):
                     candidate.email_verified_at = None
                     candidate.save(update_fields=["email_verified", "email_verified_at"])
                     request.session["pending_verification_user_id"] = candidate.pk
+                    request.session["verification_login_method"] = "password"
                     try:
                         issue_code(candidate)
                     except EmailDeliveryError:
@@ -127,9 +130,9 @@ def account_view(request):
     response = render(request, "marketplace/account.html", _account_context(
         request, auth_form=form, auth_mode=mode,
         reset_done=request.GET.get("reset") == "done",
+        google_error=request.session.pop("google_auth_error", None),
+        google_verified_notice=request.session.pop("google_verified_notice", False),
     ))
-    if settings.GOOGLE_CLIENT_ID:
-        response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
     return response
 
 
@@ -215,56 +218,6 @@ def password_reset_done_view(request):
     return render(request, "marketplace/account.html", _account_context(request, auth_mode="reset_sent"))
 
 
-@require_POST
-def account_google_view(request):
-    if not settings.GOOGLE_CLIENT_ID:
-        return render(request, "marketplace/account.html", _account_context(
-            request, auth_mode="login", auth_form=CampusAuthenticationForm(request),
-            google_error="Google sign-in is not configured.",
-        ))
-    credential = request.POST.get("credential", "")
-    try:
-        claims = google_auth.verify_google_token(credential, settings.GOOGLE_CLIENT_ID)
-    except (ValueError, GoogleAuthError, OSError):
-        claims = {}
-    email = str(claims.get("email", "")).strip().lower()
-    subject = str(claims.get("sub", "")).strip()
-    error = None
-    if not subject or claims.get("email_verified") is not True or not email.endswith("@illinois.edu"):
-        error = "Use a Google account with an @illinois.edu email address."
-    else:
-        user = User.objects.filter(google_subject=subject).first()
-        if user and user.email.lower() != email:
-            error = "Google account email changed. Contact support."
-        elif not user and User.objects.filter(email__iexact=email).exists():
-            error = "An account with this email already exists. Log in with your username."
-        elif not user:
-            username = email.partition("@")[0]
-            if User.objects.filter(username=username).exists():
-                import secrets
-                username = f"{username[:130]}_{secrets.token_hex(6)}"
-            user = User(username=username, email=email, display_name=username, google_subject=subject)
-            user.set_unusable_password()
-            user.save()
-        if not error:
-            if not user.is_active or user.account_status != User.AccountStatus.ACTIVE:
-                error = "This account is unavailable."
-            elif not has_campus_access(user):
-                user.email_verified = False
-                user.email_verified_at = None
-                user.save(update_fields=["email_verified", "email_verified_at"])
-                request.session["pending_verification_user_id"] = user.pk
-                try:
-                    issue_code(user)
-                except EmailDeliveryError:
-                    request.session["verification_delivery_error"] = True
-                return redirect("account_verify")
-            else:
-                login(request, user, backend="marketplace.auth_backend.CampusModelBackend")
-                return redirect(_safe_return(request))
-    return render(request, "marketplace/account.html", _account_context(
-        request, auth_mode="login", auth_form=CampusAuthenticationForm(request), google_error=error,
-    ))
 
 
 @require_POST
@@ -673,6 +626,8 @@ def seller_settings_view(request):
             "active_seller_tab": "settings",
             "active_buyer_tab": "",
             "settings_form": form,
+            "google_configured": google_configured(),
+            "google_connected": request.user.socialaccount_set.filter(provider="google").exists(),
         },
     )
 

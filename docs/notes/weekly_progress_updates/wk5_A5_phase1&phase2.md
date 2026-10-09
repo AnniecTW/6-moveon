@@ -86,3 +86,27 @@
 - Adjusted account/access/chart/renderer tests for the shared account rules,
   fixed permissions, current-user isolation, real URL-backed PNGs, empty data,
   sequential requests, startup/render failures and actual timeout cleanup.
+
+## 2026-10-09: Google OAuth and explicit account connection
+
+- Replaced browser GIS credential submission with django-allauth Google OAuth
+  authorization-code login/callback. Kept POST/CSRF initiation, session-bound
+  state and PKCE; login/signup retain the existing custom account page.
+- Added a social adapter enforcing Google's verified campus email and stable
+  subject. Google verification cannot replace the local six-digit challenge:
+  new Google users have unusable passwords and sign in with Google after their
+  campus email is verified. Password and Google login share User/session/access.
+- Linked identities reuse allauth SocialAccount by subject. Existing historical
+  `google_subject` links are bridged after identity/email checks. Same-email
+  accounts do not merge anonymously; qualified users connect the same campus
+  Google email explicitly from Settings. Connections cannot take another user's
+  identity or add a different Google identity to the same account.
+- Google cancellation, malformed identity responses, provider failures and
+  account conflicts (including retained historical email metadata) return
+  readable feedback without a second signup page. Protected return paths survive
+  verification; external return URLs are rejected. Removed the old token verifier,
+  popup-specific response header and GIS JavaScript; `/account/google/` remains
+  a compatibility entry that starts OAuth without trusting browser credentials.
+- Provider credentials are read from environment settings rather than SocialApp
+  records; social access/refresh tokens are not stored. Added the client-secret
+  placeholder and OAuth round-trip tests in place of obsolete token tests.

@@ -3,7 +3,11 @@
 This branch is progressing through **A5 Part 1 and Part 2**. Phases 2 and 3
 provide custom signup, campus email verification, password login, POST-only
 logout, fixed permissions and private charts. The existing User model and
-allauth foundation are retained. Google OAuth integration remains phase 4.
+allauth foundation are retained. Google login now uses allauth's OAuth callback,
+the same campus challenge and the same session/access rules. Existing local
+accounts connect Google explicitly from Settings after signing in; matching
+email alone does not merge accounts. Credentials come from environment settings
+and social access/refresh tokens are not stored in the database.
 See the [A5 key change log](docs/notes/weekly_progress_updates/wk5_A5_phase1&phase2.md).
 
 The A4 global mode has been removed. Its former environment variable is
@@ -38,7 +42,7 @@ for implementation details.
 | --- | --- |
 | Browse, active listing details, legacy browse layouts, `/api/listings/demo/` HTML documentation | Public |
 | `/api/listings/` | The single public business data API; active listing fields, filters and pagination are preserved |
-| `/account/` signup/login, verification, password reset, existing Google entry | Public entry; state, CSRF and method requirements still apply |
+| `/account/` signup/login, verification, password reset, Google login/callback | Public entry; state, CSRF and method requirements still apply; Google connection requires an authenticated campus account |
 | `/charts/`, profile pages, chart data/specifications/PNGs | Authenticated campus access; charts always read the current user's activity |
 | Messaging, listing creation/edit/preview/publish, image upload, bundles | Authenticated campus access plus seller/buyer/participant/object ownership checks |
 | `/reports/`, `/reports/listings.csv`, `/reports/listings.json`, `/api/listings/converted/` | Authenticated campus access; report filters, summaries and downloads are preserved |

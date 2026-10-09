@@ -10,6 +10,23 @@
   {% for message in messages %}<p class="settings-message" role="status">{{ message }}</p>{% endfor %}
   {% if settings_form.non_field_errors %}<div class="settings-errors" role="alert">{{ settings_form.non_field_errors }}</div>{% endif %}
 
+  <section class="settings-card" aria-labelledby="google-account-title">
+    <h3 id="google-account-title">Google sign-in</h3>
+    {% if google_connected %}
+      <p class="settings-note">Google is connected to this MoveOn account.</p>
+    {% elif google_configured %}
+      <p class="settings-note">Connect a Google account using the same campus email to log in either way.</p>
+      <form method="post" action="{% url 'google_login' %}">
+        {% csrf_token %}
+        <input type="hidden" name="process" value="connect" />
+        <input type="hidden" name="next" value="{% url 'seller-settings' %}" />
+        <button class="button" type="submit">Connect Google</button>
+      </form>
+    {% else %}
+      <p class="settings-note">Google sign-in needs app configuration.</p>
+    {% endif %}
+  </section>
+
   <form class="seller-settings-form" method="post" data-seller-settings-form>
     {% csrf_token %}
     <div class="settings-grid">

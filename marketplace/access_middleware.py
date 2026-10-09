@@ -12,9 +12,7 @@ from .auth_backend import has_campus_access
 ACCOUNT_ROUTES = frozenset({
     "account", "account_logout", "account_verify", "account_verify_resend",
     "password_reset", "password_reset_done", "password_reset_confirm", "account_google",
-    # Reserved for phase 4's allauth provider URLs; this does not install them.
-    "google_login", "google_callback", "socialaccount_signup",
-    "socialaccount_login_cancelled", "socialaccount_login_error",
+    "google_login", "google_callback",
 })
 PUBLIC_ROUTES = ACCOUNT_ROUTES | frozenset({
     "home", "listing-list-url", "listing-detail-url",
