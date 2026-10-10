@@ -98,6 +98,8 @@ class A5AccessTests(TestCase):
                 assertion(response, f'href="{url}"')
             assertion(response, "data-currency-api=")
             assertion(response, "data-currency-select")
+            detail = self.client.get(self.active.get_absolute_url())
+            assertion(detail, "Message Seller")
         self.client.logout()
         self.assertContains(self.client.get(reverse("home")), 'href="/account/"')
         self.assertNotContains(self.client.get(self.active.get_absolute_url()), "Message Seller")
