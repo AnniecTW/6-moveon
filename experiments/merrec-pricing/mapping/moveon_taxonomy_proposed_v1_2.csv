@@ -1,0 +1,50 @@
+﻿moveon_category,moveon_item_type,n_keep,n_review,status
+Furniture,Sofa,0,0,catalog_only_no_keep_data
+Furniture,Desk,4,1,pilot_n_lt_20
+Furniture,Chair,2,0,pilot_n_lt_20
+Furniture,Dresser,1,0,pilot_n_lt_20
+Furniture,Table,2,0,pilot_n_lt_20
+Furniture,Bed Frame,2,0,pilot_n_lt_20
+Furniture,Nightstand,1,0,pilot_n_lt_20
+Furniture,Shelf & Storage Furniture,0,1,catalog_only_no_keep_data
+Electronics,Television,0,0,catalog_only_no_keep_data
+Electronics,Monitor,0,0,catalog_only_no_keep_data
+Electronics,Speaker,0,0,catalog_only_no_keep_data
+Appliances,Microwave,0,0,catalog_only_no_keep_data
+Appliances,Refrigerator,0,4,catalog_only_no_keep_data
+Appliances,Kitchen Appliance,24,54,candidate_for_pooled_model
+Appliances,Coffee & Espresso Machine,8,0,pilot_n_lt_20
+Appliances,Vacuum,17,0,pilot_n_lt_20
+Appliances,Air Care & Climate,6,17,pilot_n_lt_20
+Appliances,Iron & Steamer,5,0,pilot_n_lt_20
+Home Decor,Lamp & Lighting,43,1,candidate_for_pooled_model
+Home Decor,Rug & Mat,12,0,pilot_n_lt_20
+Home Decor,Wall Art & Frames,91,1,candidate_for_pooled_model
+Home Decor,Mirror,1,0,pilot_n_lt_20
+Home Decor,Clock,7,0,pilot_n_lt_20
+Home Decor,Decorative Pillow,23,0,candidate_for_pooled_model
+Home Decor,Curtains & Window Treatments,12,0,pilot_n_lt_20
+Home Decor,Decorative Accessories,25,354,candidate_for_pooled_model
+Kitchen & Dining,Mugs & Cups,132,8,candidate_for_pooled_model
+Kitchen & Dining,Bottles & Tumblers,227,0,candidate_for_pooled_model
+Kitchen & Dining,Dinnerware,23,49,candidate_for_pooled_model
+Kitchen & Dining,Cookware,20,19,candidate_for_pooled_model
+Kitchen & Dining,Bakeware,16,9,pilot_n_lt_20
+Kitchen & Dining,Kitchen Utensils & Tools,51,17,candidate_for_pooled_model
+Kitchen & Dining,Servingware,25,3,candidate_for_pooled_model
+Kitchen & Dining,Food Storage,55,5,candidate_for_pooled_model
+Kitchen & Dining,Kitchen & Table Linens,14,0,pilot_n_lt_20
+Bedding & Bath,Sheets & Pillowcases,45,0,candidate_for_pooled_model
+Bedding & Bath,Blankets & Comforters,96,17,candidate_for_pooled_model
+Bedding & Bath,Pillow & Bedding Accessories,9,0,pilot_n_lt_20
+Bedding & Bath,Bath Towels,9,0,pilot_n_lt_20
+Bedding & Bath,Bathroom Accessories,0,28,catalog_only_no_keep_data
+Storage & Organization,Storage Bins & Baskets,9,0,pilot_n_lt_20
+Storage & Organization,Closet Organizers,0,7,catalog_only_no_keep_data
+Storage & Organization,Storage Shelves & Racks,3,2,pilot_n_lt_20
+Storage & Organization,Jewelry Storage,0,24,catalog_only_no_keep_data
+Home Decor,Seasonal Decorations,0,649,review_required
+Home Decor,Candles,0,77,review_required
+Home Decor,Home Fragrance,0,79,review_required
+Home Decor,Photo Albums,0,3,review_required
+Appliances,Appliance Parts & Accessories,0,0,catalog_only_excluded_from_v1_pricing
