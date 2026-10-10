@@ -1,6 +1,7 @@
 """Read-only public listing data, using the same filters as marketplace browsing."""
 
 import json
+from functools import wraps
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.core.paginator import EmptyPage, Paginator
@@ -22,6 +23,17 @@ def _display_amount(amount, rate):
     return str((amount * rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
+def public_cors(view):
+    """Let browser tools such as the Vega Editor read this public, read-only GET endpoint."""
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        response = view(request, *args, **kwargs)
+        response["Access-Control-Allow-Origin"] = "*"
+        return response
+    return wrapped
+
+
+@public_cors
 @require_GET
 def listings(request):
     form = BrowseForm(request.GET)

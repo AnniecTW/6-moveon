@@ -1,0 +1,31 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Average listing price by category, from the public MoveOn listings API.",
+  "title": "Average Listing Price by Category (USD)",
+  "data": {
+    "url": "https://moveonbochen.pythonanywhere.com/api/listings/",
+    "format": {"type": "json", "property": "results"}
+  },
+  "transform": [
+    {"calculate": "toNumber(datum.price)", "as": "price_usd"},
+    {"calculate": "datum.category.name", "as": "category_name"}
+  ],
+  "mark": {"type": "bar", "cornerRadiusEnd": 3, "color": "#4d8069"},
+  "encoding": {
+    "y": {"field": "category_name", "type": "nominal", "title": "Category", "sort": "-x"},
+    "x": {
+      "aggregate": "mean",
+      "field": "price_usd",
+      "type": "quantitative",
+      "title": "Average price ($)",
+      "axis": {"format": "$,.0f"}
+    },
+    "tooltip": [
+      {"field": "category_name", "type": "nominal", "title": "Category"},
+      {"aggregate": "count", "type": "quantitative", "title": "Listings"},
+      {"aggregate": "mean", "field": "price_usd", "type": "quantitative", "title": "Average price ($)", "format": "$,.2f"}
+    ]
+  },
+  "width": 500,
+  "height": 240
+}
