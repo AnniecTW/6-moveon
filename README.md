@@ -38,7 +38,7 @@ cd 6-moveon
   conda create -n moveon-env python=3.12 -y
   conda activate moveon-env
   ```
-  
+
 * **Option B: Using Native Python `venv`**
   ```bash
   # macOS / Linux
@@ -56,7 +56,7 @@ pip install -r requirements.txt
 ```
 
 #### 4. Configure Environment Variables
-Create a local environment file from the tracked template:
+On a new installation, copy `.env.example` to `.env`. Keep an existing `.env`:
 
 ```bash
 # macOS / Linux
@@ -66,66 +66,46 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-Open `.env` and replace the placeholder value with a local Django secret key:
+Set a private `SECRET_KEY` and choose the working database path in `.env`.
+For a new installation:
 
 ```env
 SECRET_KEY=your-local-secret-key
-DATABASE_PATH=data/backups/a5-local.sqlite3
+DATABASE_PATH=data/local.sqlite3
 ```
 
-You can generate a secure local key with:
-
-```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-
-Copy the generated value after `SECRET_KEY=` in `.env`.
-
-The application loads this value from `.env` when Django starts. Keep `.env`
-local and never commit it. Only `.env.example` should be tracked in Git.
+Existing users should keep their original database path; do not move or replace
+the database to match this example. When `DATABASE_PATH` is unset, the current
+default remains `data/db.sqlite3`. Creating a directory or selecting a path does
+not back up a database. Keep `.env` private and untracked; see the
+[Week 5 setup guide](docs/notes/week5_setup.md) for key generation and environment details.
 
 #### 5. Frontend Assets
 No frontend installation or build step is required. The browse page uses the
 CSS and JavaScript files under `static/css/marketplace/` and `static/js/`.
 Tailwind's package and source files are kept for possible future use.
 
-#### 6. Prepare a Local Database, Run Migrations & Start Dev Server
+#### 6. Prepare the Working Database & Start the Dev Server
 
-Use the independent database configured by `DATABASE_PATH`. Runtime databases
-are ignored by Git; a fresh checkout creates its own database through migrations.
-Keep an existing local database and its account data rather than replacing it.
-For the example path above, create the parent directory before migrating:
+Run from the repository root with the Python environment activated. Create only
+the parent directory needed by your chosen database path (`data/` in the new-install example):
 
 ```powershell
-New-Item -ItemType Directory -Force data/backups | Out-Null
+New-Item -ItemType Directory -Force data | Out-Null
 ```
 
-On macOS/Linux, use `mkdir -p data/backups`. Then migrate and start the app:
+On macOS/Linux, use `mkdir -p data`. For first setup or required migration updates:
 
 ```bash
 python manage.py migrate --settings=moveon.settings.development
 python manage.py runserver 127.0.0.1:8000 --settings=moveon.settings.development
 ```
 
-The entry points default to `moveon.settings.development`. For production, override the setting module through the environment:
-
-```bash
-DJANGO_SETTINGS_MODULE=moveon.settings.production python manage.py check --deploy
-```
-
-Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) to browse MoveOn.
-The original `/listings/manual/`, `/listings/render/`, `/listings/cbv-base/`,
-and `/listings/cbv-generic/` routes all share the new layout and filtering behavior.
-Featured listing cards use local reference images. Other listings without image
-URLs show a photo placeholder.
-
-Marketplace tests are grouped under `tests/marketplace/`; the original
-`marketplace/tests.py` is now `tests/marketplace/test_views.py`.
-Run configuration checks with `python manage.py check`. Focused A5 checks are:
-
-```powershell
-python manage.py test tests.marketplace.test_a5_accounts tests.marketplace.test_a5_access tests.marketplace.test_a5_charts
-```
+`migrate` initializes or updates the selected database; it does not automatically
+back it up or populate demonstration data. For an initialized, up-to-date database,
+run only `runserver`. Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+See the [Week 5 setup guide](docs/notes/week5_setup.md) for existing databases,
+mock preview, backups, production configuration and optional manual checks.
 
 ## Assignment 5: Django Authentication, Google OAuth
 

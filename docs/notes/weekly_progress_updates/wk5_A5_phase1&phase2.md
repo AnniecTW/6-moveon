@@ -1,5 +1,9 @@
 # Week 5: A5 Part 1 & Part 2 key changes
 
+This log records implementation changes and their reasons. Environment setup,
+mock preview, database backup/recovery and optional checks are documented in the
+[Week 5 setup guide](../week5_setup.md).
+
 ## 2026-10-08: Shared accounts and email verification
 
 - Added `django-allauth[socialaccount]==65.19.7`, the account/socialaccount apps,
