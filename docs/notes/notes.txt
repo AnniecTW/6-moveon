@@ -134,3 +134,14 @@ Grading requirements and evidence:
 - Parts 2-3 provide Frankfurter currency conversion and filtered listing reports
   with timestamped CSV/JSON downloads. Full verification and remaining deployment
   steps are in `docs/notes/weekly_progress_updates/wk4_A4_integration.md`.
+
+## Week 5 - A5 Section 3.4: Public API Demonstrations
+
+- Notebook and test code: `docs/public_api_demo.ipynb`.
+- Screenshots for the three API use cases are in `docs/notes/week5_screenshots/`:
+  - `api_source_and_data.png` shows the public `/api/listings/` endpoint and returned data
+  - `excel_summary_output.png` shows exporting and summarizing API data for Excel
+  - `excel_workbook.png` shows the Excel workbook with the exported data and summaries
+  - `linked_interactive_charts.png` and `linked_interactive_charts-2.png` show interactive category comparisons
+  - `price_model_result.png` shows a simple price-prediction model experiment
+- The notebook generates `data/public_api_price_report.xlsx` for the Excel use case
