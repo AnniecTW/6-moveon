@@ -1,4 +1,4 @@
-"""Add only A4's private-chart examples for an existing campus account."""
+"""Add A4 chart activity and optional fictional catalogue items for a campus account."""
 
 import uuid
 from collections import Counter
@@ -13,6 +13,7 @@ from django.db import IntegrityError, connections, transaction
 from django.utils import timezone
 
 from marketplace.auth_backend import has_campus_access
+from marketplace.featured import DEMO_USERNAME, SCENES
 from marketplace.models import ItemCategory, ItemType, Listing, Transaction, User
 from messaging.models import Conversation, Message
 
@@ -29,6 +30,16 @@ LISTINGS = (
     ("Gray Rug", "maya", "Home Decor", "Rug", "25", "40", "GOOD", True, 15),
 )
 
+# Separate available stock: the chart examples above remain completed/SOLD.
+# The three other items retain seed_demo_data's fields and original owners.
+CATALOG_LISTINGS = tuple(row for row in LISTINGS if row[0] in (
+    "Blue Sofa", "Floor Lamp", "Desk",
+)) + (
+    ("Television", "sam", "Electronics", "Television", "120", "180", "GOOD", False, 30),
+    ("Microwave", "jamie", "Appliances", "Microwave", "30", "55", "GOOD", False, 10),
+    ("Dresser", "sam", "Furniture", "Dresser", "55", "85", "GOOD", False, 30),
+)
+
 # A4 purchase amounts/dates plus its completed Desk Chair sale to Alex.
 ACTIVITIES = (
     ("Blue Sofa", "maya", "65", 21),
@@ -39,11 +50,15 @@ ACTIVITIES = (
 
 
 class Command(BaseCommand):
-    help = "Add fictional A4 chart activity to an existing verified campus account."
+    help = "Add fictional A4 chart activity and optionally a public demo catalogue."
     requires_system_checks = []
 
     def add_arguments(self, parser):
         parser.add_argument("--username", required=True, help="Existing campus username.")
+        parser.add_argument(
+            "--include-catalog", action="store_true",
+            help="Also add available mock stock and the two reference-photo featured scenes.",
+        )
 
     def handle(self, *args, **options):
         database = connections["default"].settings_dict
@@ -64,6 +79,9 @@ class Command(BaseCommand):
                 if not has_campus_access(target):
                     raise CommandError("Target user must have current verified campus access.")
                 self._seed(target, counts)
+                if options["include_catalog"]:
+                    self._seed_catalog(target, counts)
+                    self._seed_featured(counts)
         except (ValidationError, IntegrityError, MultipleObjectsReturned) as exc:
             raise CommandError("Demo data conflict; all writes were rolled back.") from exc
 
@@ -73,6 +91,11 @@ class Command(BaseCommand):
             for name in ("participants", "categories", "item_types", "listings",
                          "transactions", "conversations", "messages")
         )))
+        if options["include_catalog"]:
+            self.stdout.write(
+                f"Catalogue additions: stock={counts['catalog_listings']}, "
+                f"featured={counts['featured_listings']}. Mock sellers cannot sign in."
+            )
         self.stdout.write("Fictional demo activity only; existing records were not reset.")
 
     @staticmethod
@@ -92,22 +115,91 @@ class Command(BaseCommand):
     def _participant(self, target, role, counts):
         username = f"a5_demo_{target.pk}_{role}"
         email = f"a5-demo-{target.pk}-{role}@example.invalid"
+        user = self._demo_user(username, email, f"Demo {role.title()}", counts)
+        if user.pk == target.pk:
+            raise CommandError("Demo participant identity conflict; no writes committed.")
+        return user
+
+    def _demo_user(self, username, email, display_name, counts):
         if User.objects.filter(email__iexact=email).exclude(username=username).exists():
             raise CommandError("Demo participant email identifier conflict; no writes committed.")
         user, _ = self._ensure(
             User, {"username": username},
-            {"email": email, "display_name": f"Demo {role.title()}",
+            {"email": email, "display_name": display_name,
              "password": make_password(None), "is_active": False,
              "is_staff": False, "is_superuser": False,
              "email_verified": False, "email_verified_at": None, "google_subject": None},
             {"email": email}, counts, "participants",
         )
-        if (user.pk == target.pk or user.is_active or user.has_usable_password()
+        if (user.is_active or user.has_usable_password()
                 or user.is_staff or user.is_superuser or user.email_verified
                 or user.email_verified_at is not None or user.google_subject
                 or user.socialaccount_set.exists()):
             raise CommandError("Demo participant identity conflict; no writes committed.")
         return user
+
+    def _catalog_listing(self, identifier, seller, category_name, type_name,
+                         title, defaults, counts):
+        category, _ = self._ensure(
+            ItemCategory, {"category_name": category_name}, {}, {}, counts, "categories",
+        )
+        item_type, _ = self._ensure(
+            ItemType, {"category": category, "item_type_name": type_name}, {},
+            {"category_id": category.pk}, counts, "item_types",
+        )
+        return self._ensure(
+            Listing, {"listing_id": identifier},
+            {"seller": seller, "item_type": item_type, "title": title, **defaults},
+            {"seller_id": seller.pk, "item_type_id": item_type.pk}, counts, "listings",
+        )
+
+    def _seed_catalog(self, target, counts):
+        users = {role: self._participant(target, role, counts)
+                 for role in ("alex", "jamie", "sam")}
+        today = date.today()
+        for title, owner, category, type_name, price, retail, condition, eligible, offset in CATALOG_LISTINGS:
+            amount = Decimal(price)
+            _, created = self._catalog_listing(
+                self._identifier(target, f"catalog-listing:{title}"), users[owner],
+                category, type_name, title,
+                {"description": f"Demo: fictional available A4 {title}; no real item or sale.",
+                 "condition": condition, "listing_price": amount, "retail_price": Decimal(retail),
+                 "benchmark_price": (amount * Decimal("1.1")).quantize(Decimal("0.01")),
+                 "benchmark_low": (amount * Decimal("0.85")).quantize(Decimal("0.01")),
+                 "benchmark_high": (amount * Decimal("1.25")).quantize(Decimal("0.01")),
+                 "minimum_price": (amount * Decimal("0.7")).quantize(Decimal("0.01")),
+                 "move_out_date": today + timedelta(days=offset), "bundle_eligible": eligible,
+                 "fulfillment_option": Listing.Fulfillment.BOTH if title == "Blue Sofa"
+                 else Listing.Fulfillment.DELIVERY if title == "Television"
+                 else Listing.Fulfillment.PICKUP,
+                 "status": Listing.Status.ACTIVE}, counts,
+            )
+            counts["catalog_listings"] += int(created)
+
+    def _seed_featured(self, counts):
+        # This reserved identity is required by the existing image/scene lookup.
+        seller = self._demo_user(
+            DEMO_USERNAME, "featured-demo@example.invalid", "MoveOn Demo", counts,
+        )
+        for scene in SCENES:
+            for spec in scene["items"]:
+                title = spec["title"]
+                identifier = uuid.uuid5(NAMESPACE, f"featured-listing:{title}")
+                if Listing.objects.filter(seller=seller, title=title).exclude(pk=identifier).exists():
+                    raise CommandError("Featured demo listing identifier conflict; no writes committed.")
+                _, created = self._catalog_listing(
+                    identifier, seller,
+                    "Home Decor" if spec["type"] in ("Lamp", "Pillow") else "Furniture",
+                    spec["type"], title,
+                    {"description": f"Demo: fictional reference item from {scene['title']}; no real sale.",
+                     "listing_price": Decimal(spec["price"]), "retail_price": Decimal(spec["original"]),
+                     "condition": Listing.Condition.GOOD, "status": Listing.Status.ACTIVE,
+                     "bundle_eligible": True,
+                     "fulfillment_option": Listing.Fulfillment.BOTH if title == "Rocking Chair"
+                     else Listing.Fulfillment.DELIVERY if title == "Coffee Table"
+                     else Listing.Fulfillment.PICKUP}, counts,
+                )
+                counts["featured_listings"] += int(created)
 
     def _seed(self, target, counts):
         users = {"maya": target}

@@ -159,3 +159,19 @@ mock preview, database backup/recovery and optional checks are documented in the
 - Removed the separate Settings and Bundle message loops to avoid displaying
   the same notice twice. Reused existing notification styling and retained
   success/error feedback without changing authentication or business data.
+
+## 2026-10-10: Optional production-safe demo catalogue
+
+- Extended `seed_account_demo` with `--include-catalog` while retaining its
+  original private-chart-only behavior. Added separate available A4 stock so
+  completed chart examples remain SOLD, and restored the six reference items
+  required by the existing Featured Bundles scenes and static image lookup.
+- Added dedicated inactive Demo Sam and MoveOn Demo identities with unusable
+  passwords and `@example.invalid` emails. Mock sellers provide fictional
+  inventory without gaining campus access, administrator privileges or Google
+  identities; real-account authentication and teammates' Part 3 code are unchanged.
+- Reused stable account-specific stock IDs and shared featured-item IDs, with
+  ownership/identity checks and one transaction for the complete operation.
+  Reruns preserve existing edits, and conflicts abort instead of overwriting
+  accounts or records. No database snapshot, photo uploads or real credentials
+  are added to Git.

@@ -215,7 +215,8 @@ The command maps A4's Maya role to the target account, without changing the
 original Maya account or invoking another seed. It creates two dedicated Alex
 and Jamie counterparts with target-linked identifiers, `@example.invalid` emails,
 unusable passwords and inactive, non-admin, unverified accounts with no Google
-identity. It creates no bundles, featured inventory or price recommendations.
+identity. The default command creates no bundles, featured inventory or price
+recommendations.
 
 | Demo record | Target role / initial result |
 | --- | --- |
@@ -242,6 +243,54 @@ transactions, 2 conversations and 4 messages, plus missing taxonomy. Stable
 identifiers make an unchanged rerun add zero records. Existing edits are retained;
 identifier, ownership or transaction/listing-state conflicts abort and roll back
 the entire write transaction. There is no reset, backup or automatic startup hook.
+
+### Optional public catalogue and reference-photo scenes
+
+To also populate an empty homepage, add `--include-catalog` to the same command
+after backing up the actual database and synchronizing the updated source:
+
+```bash
+python manage.py seed_account_demo --username 'YOUR_EXISTING_USERNAME' --include-catalog --settings=moveon.settings.production
+```
+
+Run this from the same PythonAnywhere checkout and activated virtual environment
+shown above, with `DATABASE_PATH` matching the Web worker. For deliberate local
+use, select `--settings=moveon.settings.development` instead.
+
+The option adds six ACTIVE catalogue items: Blue Sofa, Floor Lamp, Desk,
+Television, Microwave and Dresser. The first three are separate fictional stock;
+their completed chart-example listings remain SOLD. Alex and Jamie retain their
+existing account-specific demo identities, and a dedicated Demo Sam is added.
+Catalogue stock uses target-linked IDs; rerun with the same target username to
+reuse that demo set.
+
+It also adds the six original reference items owned by `moveon-featured-demo`:
+Rocking Chair, Coffee Table, Throw Pillow, Oak Desk, Desk Lamp and Bookshelf.
+These featured records have shared stable IDs, so another target account does
+not create a second set. They restore Living Room Starter Bundle ($147) and
+Study Nook Bundle ($127) through the existing scene lookup. The reference images
+remain tracked under `static/img/reference/`; `collectstatic` and the `/static/`
+mapping must already be configured. No image downloads, media copies or
+`ListingImage` records are needed for these existing reference scenes. Other
+catalogue items retain the normal no-photo placeholder until photos are added.
+
+All newly created mock sellers, including MoveOn Demo, use `@example.invalid`,
+inactive status and unusable passwords. They have no administrator privileges,
+campus verification or Google identity. These are display/business participants,
+not login test accounts; real registration, email verification and Google login
+still use the existing campus rules. Existing accounts are never converted to
+mock users. An occupied reserved identity or legacy featured record with a
+different ID stops the command and rolls back the whole operation; inspect it
+manually rather than replacing existing data.
+
+On a fresh database with only the verified target account, the combined command
+adds 4 mock sellers and 17 listings: 13 ACTIVE and 4 SOLD. It retains the same
+4 transactions, 2 conversations and 4 messages, plus missing taxonomy. Existing
+records and manual edits are preserved. No extra transactions, bundle purchases
+or price recommendations are added, so the original $113 spent/$18 earned
+example remains unchanged when the target has no other transactions. These
+records represent fictional demo inventory and activity, not real available
+goods or completed sales. An unchanged rerun adds zero records.
 
 ## Actual SQLite backup and recovery
 
