@@ -7,7 +7,6 @@
     <span></span>
   </header>
 
-  {% for message in messages %}<p class="settings-message" role="status">{{ message }}</p>{% endfor %}
   {% if settings_form.non_field_errors %}<div class="settings-errors" role="alert">{{ settings_form.non_field_errors }}</div>{% endif %}
 
   <section class="settings-card" aria-labelledby="google-account-title">

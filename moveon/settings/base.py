@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
-from moveon.secrets_environment import env
+from moveon.secrets_environment import env, is_a5_preview_settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # Optional: powers the AI Bundle Builder's tier classification (bundles app).
 # Left blank, that feature falls back to a plain price-based heuristic
 # instead of failing.
-GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+GEMINI_API_KEY = "" if is_a5_preview_settings() else env("GEMINI_API_KEY", default="")
 
 
 # Application definition
@@ -173,8 +173,8 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 PASSWORD_RESET_TIMEOUT = 3600
-GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", default="")
-GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", default="")
+GOOGLE_CLIENT_ID = "" if is_a5_preview_settings() else env("GOOGLE_CLIENT_ID", default="")
+GOOGLE_CLIENT_SECRET = "" if is_a5_preview_settings() else env("GOOGLE_CLIENT_SECRET", default="")
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": ["profile", "email"],

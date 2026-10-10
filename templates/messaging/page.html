@@ -10,8 +10,4 @@
 {% block extra_scripts %}
   {{ messaging_config|json_script:"messaging-config" }}
   <script src="{% static 'messaging/messaging.js' %}?v=2"></script>
-  <script type="module">
-    import { setupHeader } from "{% static 'js/marketplace/header.js' %}?v=2";
-    setupHeader();
-  </script>
 {% endblock %}

@@ -8,16 +8,6 @@
     {% block stepper %}{% endblock %}
   </ol>
 
-  {% if messages %}
-    <ul class="wizard-messages">
-      {% for message in messages %}
-        <li class="wizard-message{% if message.tags %} wizard-message--{{ message.tags }}{% endif %}">
-          {{ message }}
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
   {% block wizard_content %}{% endblock %}
 </main>
 {% endblock %}

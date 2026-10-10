@@ -23,16 +23,26 @@
 # ==================================================
 
 import environ
+import os
+import secrets
 from pathlib import Path
 
 # Create an environment reader object
 # This object knows how to load key=value pairs from .env
 # and expose them as OS environment variables.
-env = environ.Env()
+def is_a5_preview_settings():
+    return os.environ.get("DJANGO_SETTINGS_MODULE") == "moveon.settings.a5_preview"
+
+
+# The mock preview does not read .env. Its temporary session key is local only;
+# restarting the preview requires a new login and verification-code request.
+env = (environ.Env(SECRET_KEY=(str, secrets.token_urlsafe(50)))
+       if is_a5_preview_settings() else environ.Env())
 
 # Find project root (folder that contains manage.py and .env)
 # IMPORTANT: Even though BASE_DIR exists in base.py, it does not exist yet when secrets_environment.py runs.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load .env from project root
-environ.Env.read_env(BASE_DIR / ".env")
+if not is_a5_preview_settings():
+    environ.Env.read_env(BASE_DIR / ".env")

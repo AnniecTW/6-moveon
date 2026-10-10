@@ -18,6 +18,9 @@
     <div{% if auth_overlay %} inert aria-hidden="true"{% endif %}>
     <a class="skip-link" href="#main-content">Skip to content</a>
     {% include "marketplace/partials/_header.html" %}
+    {% if not auth_overlay %}
+      {% include "marketplace/partials/_messages.html" with messages_container_class="page" %}
+    {% endif %}
     {% block site_main %}
     <main id="main-content" class="page">{% block listing_content %}{% endblock %}</main>
     {% endblock %}
@@ -32,6 +35,10 @@
     {% endblock %}
     </div>
     {% block overlay_content %}{% endblock %}
+    <script type="module">
+      import { setupHeader } from "{% static 'js/marketplace/header.js' %}?v=2";
+      setupHeader();
+    </script>
     {% block extra_scripts %}{% endblock %}
   </body>
 </html>

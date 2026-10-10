@@ -26,8 +26,8 @@
 - Retained the six-digit challenge and password-reset flow.
   `ACCOUNT_EMAIL_VERIFICATION="none"` prevents a second allauth email challenge;
   the project's campus verification checks still apply.
-- Added `DATABASE_PATH` support to separate local account work from the tracked
-  fictional A4 dataset without changing the custom User schema or demo passwords.
+- Added `DATABASE_PATH` support to keep local account work independent of the
+  legacy A4 dataset without changing the custom User schema or demo passwords.
 
 ## 2026-10-08: Fixed access rules and navigation
 
@@ -51,16 +51,18 @@
   redirect to the account page with `next`; unauthorized ordinary writes return
   403. Uploads retain their existing login check and gain the shared campus gate.
 - Added a shared campus-access context processor. Protected navigation, report
-  links, Message Seller, Bundle actions and currency controls follow the same
-  permission rule as the server.
+  links, Bundle actions and currency controls follow the same permission rule
+  as the server; the public listing contact entry still requires authentication
+  before accessing Messages.
 - Made browse/favorites JavaScript tolerate missing protected controls.
   Anonymous search, filtering, sorting, USD prices and browser-local favorites
   continue to work without calling the private currency API.
 - `/charts/` now displays personal charts using the current authenticated user.
   Existing paths and the compatibility name `a4-charts` remain. Removed the
   demo-user selection and signed `render_token` authorization channel.
-- Preserved A4 specifications, screenshots, the fictional dataset and seed
-  commands as historical materials; business routes and exports remain available.
+- Preserved A4 specifications, screenshots and seed commands as historical
+  materials; its database snapshot remains in `2fbfe4f`. Business routes and
+  exports remain available under the fixed permissions.
 
 ## 2026-10-09: Private PNG subprocess execution
 
@@ -110,3 +112,46 @@
 - Provider credentials are read from environment settings rather than SocialApp
   records; social access/refresh tokens are not stored. Added the client-secret
   placeholder and OAuth round-trip tests in place of obsolete token tests.
+
+## 2026-10-09: Isolated A5 preview data and database boundaries
+
+- Removed Git tracking of `data/db.sqlite3` while retaining the local file and
+  the historical A4 snapshot in `2fbfe4f`. Only `data/.gitkeep` is allowed in the
+  current data directory's submission; runtime SQLite files, sidecars, backups,
+  exports, environment credentials and preview password/media files are ignored
+  so development or production account data does not enter future commits.
+- Added `moveon.settings.a5_preview` with a fixed dedicated database and media
+  directory, console email and loopback host. It skips `.env` loading and real
+  Google/Gemini credentials without changing authentication or business access.
+- Added `seed_a5_preview` with both settings and resolved-database-path guards.
+  It creates two verified ordinary mock users and one unverified user, hashes
+  generated temporary passwords, and synchronizes allauth email metadata through
+  `sync_campus_email`; it creates no administrator or social identity.
+- Added distinct mock listings, completed/pending/cancelled transactions and
+  replied/unanswered conversations. Personal charts continue to aggregate those
+  real model records; deterministic UUIDs reuse seeded objects, and reruns retain
+  existing passwords, verification and business edits rather than resetting them.
+
+## 2026-10-09: Shared navigation and account feedback
+
+- Moved header initialization into the common marketplace base template, outside
+  the page-specific script block. Listing details, forms, reports, charts and
+  bundle pages now load the same unread-badge behavior as browse/profile/messages.
+- Removed the duplicate browse/profile and Messages initialization entries;
+  refreshed the marketplace module URL to avoid cached page scripts starting a
+  second poller. Retained the 15-second poll, visibility refresh, unread-change
+  event and existing permission handling without changing the messaging API.
+
+- Made Message Seller visible to anonymous visitors on listing detail pages;
+  the listing owner still does not see a self-contact button. The existing
+  protected Messages URL keeps the listing in `next` while login and campus
+  verification are completed, so visitors can continue to the intended item
+  conversation without granting anonymous messaging access.
+
+- Added one shared notification partial to consume Django messages on every
+  full marketplace page, including account dialogs. Login feedback no longer
+  waits in browser storage until Settings or Bundle is visited, preventing
+  historical sign-in notices from accumulating across account changes.
+- Removed the separate Settings and Bundle message loops to avoid displaying
+  the same notice twice. Reused existing notification styling and retained
+  success/error feedback without changing authentication or business data.

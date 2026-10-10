@@ -110,7 +110,7 @@
             <h2 id="seller-heading">{{ listing.seller.display_name|default:listing.seller.username }}</h2>
           </div>
         </div>
-        {% if campus_access and request.user.pk != listing.seller_id %}
+        {% if request.user.pk != listing.seller_id %}
           <a class="button primary seller-button" href="{% url 'messages' %}?listing={{ listing.pk }}">Message Seller</a>
         {% endif %}
         <button class="button seller-button" type="button">♡ Save Listing</button>

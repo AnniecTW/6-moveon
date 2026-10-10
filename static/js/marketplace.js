@@ -3,7 +3,6 @@ import { setupDrawer } from "./marketplace/drawer.js";
 import { setupFavorites } from "./marketplace/favorites.js";
 import { setupBrowse } from "./marketplace/browse.js?v=currency-1";
 import { setupHotspots } from "./marketplace/hotspots.js";
-import { setupHeader } from "./marketplace/header.js?v=2";
 import { setupDashboardNavigation } from "./marketplace/dashboard.js";
 import { setupSellerSettings } from "./marketplace/settings.js";
 import { setupBuyerPickups } from "./marketplace/buyer.js?v=a3-1";
@@ -11,7 +10,6 @@ import { setupBundleStartLauncher } from "./bundles/start-launcher.js?v=a3-1";
 
 setupCarousel();
 setupHotspots();
-setupHeader();
 setupDashboardNavigation();
 setupSellerSettings();
 setupBuyerPickups();

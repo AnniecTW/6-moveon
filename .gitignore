@@ -59,8 +59,17 @@ cover/
 *.log
 local_settings.py
 *.sqlite3
-# A4 explicitly requires the clean demonstration database in Git.
-!data/db.sqlite3
+*.sqlite3-*
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+# A4's database snapshot remains in its historical branch/commit.
+# All A5 runtime databases, local credentials and preview uploads stay local.
+/data/*
+!/data/.gitkeep
+data/a5-preview-credentials.local.txt
+data/a5-preview-media/
 data/backups/
 data/a4-build/
 staticfiles/
@@ -158,6 +167,8 @@ activemq-data/
 
 # Environments
 .env
+.env.*
+!.env.example
 .envrc
 .venv
 env/
@@ -230,3 +241,6 @@ __marimo__/
 .idea/
 # Node / frontend build
 node_modules/
+
+# Local manual testing and deployment record; not part of the submission.
+/docs/A5_MANUAL_CHECKLIST_ZH.md
