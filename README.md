@@ -55,6 +55,13 @@ cd 6-moveon
 pip install -r requirements.txt
 ```
 
+For the public API analysis notebook, install its additional data-analysis and
+Jupyter dependencies instead:
+
+```bash
+pip install -r requirements-notebook.txt
+```
+
 #### 4. Configure Environment Variables
 On a new installation, copy `.env.example` to `.env`. Keep an existing `.env`:
 

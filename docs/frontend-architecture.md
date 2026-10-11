@@ -53,7 +53,9 @@ The reference has two additional dependencies:
 | Pillow==11.3.0 | ImageField validation and image processing | No. Current listings use image_url; reference illustrations are static files. Add when implementing image uploads or processing. |
 | django-cors-headers==4.9.0 | Cross-origin browser access to Django | No. This design serves pages and requests from one origin. Add only for an intentionally separate frontend origin. |
 
-All other pins match. requirements.txt is deliberately unchanged.
+The root `requirements.txt` contains the web application's runtime dependencies.
+`requirements-notebook.txt` adds the data-analysis and Jupyter packages used by
+the public API demo notebook, without requiring them on the production web app.
 The old Tailwind package.json, input.css, and generated app.css are retained
 for reference; the new page does not load them. TypeScript is optional if browser
 logic grows; its source would belong in frontend/src and compiled output in static/js.

@@ -9,7 +9,7 @@
 
 ## Environment
 
-Development uses a dedicated conda environment, `moveon-env` (Python 3.12), with dependencies installed exactly from `../../../requirements.txt` (Django 6.1.1). This matches the README's documented setup instructions exactly, so anyone following the README ends up with the same environment used to build and test this submission.
+Development uses a dedicated conda environment, `moveon-env` (Python 3.12), with dependencies installed from `../../../requirements-notebook.txt`, which includes the web requirements plus the notebook and analysis packages. This matches the README's documented setup instructions.
 
 ## Model Scope
 
@@ -132,7 +132,7 @@ The follow-up does **not** change transaction lifecycle/uniqueness policy, accou
 ```bash
 conda create -n moveon-env python=3.12 -y
 conda activate moveon-env
-pip install -r requirements.txt
+pip install -r requirements-notebook.txt
 python manage.py migrate
 python manage.py createsuperuser   # username: admin, password: uiuc12345
 python manage.py seed_demo_data
