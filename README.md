@@ -117,6 +117,7 @@ mock preview, backups, production configuration and optional manual checks.
 ## Assignment 5: Django Authentication, Google OAuth
 
 This update covers A5 Part 1 and Part 2 on the existing MoveOn project.
+For A5.1 deliverable file locations, see [docs/notes/notes.txt](docs/notes/notes.txt).
 
 ### Part 1: Internal Django Authentication
 

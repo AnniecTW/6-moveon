@@ -1,7 +1,7 @@
 Weekly progress notes
 
-Weeks 1-3 below describe historical implementations. Current A4 mode exposes
-only public assignment features; account workflows are retained for later work.
+Weeks 1-4 below are historical implementation notes. Week 5 records the A5.1
+authentication and public API deliverables for the current project.
 
 Week 1:
 - Implemented the initial Django data model, migrations, Admin setup, and demo seed data.
@@ -128,7 +128,6 @@ Grading requirements and evidence:
   `docs/notes/week4_screenshots/`; the three matching PNG files are actual endpoint
   outputs. Earlier section1/profile screenshots are historical evidence.
 - URL-backed JSON specifications are saved under `docs/notes/week4_specs/`.
-  Replace the local preview API host with the deployed host before online submission.
 - The clean `data/db.sqlite3` contains only fictional, non-login identities.
   Original database backups are local and ignored. Static output is also ignored.
 - Parts 2-3 provide Frankfurter currency conversion and filtered listing reports
@@ -137,11 +136,19 @@ Grading requirements and evidence:
 
 ## Week 5 - A5 Section 3.4: Public API Demonstrations
 
-- Notebook and test code: `docs/public_api_demo.ipynb`.
-- Screenshots for the three API use cases are in `docs/notes/week5_screenshots/`:
+- Production public API: `https://annieeee.pythonanywhere.com/api/listings/`.
+- Three alternative API demonstrations and executable notebook code:
+  `docs/public_api_demo.ipynb`. The notebook fetches the public production API,
+  then demonstrates Excel analysis, linked interactive charts, and a price-model
+  experiment. Its saved outputs were refreshed from production and currently show
+  13 listings.
+- Screenshots for the API and alternative uses are in `docs/notes/week5_screenshots/`:
   - `api_source_and_data.png` shows the public `/api/listings/` endpoint and returned data
   - `excel_summary_output.png` shows exporting and summarizing API data for Excel
   - `excel_workbook.png` shows the Excel workbook with the exported data and summaries
   - `linked_interactive_charts.png` and `linked_interactive_charts-2.png` show interactive category comparisons
   - `price_model_result.png` shows a simple price-prediction model experiment
-- The notebook generates `data/public_api_price_report.xlsx` for the Excel use case
+- Vega-Lite JSON submission file: `docs/notes/week4_specs/group-6-vega-lite-API-demo.txt`.
+  It fetches listing data directly from the public production API.
+- Vega-Lite Editor screenshot: `docs/notes/week5_screenshots/part3_vega_editor_listings_by_category.png`.
+- The notebook generates `data/public_api_price_report.xlsx` for the Excel use case.

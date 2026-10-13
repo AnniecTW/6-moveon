@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "description": "Average listing price by category, from the public MoveOn listings API.",
+  "description": "A5.1 Group 6: average listing price by category from the public MoveOn listings API.",
   "title": "Average Listing Price by Category (USD)",
   "data": {
     "url": "https://moveonbochen.pythonanywhere.com/api/listings/",
