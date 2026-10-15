@@ -22,6 +22,8 @@
 
   <form id="listing-form" method="post" novalidate>
     {% csrf_token %}
+    {{ form.pricing_decision }}
+    {{ form.match_choice }}
     <div class="listing-form-grid">
       <section class="form-panel photo-panel" aria-labelledby="photos-heading">
         <div class="photo-heading-row">
@@ -62,6 +64,9 @@
         {{ form.title }}
         {% for error in form.title.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
         <div class="field-counter" data-character-count="title">0 / 80</div>
+        <label for="{{ form.brand.id_for_label }}">Brand <small>(Optional; enter only if known)</small></label>
+        {{ form.brand }}
+        {% for error in form.brand.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
       </section>
 
       <section class="form-panel price-panel" aria-labelledby="price-heading">
@@ -71,18 +76,22 @@
             <span aria-hidden="true">$</span>
             {{ form.listing_price }}
           </div>
-          <div class="ai-suggestion">
-            <button class="ai-range" type="button" data-range-target="id_listing_price" data-range-midpoint="52.5" aria-label="Use AI suggested price of about $52.50" title="AI suggested price">
+          <div class="ai-suggestion" data-price-suggestion hidden>
+            <button class="ai-range" type="button" data-range-target="id_listing_price" aria-label="Use observed-price recommendation" title="Observed-price recommendation">
               <span class="ai-sparkle" aria-hidden="true">✦</span>
-              <span class="sr-only">AI suggested price</span>
-              <span class="ai-label-full" aria-hidden="true">AI suggested price</span>
-              <span class="ai-label-medium" aria-hidden="true">AI</span>
-              <strong>$45 – $60</strong>
+              <span class="sr-only">Observed-price recommendation</span>
+              <span class="ai-label-full" aria-hidden="true">Observed-price recommendation</span>
+              <span class="ai-label-medium" aria-hidden="true">Price guide</span>
+              <strong data-price-range></strong>
               <span class="ai-use-pill"><span data-ai-use>Use</span></span>
             </button>
-            <button class="info-button" type="button" aria-label="About AI suggested price">i</button>
           </div>
         </div>
+          <p class="price-hint" data-price-explanation data-pricing-url="{% url 'listing-initial-price' %}" aria-live="polite">Choose an item type for a historical price guide. Adding a condition can refine it.</p>
+          <div class="price-sparse-warning" data-price-warning role="status" hidden>
+            <span aria-hidden="true">⚠</span><span data-price-warning-text></span>
+          </div>
+        <button class="button" type="button" data-decline-price hidden>No thanks, I’ll set my price</button>
         {% for error in form.listing_price.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
       </section>
 
@@ -96,12 +105,25 @@
       </section>
 
       <section class="form-panel category-panel" aria-labelledby="category-heading">
-        <h2 id="category-heading">Category{% if form.item_type.field.required %}<sup class="required-mark" aria-label="required">*</sup>{% endif %}</h2>
+        <h2 id="category-heading">Category<sup class="required-mark" aria-label="required">*</sup></h2>
+        <div class="select-wrap">
+          {{ form.category }}
+          <span class="select-chevron" aria-hidden="true">&#8964;</span>
+        </div>
+        {% for error in form.category.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        <label class="item-type-label" for="{{ form.item_type.id_for_label }}">Item type<sup class="required-mark" aria-label="required">*</sup></label>
         <div class="select-wrap">
           {{ form.item_type }}
           <span class="select-chevron" aria-hidden="true">⌄</span>
         </div>
         {% for error in form.item_type.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        <div class="type-suggestions" data-type-suggestions data-suggestions-url="{% url 'listing-type-suggestions' %}">
+          <p class="type-suggestions-heading">Similar item types from research data</p>
+          <p class="type-suggestions-status" data-suggestions-status aria-live="polite">Enter a title to see suggestions.</p>
+          <div data-suggestions-list></div>
+          <p class="type-selection-price" data-selection-price aria-live="polite" hidden></p>
+        </div>
+        {% for error in form.match_choice.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
       </section>
 
       <section class="form-panel fulfillment-panel" aria-labelledby="fulfillment-heading">
@@ -160,17 +182,6 @@
             </div>
             {% for error in form.move_out_date.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
           </div>
-          <div class="ai-benchmark">
-            <button class="ai-range" type="button" data-range-target="id_minimum_price" data-range-midpoint="35" aria-label="Use AI suggested benchmark of about $35" title="AI Suggested">
-              <span class="ai-sparkle" aria-hidden="true">✦</span>
-              <span class="sr-only">AI Suggested benchmark</span>
-              <span class="ai-label-full" aria-hidden="true">AI Suggested</span>
-              <span class="ai-label-medium" aria-hidden="true">AI Suggested</span>
-              <strong>$30 – $40</strong>
-              <span class="ai-use-pill"><span data-ai-use>Use</span></span>
-            </button>
-            <button class="info-button" type="button" aria-label="About AI benchmark">i</button>
-          </div>
           <p class="moveout-price-hint">Your minimum price stays private. Buyers never see it.</p>
         </div>
       </section>
@@ -215,6 +226,8 @@
 
 {% block extra_scripts %}
 <script src="{% static 'marketplace/listing_photos.js' %}"></script>
+<script src="{% static 'js/marketplace/initial-price.js' %}" defer></script>
+<script src="{% static 'js/marketplace/type-suggestions.js' %}" defer></script>
 <script>
   const listingForm = document.getElementById("listing-form");
   document.querySelectorAll("[data-range-target]").forEach((range) => {
@@ -286,6 +299,7 @@
   const previewButton = listingForm?.querySelector("button.primary");
   const requiredFormFields = [
     document.getElementById("id_title"),
+    document.getElementById("id_category"),
     document.getElementById("id_listing_price"),
     document.getElementById("id_condition"),
     document.getElementById("id_item_type"),

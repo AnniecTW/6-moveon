@@ -157,6 +157,7 @@ class Listing(ValidatedSaveModel):
         ItemType, on_delete=models.PROTECT, related_name="listings"
     )
     title = models.CharField(max_length=200)
+    brand = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
     image_url = models.URLField(blank=True)
     condition = models.CharField(max_length=20, choices=Condition.choices)
@@ -173,6 +174,7 @@ class Listing(ValidatedSaveModel):
     benchmark_high = models.DecimalField(
         max_digits=8, decimal_places=2, null=True, blank=True
     )
+    valuation_metadata = models.JSONField(default=dict, blank=True)
     move_out_date = models.DateField(null=True, blank=True)
     minimum_price = models.DecimalField(
         max_digits=8, decimal_places=2, null=True, blank=True

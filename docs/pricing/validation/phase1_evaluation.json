@@ -1,0 +1,214 @@
+{
+  "baseline_method_counts": {
+    "ABSTAIN": 14,
+    "BRAND_CONDITION_FACTOR": 4,
+    "BRAND_CONDITION_MEDIAN": 37,
+    "TYPE_CONDITION_MEDIAN": 185,
+    "TYPE_MEDIAN_UNADJUSTED": 42
+  },
+  "baseline_same_rows": {
+    "mae": 21.7214,
+    "median_absolute_error": 10.36,
+    "n": 268,
+    "signed_bias": -7.3247
+  },
+  "category_errors": {
+    "appliances": {
+      "baseline": {
+        "mae": 82.2913,
+        "median_absolute_error": 31.35,
+        "n": 8,
+        "signed_bias": -74.8038
+      },
+      "covered_n": 8,
+      "holdout_n": 10,
+      "regression": {
+        "mae": 80.7542,
+        "median_absolute_error": 20.6122,
+        "n": 8,
+        "signed_bias": -63.5386
+      }
+    },
+    "bedding & bath": {
+      "baseline": {
+        "mae": 19.3123,
+        "median_absolute_error": 14.25,
+        "n": 35,
+        "signed_bias": 1.6386
+      },
+      "covered_n": 35,
+      "holdout_n": 38,
+      "regression": {
+        "mae": 24.1312,
+        "median_absolute_error": 21.172,
+        "n": 35,
+        "signed_bias": 12.8303
+      }
+    },
+    "home decor": {
+      "baseline": {
+        "mae": 26.9326,
+        "median_absolute_error": 13.5,
+        "n": 92,
+        "signed_bias": -12.7498
+      },
+      "covered_n": 92,
+      "holdout_n": 96,
+      "regression": {
+        "mae": 29.9004,
+        "median_absolute_error": 17.0006,
+        "n": 92,
+        "signed_bias": -4.2318
+      }
+    },
+    "kitchen & dining": {
+      "baseline": {
+        "mae": 15.1073,
+        "median_absolute_error": 10.0,
+        "n": 133,
+        "signed_bias": -1.872
+      },
+      "covered_n": 133,
+      "holdout_n": 133,
+      "regression": {
+        "mae": 19.854,
+        "median_absolute_error": 14.8629,
+        "n": 133,
+        "signed_bias": 7.8951
+      }
+    },
+    "storage & organization": {
+      "baseline": null,
+      "covered_n": 0,
+      "holdout_n": 5,
+      "regression": null
+    }
+  },
+  "condition_errors": {
+    "FAIR": {
+      "baseline": null,
+      "covered_n": 0,
+      "holdout_n": 1,
+      "regression": null
+    },
+    "GOOD": {
+      "baseline": {
+        "mae": 19.4605,
+        "median_absolute_error": 10.22,
+        "n": 43,
+        "signed_bias": -4.6851
+      },
+      "covered_n": 43,
+      "holdout_n": 47,
+      "regression": {
+        "mae": 18.8655,
+        "median_absolute_error": 12.243,
+        "n": 43,
+        "signed_bias": 1.1828
+      }
+    },
+    "LIKE_NEW": {
+      "baseline": {
+        "mae": 10.6431,
+        "median_absolute_error": 8.96,
+        "n": 35,
+        "signed_bias": 1.7677
+      },
+      "covered_n": 35,
+      "holdout_n": 37,
+      "regression": {
+        "mae": 15.8522,
+        "median_absolute_error": 12.9795,
+        "n": 35,
+        "signed_bias": 10.0105
+      }
+    },
+    "NEW": {
+      "baseline": {
+        "mae": 24.2738,
+        "median_absolute_error": 12.25,
+        "n": 190,
+        "signed_bias": -9.5971
+      },
+      "covered_n": 190,
+      "holdout_n": 197,
+      "regression": {
+        "mae": 29.0316,
+        "median_absolute_error": 18.5785,
+        "n": 190,
+        "signed_bias": 1.0539
+      }
+    }
+  },
+  "cutoff_first_holdout": "2023-10-01T14:28:54+00:00",
+  "holdout_n": 282,
+  "matching_name_train_rows_removed": 1,
+  "median_abstention_n": 14,
+  "median_coverage_fraction": 0.9504,
+  "median_coverage_n": 268,
+  "model": {
+    "absolute_residual_fitted_correlation": 0.0303,
+    "breusch_pagan_f_p": 0.00166223682472251,
+    "breusch_pagan_lm_p": 0.0019368822106597648,
+    "condition_number": 18.9819,
+    "cook_threshold": 0.003587,
+    "cooks_above_4_over_n": 63,
+    "design_rank": 28,
+    "high_vif_terms": {},
+    "max_cooks_distance": 0.026345,
+    "max_vif_excluding_intercept": 2.8314,
+    "n_parameters": 28,
+    "nonfinite_cooks_distance": 0,
+    "r_squared_log_train": 0.1963,
+    "shapiro_not_used": "Large-sample residual normality is not a point-prediction gate",
+    "smearing_factor": 1.436087,
+    "specification": "OLS log(price) ~ pooled item type + condition + pooled brand; Duan smearing",
+    "top_influential": [
+      {
+        "cook_distance": 0.026345,
+        "item_id": "72841442",
+        "item_type": "bakeware",
+        "price": 269.0
+      },
+      {
+        "cook_distance": 0.018339,
+        "item_id": "68241199",
+        "item_type": "bakeware",
+        "price": 2.0
+      },
+      {
+        "cook_distance": 0.0175,
+        "item_id": "124261474",
+        "item_type": "cookware",
+        "price": 11.0
+      },
+      {
+        "cook_distance": 0.015923,
+        "item_id": "129267247",
+        "item_type": "food storage",
+        "price": 350.0
+      },
+      {
+        "cook_distance": 0.015499,
+        "item_id": "212164127",
+        "item_type": "candles",
+        "price": 200.0
+      }
+    ]
+  },
+  "model_train_n": 1115,
+  "overlap_item_ids": 0,
+  "production_method": "COMPARABLE_MEDIAN",
+  "production_regression_gate": "NOT_PROMOTED: historical nonlocal unverified price source and no external validation",
+  "regression_improves_mae_by_5_percent": false,
+  "regression_same_rows": {
+    "mae": 25.6793,
+    "median_absolute_error": 16.725,
+    "n": 268,
+    "signed_bias": 2.2443
+  },
+  "seed": 42,
+  "source_sha256": "160c363b9df39c6007beecbfcfe1c49547ac7e4d3d9aaf5a3947bfdd2b8d7640",
+  "split": "chronological 80/20 by stime, then item_id",
+  "train_n": 1124
+}

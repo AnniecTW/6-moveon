@@ -1,5 +1,7 @@
 """Forms used by the marketplace browse and listing workflows."""
 
+from decimal import Decimal
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -19,6 +21,21 @@ FULFILLMENT_FILTER_CHOICES = [
     (Listing.Fulfillment.PICKUP, Listing.Fulfillment.PICKUP.label),
     (Listing.Fulfillment.DELIVERY, Listing.Fulfillment.DELIVERY.label),
 ]
+
+
+class ItemTypeSelect(forms.Select):
+    """Expose category IDs to filter the existing item-type control in the UI."""
+
+    def __init__(self, *args, category_ids=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.category_ids = category_ids or {}
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        category_id = self.category_ids.get(str(value))
+        if category_id is not None:
+            option["attrs"]["data-category-id"] = category_id
+        return option
 
 
 class BrowseForm(forms.Form):
@@ -78,6 +95,16 @@ class ListingCreateForm(forms.ModelForm):
     """Validate the seller-facing fields used to create a listing."""
 
     title = forms.CharField(max_length=80)
+    category = forms.ModelChoiceField(
+        queryset=ItemCategory.objects.all(), required=False,
+        widget=forms.Select(attrs={"aria-label": "Category"}),
+    )
+    match_choice = forms.CharField(required=False, widget=forms.HiddenInput)
+    pricing_decision = forms.ChoiceField(
+        choices=[("EDITED", "Set my price"), ("ACCEPTED", "Use recommendation"),
+                 ("DECLINED", "Decline recommendation")],
+        required=False, widget=forms.HiddenInput,
+    )
     image_ids = forms.CharField(required=False, widget=forms.HiddenInput)
     fulfillment_option = forms.CharField(
         required=False,
@@ -94,6 +121,17 @@ class ListingCreateForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
+        self.fields["item_type"].widget = ItemTypeSelect(
+            category_ids={str(pk): category_id for pk, category_id in
+                          ItemType.objects.values_list("pk", "category_id")}
+        )
+        self.fields["item_type"].label_from_instance = lambda kind: kind.item_type_name
+        self.fields["item_type"].widget.choices = self.fields["item_type"].choices
+        if not self.is_bound and self.instance.pk:
+            self.initial["category"] = self.instance.item_type.category_id
+            self.initial["match_choice"] = self.instance.valuation_metadata.get(
+                "semantic_match_choice", "UNREVIEWED"
+            )
         if not self.is_bound and self.instance.pk:
             database = database_for(self.instance)
             image_ids = ListingImage.objects.using(database).filter(
@@ -106,6 +144,9 @@ class ListingCreateForm(forms.ModelForm):
         fields = [
             "image_ids",
             "title",
+            "category",
+            "match_choice",
+            "brand",
             "listing_price",
             "condition",
             "item_type",
@@ -202,6 +243,39 @@ class ListingCreateForm(forms.ModelForm):
 
     def save(self, commit=True):
         listing = super().save(commit=False)
+        from .pricing.initial import recommend
+        from .pricing.semantic import suggestion_source
+
+        item_type = self.cleaned_data.get("item_type")
+        if item_type is not None:
+            records, profile = suggestion_source()
+            result = recommend(
+                records, category=item_type.category.category_name,
+                item_type=item_type.item_type_name,
+                condition=self.cleaned_data.get("condition"),
+                brand=self.cleaned_data.get("brand", ""),
+            )
+            suggested = result["suggested_listing_price"]
+            match_choice = self.cleaned_data.get("match_choice", "")
+            decision = self.cleaned_data.get("pricing_decision") or "EDITED"
+            if suggested is None:
+                decision = "ABSTAINED"
+            elif decision == "ACCEPTED":
+                if listing.minimum_price is not None and suggested < listing.minimum_price:
+                    decision = "FLOOR_PROTECTED"
+                else:
+                    listing.listing_price = suggested
+            listing.benchmark_price = result["benchmark_price"]
+            listing.benchmark_low = result["range_low"]
+            listing.benchmark_high = result["range_high"]
+            listing.valuation_metadata = {
+                **{key: str(value) if isinstance(value, Decimal) else value
+                   for key, value in result.items()},
+                "data_version": profile["sha256"],
+                "seller_decision": decision,
+                "seller_chosen_price": str(listing.listing_price),
+                "semantic_match_choice": match_choice or "UNREVIEWED",
+            }
         if commit:
             self._save_listing_and_images(listing)
         return listing
@@ -231,6 +305,17 @@ class ListingCreateForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        category = cleaned_data.get("category")
+        item_type = cleaned_data.get("item_type")
+        if category and item_type and category.pk != item_type.category_id:
+            self.add_error("item_type", "Choose an item type in the selected category.")
+        match_choice = cleaned_data.get("match_choice", "")
+        if match_choice and match_choice not in ("NONE", "UNREVIEWED", f"TYPE:{getattr(item_type, 'pk', '')}"):
+            self.add_error("match_choice", "Choose a valid item-type suggestion.")
+        price = cleaned_data.get("listing_price")
+        floor = cleaned_data.get("minimum_price")
+        if price is not None and floor is not None and floor > price:
+            self.add_error("minimum_price", "Minimum price cannot exceed your listing price.")
         pickup = cleaned_data.get("fulfillment_pickup")
         delivery = cleaned_data.get("fulfillment_delivery")
 

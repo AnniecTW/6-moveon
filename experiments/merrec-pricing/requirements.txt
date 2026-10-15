@@ -1,0 +1,16 @@
+# Install from the repository root with:
+#   python -m pip install -r experiments/merrec-pricing/requirements.txt
+# Includes the Django application for pricing integration tests.
+-r ../../requirements.txt
+
+# Reproduce and audit the MerRec preprocessing pipeline.
+pandas>=2.2,<3
+pyarrow>=18,<25
+huggingface_hub>=0.28,<2
+
+# Comparable analysis, hedonic regression, diagnostics, and bundle LP.
+numpy>=1.26,<3
+scipy>=1.13,<2
+statsmodels>=0.14,<1
+scikit-learn>=1.5,<2
+matplotlib>=3.9,<4

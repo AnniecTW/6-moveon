@@ -28,6 +28,8 @@ urlpatterns = [
     ),
     path("profile/watchlist/", views.buyer_watchlist_view, name="buyer-watchlist"),
     path("listings/new/", ListingCreateView.as_view(), name="listing-create-url"),
+    path("listings/initial-price/", views.initial_price_recommendation, name="listing-initial-price"),
+    path("listings/type-suggestions/", views.listing_type_suggestions, name="listing-type-suggestions"),
     path(
         "listings/<int:primary_key>/preview/",
         ListingPreviewView.as_view(),

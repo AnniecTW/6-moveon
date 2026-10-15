@@ -1,4 +1,5 @@
 import csv
+import logging
 from datetime import date, timedelta
 from decimal import Decimal
 from django.db.models import Count, F, Sum
@@ -29,13 +30,15 @@ from .auth_forms import CampusAuthenticationForm, ListingSignupForm
 from .auth_backend import credential_user, has_campus_access
 from .email_verification import EmailDeliveryError, consume_code, issue_code
 from . import google_auth
-from .models import ItemCategory, Listing, ListingImage, Transaction, User, WatchlistItem
+from .models import ItemCategory, ItemType, Listing, ListingImage, Transaction, User, WatchlistItem
 from django.views.generic import CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .featured import decorate_listing, discount_percent
 from .browse import browse_context
 from .forms import ListingCreateForm, SellerSettingsForm
 from .validation import database_for
+from .pricing.initial import recommend
+from .pricing.semantic import suggest_types, suggestion_source
 
 
 def _safe_return(request):
@@ -386,6 +389,68 @@ class ListingFormContextMixin:
         return reverse("home")
 
 
+@login_required
+def initial_price_recommendation(request):
+    """Preview a source-backed benchmark without using the seller's ask."""
+    item_type = get_object_or_404(
+        ItemType.objects.select_related("category"), pk=request.GET.get("item_type")
+    ) if (request.GET.get("item_type") or "").isdigit() else None
+    if item_type is None:
+        return JsonResponse({"error": "Choose an item type."}, status=400)
+    records, profile = suggestion_source()
+    result = recommend(
+        records, category=item_type.category.category_name,
+        item_type=item_type.item_type_name,
+        condition=request.GET.get("condition", ""), brand=request.GET.get("brand", ""),
+    )
+    return JsonResponse({
+        **{key: str(value) if isinstance(value, Decimal) else value
+           for key, value in result.items()},
+        "data_version": profile["sha256"],
+    })
+
+
+@login_required
+def listing_type_suggestions(request):
+    """Return source-backed semantic candidates for seller confirmation."""
+    title = request.GET.get("title", "")[:80].strip()
+    if len(title) < 3:
+        return JsonResponse({"candidates": [], "message": "Enter a longer title to find similar item types."})
+    category_id = request.GET.get("category", "")
+    category = ItemCategory.objects.filter(pk=category_id).first() if category_id.isdigit() else None
+    type_id = request.GET.get("item_type", "")
+    item_type = ItemType.objects.filter(pk=type_id).first() if type_id.isdigit() else None
+    records, profile = suggestion_source()
+    try:
+        candidates = suggest_types(
+            records, ItemType.objects.select_related("category"), title=title,
+            category=category.category_name if category else "",
+            item_type=item_type.item_type_name if item_type else "",
+        )
+    except Exception as exc:
+        if not isinstance(exc, (ImportError, OSError, RuntimeError, ValueError)):
+            logging.getLogger(__name__).exception("Similar-item search failed")
+        return JsonResponse({"candidates": [], "message":
+                             "Similar-item search is unavailable. Choose an item type yourself."}, status=503)
+    # Price each returned type while the parsed source is already in memory.
+    # This makes a seller's selection immediate; saving still recalculates it.
+    condition = request.GET.get("condition", "")
+    brand = request.GET.get("brand", "")
+    for candidate in candidates:
+        result = recommend(
+            records, category=candidate["category"],
+            item_type=candidate["item_type"], condition=condition, brand=brand,
+        )
+        candidate["price_guide"] = {
+            key: str(value) if isinstance(value, Decimal) else value
+            for key, value in result.items()
+        }
+    return JsonResponse({"candidates": candidates, "model": "all-MiniLM-L6-v2",
+                         "data_version": profile["sha256"],
+                         "price_guide_condition": condition,
+                         "price_guide_brand": brand})
+
+
 class ListingCreateView(ListingFormContextMixin, LoginRequiredMixin, CreateView):
     model = Listing
     form_class = ListingCreateForm
@@ -434,6 +499,8 @@ def listing_publish(request, primary_key):
         "listing_price": str(listing.listing_price),
         "condition": listing.condition,
         "item_type": str(listing.item_type_id),
+        "category": str(listing.item_type.category_id),
+        "match_choice": listing.valuation_metadata.get("semantic_match_choice", "UNREVIEWED"),
         "fulfillment_option": fulfillment,
         "fulfillment_pickup": (
             "on"

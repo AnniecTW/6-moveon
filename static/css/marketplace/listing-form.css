@@ -123,6 +123,8 @@
   grid-column: span 7;
 }
 
+.price-panel [hidden] { display: none !important; }
+
 .price-panel {
   grid-column: span 7;
 }
@@ -138,6 +140,106 @@
 
 .category-panel {
   grid-column: 9 / span 4;
+}
+
+.item-type-label {
+  display: block;
+  margin: 14px 0 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.type-suggestions {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e0d7;
+}
+
+.type-suggestions-heading {
+  margin: 0 0 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.type-suggestions-status {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.type-candidate {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-top: 5px;
+  padding: 6px 8px;
+  border: 1px solid #e5e0d7;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.listing-form-page .type-suggestions .type-candidate input[type="radio"] {
+  appearance: auto;
+  flex: none;
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  min-height: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  accent-color: #607e61;
+}
+
+.type-candidate span { min-width: 0; }
+
+.type-candidate:has(input:checked) {
+  border-color: #738c72;
+  background: #f2f6f0;
+}
+
+.type-candidate strong,
+.type-candidate small {
+  display: block;
+}
+
+.type-candidate strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.25;
+}
+.type-candidate small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.type-selection-price {
+  margin: 8px 0 0;
+  padding: 8px;
+  border-radius: 5px;
+  background: #f2f6f0;
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.type-selection-price[hidden] { display: none; }
+
+.type-selection-price.is-limited {
+  border: 1px solid #e8cc69;
+  background: #fff5cf;
+  color: #665014;
 }
 
 .fulfillment-panel,
@@ -571,6 +673,28 @@
   margin-top: 7px;
   color: var(--muted);
   font-size: 10px;
+}
+
+.price-sparse-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 8px;
+  border: 1px solid #e8cc69;
+  border-radius: 5px;
+  padding: 9px 10px;
+  background: #fff5cf;
+  color: #665014;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.price-sparse-warning[hidden] { display: none; }
+
+.price-sparse-warning > span:first-child {
+  flex: none;
+  font-size: 14px;
+  line-height: 1;
 }
 
 .ai-suggestion,
