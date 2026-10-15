@@ -1,6 +1,8 @@
 # MoveOn Pricing Methodology — Team Overview
 
-**Status:** Proposed methodology for MVP; parameters require validation  
+**Status:** Features 1 and 2 implemented; Feature 3 pricing proposed. Research parameters still require validation.
+
+For current product behavior and evidence limits, use [implementation progress](IMPLEMENTATION_PROGRESS.md). The alternatives below describe the broader research plan, including methods not used in the live price guide.
 
 ## 1. What are we trying to solve?
 
@@ -64,10 +66,10 @@ These are qualitative **evidence grades**, not probabilities that the price will
 
 ## 4. Feature 2 — Move-out markdown recommendation
 
-A proposed transparent rule is a **bounded power-function markdown**:
+The implemented rule is a **bounded power-function markdown**:
 
 \[
-P(t)=P_{\min}+(P_0-P_{\min})\left(\frac{t}{T}\right)^{\gamma},\qquad 0\le t\le T,\;\gamma>1.
+P(t)=P_{\min}+(P_0-P_{\min})\left[1-\left(1-\frac{t}{T}\right)^{\gamma}\right],\qquad 0\le t\le T,\;\gamma>1.
 \]
 
 - \(P_0\): starting seller-approved listing price
@@ -76,9 +78,11 @@ P(t)=P_{\min}+(P_0-P_{\min})\left(\frac{t}{T}\right)^{\gamma},\qquad 0\le t\le T
 - \(t\): days remaining
 - \(\gamma\): configurable curve shape
 
-**Example (illustrative, not fitted):** A $100 item with a $60 floor, 30-day window and \(\gamma=2\) has targets of **$100 at day 30**, **$70 at day 15**, and **$60 at day 0**. The curve deliberately saves larger reductions for later. It is a **power** function, *not an exponential function*.
+**Example (illustrative, not fitted):** A $100 item with a $60 floor, 30-day window and \(\gamma=2\) has targets of **$100 at day 30**, **$90 at day 15**, and **$60 at day 0**. The complementary power curve deliberately saves larger reductions for later. The previous written \((t/T)^\gamma\) form contradicted that behavior for \(\gamma>1\). It is a **power** function, *not an exponential function*.
 
-**Workflow:** Seller provides date and floor → system shows a proposed schedule → scheduled service checks unsold/eligible listings → recommends changes → seller approves, rejects or changes them → decision logged. `sell_no_matter_what` needs **separate explicit approval** before any below-floor price. Discounts should not be applied automatically without the agreed policy.
+**Workflow:** Seller provides date and normal minimum; selecting `sell_no_matter_what` also requires a seller-chosen urgent minimum no higher than the normal one. The markdown base is filled from the original listing price and remains fixed unless the seller edits it directly. Normal and urgent pilot exponents are 2 and 1.2 respectively; neither is fitted to MoveOn demand. The scheduled service checks unsold/eligible listings, proposes only a target below the current asking price, and logs the seller's accept, decline, or modify decision. Edits to the asking price, base, minimum prices, urgency, or move-out date recalculate suggestions; ordinary edits do not change the base. The normal curve uses the normal minimum; Sell no matter what uses the urgent minimum. Each below-normal-minimum change requires separate explicit approval, and no change can pass the urgent minimum. Discounts are never applied automatically.
+
+MoveOn inbox reminders are sent only when 30, 21, 14, 7, or 3 days remain and a lower curve price exists. These milestones do not restrict the seller's on-demand Markdown suggestion button on My Listings. A reminder links to the current proposal; approval still happens on My Listings.
 
 **Why this method:** Research by Gallego and van Ryzin [3] establishes the finite-selling-window pricing problem, **not** a universal quadratic curve or specific percentage discount. Test different curve parameters as actual MoveOn sales accumulate.
 

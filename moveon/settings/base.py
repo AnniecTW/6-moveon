@@ -33,6 +33,10 @@ ALLOWED_HOSTS = []
 # instead of failing.
 GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
 
+# Versioned MVP policy; changing this affects only newly restarted schedules.
+MOVEON_DEADLINE_GAMMA = env("MOVEON_DEADLINE_GAMMA", default="2")
+MOVEON_URGENT_DEADLINE_GAMMA = env("MOVEON_URGENT_DEADLINE_GAMMA", default="1.2")
+
 
 # Application definition
 

@@ -5,6 +5,7 @@
         <div class="panel-heading">
           <div><h2 id="listings-title">My Listings ({{ active_count }})</h2><p>Manage your items, track performance, and set your pricing plan.</p></div>
         </div>
+        {% if messages %}{% for message in messages %}<p class="deadline-message">{{ message }}</p>{% endfor %}{% endif %}
         <form class="listing-controls" method="get">
           <label class="control-search"><span aria-hidden="true">&#9906;</span><span class="sr-only">Search your listings</span><input type="search" name="q" value="{{ request.GET.q }}" placeholder="Search your listings..." /></label>
           <label><span class="sr-only">Listing status</span><select name="status"><option value="ALL"{% if selected_status == 'ALL' %} selected{% endif %}>All statuses</option>{% for value, label in listing_status_choices %}<option value="{{ value }}"{% if selected_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
@@ -13,7 +14,7 @@
         </form>
         <div class="seller-listings">
           {% for listing in listings %}
-          <article class="seller-listing-row">
+          <article class="seller-listing-row" id="listing-{{ listing.pk }}">
             <div class="seller-listing-image">{% if listing.display_image_url %}<img src="{{ listing.display_image_url }}" alt="{{ listing.title }}" />{% else %}<span aria-hidden="true">&#9633;</span>{% endif %}</div>
             <div class="listing-identity"><h3>{{ listing.title }}</h3><p>{{ listing.item_type.category.category_name }} · {{ listing.get_condition_display }}</p><p>Listed: {{ listing.created_at|date:"M d, Y" }}</p><div class="listing-tags">{% if listing.bundle_eligible %}<span>Bundle included</span>{% endif %}{% if listing.sell_no_matter_what %}<span>Sell no matter what</span>{% endif %}</div></div>
             <div class="listing-price"><strong>${{ listing.listing_price|floatformat:0 }}</strong><span>Comparable: {% if listing.benchmark_low %}${{ listing.benchmark_low|floatformat:0 }}{% endif %}{% if listing.benchmark_low and listing.benchmark_high %} &ndash; {% endif %}{% if listing.benchmark_high %}${{ listing.benchmark_high|floatformat:0 }}{% endif %}</span><b class="listing-status listing-status-{{ listing.status|lower }}">{{ listing.get_status_display|upper }}</b></div>
@@ -21,9 +22,54 @@
             <div class="listing-moveout">{% if listing.move_out_date %}<span>&#9632; Move-out: {{ listing.move_out_date|date:"M d, Y" }}</span>{% if listing.days_remaining is not None %}<small>{{ listing.days_remaining }} days left</small>{% endif %}{% endif %}</div>
             <div class="pricing-plan">
               <span class="pricing-plan-label">Pricing plan</span>
-              {% if listing.pricing_plan %}<strong>{{ listing.get_pricing_plan_display }}</strong>{% endif %}
+              <strong>{% if listing.pricing_plan %}{{ listing.get_pricing_plan_display }}{% elif listing.deadline_start_date %}Deadline pricing{% else %}Not set{% endif %}</strong>
             </div>
             <div class="listing-actions"><a class="button" href="{% url 'listing-update-url' listing.pk %}">Edit</a></div>
+            {% if listing.move_out_date or listing.deadline_history %}
+            <div class="deadline-divider" aria-hidden="true"></div>
+            <section class="deadline-review" id="deadline-detail-{{ listing.pk }}" aria-label="Deadline pricing for {{ listing.title }}">
+              <div><strong>Deadline pricing</strong> · Market valuation: {% if listing.benchmark_price %}${{ listing.benchmark_price|floatformat:2 }} ({{ listing.valuation_grade }} evidence){% else %}unavailable{% endif %}.</div>
+              {% if listing.deadline_start_date %}<p>Schedule: {{ listing.deadline_start_date|date:"M j" }} to {{ listing.deadline_end_date|date:"M j" }} · markdown base ${{ listing.deadline_start_price|floatformat:2 }} · normal minimum ${{ listing.deadline_floor|floatformat:2 }}{% if listing.deadline_urgent_floor %} · urgent minimum ${{ listing.deadline_urgent_floor|floatformat:2 }}{% endif %}.</p>
+              {% if listing.sell_no_matter_what and not listing.urgent_minimum_price %}<p>Add an urgent minimum in Edit to allow suggestions below your normal minimum.</p>{% endif %}
+              {% elif listing.status == 'ACTIVE' and not listing.minimum_price %}<p>No deadline schedule yet. Add your minimum price and move-out date in Edit to enable markdown suggestions.</p>
+              {% elif listing.status == 'ACTIVE' %}<p>No active deadline schedule. Check the move-out date, minimum prices, and markdown base price in Edit to enable suggestions.</p>{% endif %}
+              {% if listing.pending_deadline %}
+                <p><strong>Proposed ${{ listing.pending_deadline.recommended_price|floatformat:2 }}</strong> from current ${{ listing.listing_price|floatformat:2 }} · reduction ${{ listing.deadline_reduction|floatformat:2 }} ({{ listing.deadline_reduction_percent }}%).</p>
+                <form method="post" action="{% url 'deadline-recommendation-decision' listing.pending_deadline.pk %}">
+                  {% csrf_token %}
+                  <label>My lower price <input type="number" name="chosen_price" min="0.01" step="0.01" max="{{ listing.listing_price }}" required></label>
+                  {% if listing.sell_no_matter_what %}<label><input type="checkbox" name="below_floor_approved"> I separately approve this change if my price is below my minimum.</label>{% endif %}
+                  <button type="submit" name="action" value="modify">Apply my price</button>
+                </form>
+              {% endif %}
+              {% if listing.deadline_history %}<details><summary>Recent recommendation history</summary><ul>{% for entry in listing.deadline_history %}<li>{{ entry.schedule_date|date:"M j" }}: ${{ entry.previous_price|floatformat:2 }} → proposed ${{ entry.recommended_price|floatformat:2 }} · {{ entry.get_status_display }}{% if entry.applied_price %} · applied ${{ entry.applied_price|floatformat:2 }}{% endif %}{% if entry.responded_at %} · {{ entry.responded_at|date:"M j, g:i A" }}{% endif %}</li>{% endfor %}</ul></details>{% endif %}
+            </section>
+            {% endif %}
+            {% if listing.status == 'ACTIVE' and listing.move_out_date %}
+            <div class="deadline-quick-actions" aria-label="Markdown suggestion for {{ listing.title }}">
+              {% if listing.pending_deadline %}
+                <a class="button" href="#deadline-detail-{{ listing.pk }}">Markdown suggestion: ${{ listing.pending_deadline.recommended_price|floatformat:2 }}</a>
+                <form method="post" action="{% url 'deadline-recommendation-decision' listing.pending_deadline.pk %}">
+                  {% csrf_token %}
+                  {% if listing.pending_deadline.below_floor %}<label><input type="checkbox" name="below_floor_approved" required> I separately approve this below-minimum change.</label>{% endif %}
+                  <button type="submit" name="action" value="accept">Accept</button>
+                </form>
+                <form method="post" action="{% url 'deadline-recommendation-decision' listing.pending_deadline.pk %}">
+                  {% csrf_token %}<button type="submit" name="action" value="decline">Decline</button>
+                </form>
+              {% elif not listing.minimum_price %}
+                <a class="button" href="{% url 'listing-update-url' listing.pk %}">Set minimum price for markdowns</a>
+              {% elif listing.sell_no_matter_what and not listing.urgent_minimum_price %}
+                <a class="button" href="{% url 'listing-update-url' listing.pk %}">Set urgent minimum</a>
+              {% elif not listing.deadline_start_date %}
+                <a class="button" href="{% url 'listing-update-url' listing.pk %}">Start markdown schedule</a>
+              {% else %}
+                <form method="post" action="{% url 'request-deadline-suggestion' listing.pk %}">
+                  {% csrf_token %}<button type="submit">Markdown suggestion</button>
+                </form>
+              {% endif %}
+            </div>
+            {% endif %}
           </article>
           {% empty %}<div class="empty-state"><h3>No active listings yet</h3><p>Your active items will appear here after you create a listing.</p></div>{% endfor %}
         </div>

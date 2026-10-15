@@ -72,16 +72,29 @@
 .listing-price .listing-status-sold { background: #e4e2f3; color: #554b86; }
 .listing-performance { display: grid; gap: 8px; color: var(--muted); white-space: nowrap; }
 .listing-moveout { display: grid; gap: 3px; overflow-wrap: anywhere; }
-.pricing-plan { position: relative; display: grid; align-content: center; min-height: 64px; padding: 8px 24px 8px 11px; overflow: hidden; border-radius: 8px; background: #eaf5f0; text-decoration: none; }
+.pricing-plan { position: relative; display: grid; align-content: center; min-height: 64px; padding: 10px 14px; overflow: hidden; border-radius: 8px; background: #eaf5f0; text-decoration: none; font-family: inherit; }
 .pricing-plan-label, .pricing-plan strong, .pricing-plan-review { display: block; }
-.pricing-plan-label { color: var(--muted); font-size: 8px; font-weight: 600; letter-spacing: .08em; line-height: 1.2; text-transform: uppercase; }
-.pricing-plan strong { margin-top: 2px; overflow: hidden; font-size: 11px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.pricing-plan-label { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .06em; line-height: 1.3; text-transform: uppercase; }
+.pricing-plan strong { margin-top: 5px; overflow: hidden; font-size: 14px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
 .pricing-plan strong::before { content: "\25C6"; margin-right: 5px; font-size: 8px; }
 .pricing-plan-review { color: var(--muted); font-size: 9px; line-height: 1.25; margin-top: 4px; }
 .pricing-plan b { position: absolute; top: 50%; right: 9px; color: var(--ink); font-size: 17px; line-height: 1; transform: translateY(-50%); }
 .listing-actions { display: flex; gap: 6px; justify-content: end; width: 100%; }
 .listing-actions .button { display: inline-grid; place-items: center; min-width: 58px; min-height: 36px; padding: 6px 10px; border-radius: 7px; font-size: 11px; white-space: nowrap; }
 .listing-actions .icon-button { flex: 0 0 36px; width: 36px; height: 36px; padding: 0; border-radius: 7px; font-size: 14px; }
+.deadline-divider { grid-column: 1 / -1; grid-row: 2; height: 1px; background: var(--border); }
+.deadline-review { grid-column: 1 / 6; grid-row: 3; align-self: start; padding: 0 12px; color: var(--ink); line-height: 1.5; }
+.deadline-review p { margin: 4px 0; color: var(--muted); }
+.deadline-review form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.deadline-review form label { display: inline-flex; align-items: center; gap: 5px; }
+.deadline-review input[type=number] { width: 100px; padding: 6px; border: 1px solid var(--border); border-radius: 6px; }
+.deadline-review button { padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; background: #eaf5f0; cursor: pointer; }
+.deadline-review details { margin-top: 8px; }
+.deadline-message { margin: 8px 0; padding: 8px; border-radius: 6px; background: #fff2cb; }
+.deadline-quick-actions { grid-column: 6 / -1; grid-row: 3; align-self: start; display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid #e8d68e; border-radius: 8px; background: #fff3c4; font-family: inherit; }
+.deadline-quick-actions form { display: inline-flex; align-items: center; gap: 6px; }
+.deadline-quick-actions label { font-size: 11px; }
+.deadline-quick-actions button, .deadline-quick-actions .button { display: inline-block; padding: 7px 11px; border: 1px solid #d8c677; border-radius: 7px; background: #fffaf0; color: var(--ink); text-decoration: none; cursor: pointer; font: inherit; font-size: 12px; }
 .empty-state { grid-column: 1 / -1; padding: 40px; text-align: center; }
 .empty-state p { color: var(--muted); margin-top: 8px; }
 .seller-main[data-loading="true"] { opacity: .55; }
@@ -414,14 +427,14 @@
 .watchlist-action-status:not(:empty) { grid-column: 1 / -1; margin-top: -4px; padding: 7px 9px; border-radius: 7px; background: #eef6f1; color: #416250; font-size: 8px; }
 .watchlist-empty { display: none; }
 .watchlist-empty.is-visible { display: block; }
-@media (max-width: 1180px) { .seller-layout { grid-template-columns: 210px minmax(0, 1fr); } .seller-listing-row { grid-template-columns: 80px minmax(0, 1.4fr) minmax(100px, .8fr) minmax(120px, 1fr); } .seller-listing-image { width: 74px; } .listing-performance { grid-column: 2; } .listing-moveout { grid-column: 3; } .pricing-plan { grid-column: 4; } .listing-actions { grid-column: 4; justify-content: start; } }
+@media (max-width: 1180px) { .seller-layout { grid-template-columns: 210px minmax(0, 1fr); } .seller-listing-row { grid-template-columns: 80px minmax(0, 1.4fr) minmax(100px, .8fr) minmax(120px, 1fr); } .seller-listing-image { width: 74px; } .listing-performance { grid-column: 2; } .listing-moveout { grid-column: 3; } .pricing-plan { grid-column: 4; } .listing-actions { grid-column: 4; justify-content: start; } .deadline-review { grid-column: 1 / 4; } .deadline-quick-actions { grid-column: 4; } }
 @media (max-width: 900px) { .insights-grid { grid-template-columns: 1fr; } .views-chart-card { grid-column: 1; } }
 @media (max-width: 1050px) { .pricing-listing-summary { grid-template-columns: 72px minmax(130px, 1fr) repeat(3, minmax(100px, .75fr)); } .manage-plan-button { grid-column: 2 / -1; width: fit-content; } .recommendation-panel { grid-template-columns: minmax(0, 1fr) minmax(110px, .45fr); } .recommendation-actions { grid-column: 1 / -1; justify-content: start; } }
 @media (max-width: 1080px) { .pickup-card { grid-template-columns: minmax(175px, 1.2fr) repeat(2, minmax(110px, .8fr)); } .pickup-meetup { grid-column: 2; } .pickup-status { grid-column: 3; } }
 @media (max-width: 950px) { .bundle-financials { grid-template-columns: repeat(2, minmax(0, 1fr)); } .bundle-item-row { grid-template-columns: 54px minmax(130px, 1fr) minmax(100px, .7fr) 120px; } .bundle-item-price { grid-column: 2; } .bundle-response { grid-column: 4; } }
 @media (max-width: 950px) { .history-row { grid-template-columns: minmax(190px, 1.3fr) repeat(2, minmax(100px, .7fr)); } .history-status { grid-column: 2; } }
 @media (max-width: 950px) { .watchlist-row { grid-template-columns: minmax(200px, 1.3fr) repeat(2, minmax(105px, .65fr)); } }
-@media (max-width: 760px) { .seller-layout { grid-template-columns: 1fr; } .profile-sidebar { position: static; } .seller-kpis { grid-template-columns: repeat(2, 1fr); } .profile-tab-groups { grid-template-columns: 1fr; } .listing-controls { flex-wrap: wrap; } .control-search { max-width: none; flex-basis: 100%; } .control-sort { margin-left: 0; } .seller-listing-row { grid-template-columns: 76px 1fr; } .seller-listing-image { grid-row: span 2; } .listing-price, .listing-performance, .listing-moveout, .pricing-plan, .listing-actions { grid-column: 2; } .listing-actions { justify-content: start; } .insights-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .seller-layout { grid-template-columns: 1fr; } .profile-sidebar { position: static; } .seller-kpis { grid-template-columns: repeat(2, 1fr); } .listing-controls { flex-wrap: wrap; } .control-search { max-width: none; flex-basis: 100%; } .control-sort { margin-left: 0; } .seller-listing-row { grid-template-columns: 76px 1fr; } .seller-listing-image { grid-row: span 2; } .listing-price, .listing-performance, .listing-moveout, .pricing-plan, .listing-actions { grid-column: 2; } .deadline-review { grid-column: 1 / -1; grid-row: auto; } .deadline-quick-actions { grid-column: 1 / -1; grid-row: auto; } .listing-actions { justify-content: start; } .insights-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .pricing-listing-summary { grid-template-columns: 64px minmax(0, 1fr) minmax(90px, .65fr); } .pricing-listing-image { width: 64px; } .pricing-deadline { grid-column: 2; } .pricing-strategy-summary { grid-column: 3; } .manage-plan-button { grid-column: 2 / -1; } .recommendation-panel { grid-template-columns: 1fr; } .recommendation-actions { grid-column: 1; flex-wrap: wrap; } .strategy-options, .preference-toggles { grid-template-columns: 1fr; } }
 @media (max-width: 700px) { .settings-grid { grid-template-columns: 1fr; } }
 @media (max-width: 700px) { .buyer-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .buyer-spending-card { grid-template-columns: 1fr; } .buyer-chart-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pickup-card { grid-template-columns: 84px minmax(0, 1fr); } .pickup-item { grid-column: 1 / -1; grid-template-columns: 72px minmax(0, 1fr); } .pickup-price, .pickup-seller, .pickup-meetup, .pickup-status { grid-column: 2; } .pickup-actions { justify-content: start; flex-wrap: wrap; } }

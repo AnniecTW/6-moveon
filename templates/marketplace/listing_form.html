@@ -165,24 +165,41 @@
       <section class="form-panel moveout-panel" aria-labelledby="moveout-heading">
         <h2 id="moveout-heading">Move Out Features <small>(Optional)</small></h2>
         <div class="form-two-column">
-          <div class="field-group">
+          <div class="field-group moveout-minimum">
             <label for="{{ form.minimum_price.id_for_label }}">Minimum Price</label>
             <div class="currency-field">
               <span aria-hidden="true">$</span>
               {{ form.minimum_price }}
             </div>
             {% for error in form.minimum_price.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+            <p class="moveout-price-hint moveout-floor-help">Your minimum price stays private. Buyers never see it.</p>
           </div>
-          <div class="field-group">
+          <div class="field-group moveout-date">
             <label for="{{ form.move_out_date.id_for_label }}">Move Out Date</label>
             <div class="date-field">
-              <button class="calendar-icon" type="button" data-open-date-picker aria-label="Open date picker">▣</button>
               {{ form.move_out_date }}
               <span class="date-placeholder" data-date-placeholder>Select date</span>
             </div>
             {% for error in form.move_out_date.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
           </div>
-          <p class="moveout-price-hint">Your minimum price stays private. Buyers never see it.</p>
+          <div class="field-group moveout-urgent-minimum">
+            <label for="{{ form.urgent_minimum_price.id_for_label }}">Urgent Minimum</label>
+            <div class="currency-field">
+              <span aria-hidden="true">$</span>
+              {{ form.urgent_minimum_price }}
+            </div>
+            <p class="moveout-price-hint">Only used if Sell no matter what is selected. Below your normal minimum requires separate approval for each markdown.</p>
+            {% for error in form.urgent_minimum_price.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+          </div>
+          <div class="field-group moveout-base">
+            <label for="{{ form.deadline_base_price.id_for_label }}">Move-Out Deadline Markdown Base Price</label>
+            <div class="currency-field">
+              <span aria-hidden="true">$</span>
+              {{ form.deadline_base_price }}
+            </div>
+            <p class="moveout-price-hint">MoveOn uses this price to calculate markdown suggestions as move-out approaches, which may help your item sell. It starts at your original listing price and stays there unless you edit it.</p>
+            {% for error in form.deadline_base_price.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+          </div>
         </div>
       </section>
 
@@ -207,7 +224,7 @@
               <circle cx="8" cy="16" r="1" />
             </svg>
           </span>
-          <span><strong>Sell no matter what</strong><small>Allow MoveOn to suggest prices below your minimum as your move-out date approaches. <button class="info-button" type="button" aria-label="About sell no matter what">i</button></small></span>
+          <span><strong>Sell no matter what</strong><small>Suggest earlier markdowns toward your urgent minimum. Each price below your normal minimum needs approval. <button class="info-button" type="button" aria-label="About sell no matter what">i</button></small></span>
           <span class="consent-check" aria-hidden="true">✓</span>
         </label>
       </section>
@@ -270,16 +287,22 @@
   });
 
   const dateField = document.getElementById("id_move_out_date");
+  const listingPriceField = document.getElementById("id_listing_price");
+  const deadlineBaseField = document.getElementById("id_deadline_base_price");
+  let deadlineBaseEdited = Boolean(deadlineBaseField?.value);
+  const fillDeadlineBase = () => {
+    if (deadlineBaseField && listingPriceField && !deadlineBaseEdited) {
+      deadlineBaseField.value = listingPriceField.value;
+    }
+  };
+  deadlineBaseField?.addEventListener("input", () => { deadlineBaseEdited = true; });
+  listingPriceField?.addEventListener("input", fillDeadlineBase);
+  fillDeadlineBase();
   const datePlaceholder = document.querySelector("[data-date-placeholder]");
-  const datePickerButton = document.querySelector("[data-open-date-picker]");
   const updateDatePlaceholder = () => {
     datePlaceholder?.classList.toggle("is-hidden", Boolean(dateField?.value));
     dateField?.closest(".date-field")?.classList.toggle("has-value", Boolean(dateField?.value));
   };
-  datePickerButton?.addEventListener("click", () => {
-    dateField?.focus();
-    if (typeof dateField?.showPicker === "function") dateField.showPicker();
-  });
   dateField?.addEventListener("focus", () => dateField.closest(".date-field")?.classList.add("is-focused"));
   dateField?.addEventListener("blur", () => dateField.closest(".date-field")?.classList.remove("is-focused"));
   dateField?.addEventListener("input", updateDatePlaceholder);

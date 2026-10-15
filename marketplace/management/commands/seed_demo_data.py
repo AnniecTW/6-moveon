@@ -211,12 +211,15 @@ class Command(BaseCommand):
         return listings
 
     def _seed_price_recommendations(self, listings):
-        PriceRecommendation.objects.get_or_create(
-            listing=listings["Blue Sofa"],
-            previous_price=65,
-            recommended_price=55,
-            defaults={"status": PriceRecommendation.Status.PENDING},
-        )
+        if not PriceRecommendation.objects.filter(
+            listing=listings["Blue Sofa"], status=PriceRecommendation.Status.PENDING
+        ).exists():
+            PriceRecommendation.objects.get_or_create(
+                listing=listings["Blue Sofa"],
+                previous_price=65,
+                recommended_price=55,
+                defaults={"status": PriceRecommendation.Status.PENDING},
+            )
         PriceRecommendation.objects.get_or_create(
             listing=listings["Desk"],
             previous_price=45,

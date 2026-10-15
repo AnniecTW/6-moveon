@@ -268,6 +268,15 @@
   justify-content: flex-start;
 }
 
+.consent-panel {
+  display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
+  align-self: start;
+  row-gap: 8px;
+  height: max-content;
+}
+
 .photo-drop-surface {
   position: relative;
   display: flex;
@@ -1256,14 +1265,24 @@
   min-height: 44px;
 }
 
-.moveout-panel .form-two-column > .field-group:first-of-type {
+.moveout-panel .moveout-minimum {
   grid-column: 1;
   grid-row: 1;
 }
 
-.moveout-panel .form-two-column > .field-group:nth-child(2) {
+.moveout-panel .moveout-date {
   grid-column: 2;
   grid-row: 1;
+}
+
+.moveout-panel .moveout-urgent-minimum {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.moveout-panel .moveout-base {
+  grid-column: 2;
+  grid-row: 2;
 }
 
 .ai-benchmark {
@@ -1273,10 +1292,14 @@
 
 .moveout-price-hint {
   grid-column: 1 / -1;
-  margin: -10px 0 0;
+  margin: 0;
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.25;
+  line-height: 1.45;
+}
+
+.moveout-floor-help {
+  margin-top: 8px;
 }
 
 .date-field {
@@ -1284,7 +1307,7 @@
 }
 
 .date-field input {
-  padding-left: 34px;
+  padding-left: 12px;
   color: transparent;
 }
 
@@ -1331,7 +1354,7 @@
 .date-placeholder {
   position: absolute;
   top: 50%;
-  left: 34px;
+  left: 12px;
   color: #9b968e;
   font-size: 12px;
   pointer-events: none;
@@ -1510,30 +1533,13 @@
   }
 
   .moveout-panel .form-two-column {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-content: start;
   }
 
-  .moveout-panel .form-two-column > .field-group:first-of-type {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .moveout-panel .form-two-column > .field-group:nth-child(2) {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .moveout-panel .form-two-column > .ai-benchmark {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: end;
-  }
-
-  .moveout-panel .form-two-column > .moveout-price-hint {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    margin-top: 0;
+  .moveout-panel .field-group .currency-field,
+  .moveout-panel .moveout-date .date-field {
+    max-width: 340px;
   }
 
   .consent-panel {
@@ -1668,10 +1674,10 @@
     flex: 0 0 auto;
   }
 
-  .moveout-panel .form-two-column > .field-group:first-of-type,
-  .moveout-panel .form-two-column > .field-group:nth-child(2),
-  .moveout-panel .form-two-column > .ai-benchmark,
-  .moveout-panel .form-two-column > .moveout-price-hint {
+  .moveout-panel .form-two-column > .moveout-minimum,
+  .moveout-panel .form-two-column > .moveout-date,
+  .moveout-panel .form-two-column > .moveout-urgent-minimum,
+  .moveout-panel .form-two-column > .moveout-base {
     grid-column: 1;
     grid-row: auto;
   }

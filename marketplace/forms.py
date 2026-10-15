@@ -121,6 +121,11 @@ class ListingCreateForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
+        self._pricing_original = (
+            tuple(getattr(self.instance, field) for field in
+                  ("listing_price", "deadline_base_price", "minimum_price", "urgent_minimum_price", "move_out_date", "sell_no_matter_what",
+                   "status", "deadline_revision")) if self.instance.pk else None
+        )
         self.fields["item_type"].widget = ItemTypeSelect(
             category_ids={str(pk): category_id for pk, category_id in
                           ItemType.objects.values_list("pk", "category_id")}
@@ -131,6 +136,10 @@ class ListingCreateForm(forms.ModelForm):
             self.initial["category"] = self.instance.item_type.category_id
             self.initial["match_choice"] = self.instance.valuation_metadata.get(
                 "semantic_match_choice", "UNREVIEWED"
+            )
+            self.initial["deadline_base_price"] = (
+                self.instance.deadline_base_price or self.instance.deadline_start_price
+                or self.instance.listing_price
             )
         if not self.is_bound and self.instance.pk:
             database = database_for(self.instance)
@@ -155,6 +164,8 @@ class ListingCreateForm(forms.ModelForm):
             "fulfillment_delivery",
             "description",
             "minimum_price",
+            "urgent_minimum_price",
+            "deadline_base_price",
             "move_out_date",
             "bundle_eligible",
             "sell_no_matter_what",
@@ -165,6 +176,12 @@ class ListingCreateForm(forms.ModelForm):
             ),
             "minimum_price": forms.NumberInput(
                 attrs={"min": "0", "step": "0.01", "placeholder": "Enter minimum price"}
+            ),
+            "urgent_minimum_price": forms.NumberInput(
+                attrs={"min": "0.01", "step": "0.01", "placeholder": "Only for Sell no matter what"}
+            ),
+            "deadline_base_price": forms.NumberInput(
+                attrs={"min": "0.01", "step": "0.01", "placeholder": "Original listing price"}
             ),
             "move_out_date": forms.DateInput(attrs={"type": "date"}),
         }
@@ -284,6 +301,38 @@ class ListingCreateForm(forms.ModelForm):
         database = database_for(listing)
         image_ids = self.cleaned_data.get("image_ids", [])
         with transaction.atomic(using=database):
+            from .pricing.deadline import reset_schedule
+            previous = (Listing.objects.using(database).select_for_update().filter(pk=listing.pk).first()
+                        if listing.pk else None)
+            if previous is not None:
+                current = tuple(getattr(previous, field) for field in
+                                ("listing_price", "deadline_base_price", "minimum_price", "urgent_minimum_price", "move_out_date", "sell_no_matter_what",
+                                 "status", "deadline_revision"))
+                if current != self._pricing_original:
+                    raise ValidationError("This listing changed while you were editing. Reload it before saving.")
+                listing.deadline_revision = previous.deadline_revision
+            if listing.deadline_base_price is None:
+                listing.deadline_base_price = (
+                    previous.deadline_base_price or previous.deadline_start_price or previous.listing_price
+                    if previous else listing.listing_price
+                )
+            changed = previous is not None and any(
+                getattr(previous, field) != getattr(listing, field)
+                for field in ("listing_price", "deadline_base_price", "minimum_price", "urgent_minimum_price", "move_out_date", "sell_no_matter_what")
+            )
+            publishing = previous is not None and previous.status == Listing.Status.DRAFT and listing.status == Listing.Status.ACTIVE
+            active_schedule = (previous is not None and previous.deadline_start_date is not None
+                               and listing.status == Listing.Status.ACTIVE)
+            resume_unscheduled = (previous is not None and previous.status == Listing.Status.ACTIVE
+                                  and listing.status == Listing.Status.ACTIVE
+                                  and previous.deadline_start_date is None)
+            restart = (publishing or (listing.status == Listing.Status.ACTIVE and changed)
+                       or resume_unscheduled)
+            # Editing an active plan recalculates its curve without replacing
+            # the original starting price with the current asking price.
+            if restart or changed or (previous is not None and previous.status == Listing.Status.ACTIVE and listing.status != Listing.Status.ACTIVE):
+                reset_schedule(listing, start=bool(restart),
+                               baseline=previous if active_schedule else None)
             listing.save(using=database)
             selected_images = list(
                 ListingImage.objects.using(database)
@@ -302,6 +351,11 @@ class ListingCreateForm(forms.ModelForm):
                 image.listing_id = listing.pk
                 image.position = position
                 image.save(using=database, update_fields={"listing", "position"})
+            if restart and listing.deadline_start_date is not None:
+                from .pricing.deadline import evaluate_listing, notify_trigger
+                recommendation = evaluate_listing(listing.pk)
+                if recommendation is not None:
+                    notify_trigger(listing.pk, recommendation.pk)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -314,8 +368,29 @@ class ListingCreateForm(forms.ModelForm):
             self.add_error("match_choice", "Choose a valid item-type suggestion.")
         price = cleaned_data.get("listing_price")
         floor = cleaned_data.get("minimum_price")
+        urgent_floor = cleaned_data.get("urgent_minimum_price")
+        entered_base = cleaned_data.get("deadline_base_price")
+        if entered_base is not None and entered_base <= 0:
+            self.add_error("deadline_base_price", "Enter a positive markdown base price.")
+        base = (cleaned_data.get("deadline_base_price") or self.instance.deadline_base_price
+                or self.instance.deadline_start_price
+                or (self.instance.listing_price if self.instance.pk else price))
+        if base is not None and floor is not None and floor > base:
+            self.add_error("deadline_base_price", "Markdown base price must be at least your Minimum Price.")
+        if urgent_floor is not None and (urgent_floor <= 0 or floor is not None and urgent_floor > floor):
+            self.add_error("urgent_minimum_price", "Enter a positive urgent minimum no higher than your normal minimum.")
+        if cleaned_data.get("sell_no_matter_what") and urgent_floor is None:
+            self.add_error("urgent_minimum_price", "Choose the lowest price you would accept for Sell no matter what.")
+        if cleaned_data.get("sell_no_matter_what") and floor is None:
+            self.add_error("minimum_price", "Set your normal minimum before enabling Sell no matter what.")
         if price is not None and floor is not None and floor > price:
-            self.add_error("minimum_price", "Minimum price cannot exceed your listing price.")
+            existing_below_floor_unchanged = (
+                self.instance.pk
+                and self.instance.minimum_price == floor
+                and self.instance.listing_price == price
+            )
+            if not existing_below_floor_unchanged:
+                self.add_error("minimum_price", "Minimum price cannot exceed your listing price.")
         pickup = cleaned_data.get("fulfillment_pickup")
         delivery = cleaned_data.get("fulfillment_delivery")
 

@@ -179,6 +179,17 @@ class Listing(ValidatedSaveModel):
     minimum_price = models.DecimalField(
         max_digits=8, decimal_places=2, null=True, blank=True
     )
+    urgent_minimum_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    deadline_base_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    deadline_start_date = models.DateField(null=True, blank=True)
+    deadline_end_date = models.DateField(null=True, blank=True)
+    deadline_start_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    deadline_floor = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    deadline_urgent_floor = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    deadline_gamma = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    deadline_policy_version = models.CharField(max_length=32, blank=True)
+    deadline_below_floor_opt_in = models.BooleanField(default=False)
+    deadline_revision = models.PositiveIntegerField(default=0)
     bundle_eligible = models.BooleanField(default=False)
     sell_no_matter_what = models.BooleanField(default=False)
     fulfillment_option = models.CharField(max_length=20, choices=Fulfillment.choices)
@@ -325,7 +336,7 @@ class WatchlistItem(models.Model):
 
 class PriceRecommendation(models.Model):
     """
-    Represents one AI-generated price-change suggestion for a listing,
+    Represents one deadline price-change suggestion for a listing,
     typically as its move-out date approaches. Kept separate from the
     listing's static benchmark fields so a history of suggestions can
     exist without overwriting the listing itself.
@@ -351,14 +362,53 @@ class PriceRecommendation(models.Model):
     )
     generated_at = models.DateTimeField(auto_now_add=True)
     responded_at = models.DateTimeField(null=True, blank=True)
+    rationale = models.TextField(blank=True)
+    policy_version = models.CharField(max_length=32, blank=True)
+    schedule_revision = models.PositiveIntegerField(default=0)
+    schedule_date = models.DateField(null=True, blank=True)
+    below_floor = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-generated_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["listing"], condition=models.Q(status="PENDING"), name="one_pending_deadline_rec")
+        ]
 
     def __str__(self):
         return (
             f"{self.listing.title}: {self.previous_price} -> {self.recommended_price}"
         )
+
+
+class DeadlineNotification(models.Model):
+    """A one-way MoveOn inbox reminder for a deadline price proposal."""
+
+    seller = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="deadline_notifications",
+    )
+    listing = models.ForeignKey(
+        Listing, on_delete=models.CASCADE, related_name="deadline_notifications",
+    )
+    recommendation = models.ForeignKey(
+        PriceRecommendation, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="inbox_notifications",
+    )
+    schedule_revision = models.PositiveIntegerField()
+    trigger_days = models.PositiveSmallIntegerField()
+    suggested_price_snapshot = models.DecimalField(max_digits=8, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["listing", "schedule_revision", "trigger_days"],
+                name="unique_deadline_trigger",
+            ),
+        ]
 
 
 class Transaction(ValidatedSaveModel):

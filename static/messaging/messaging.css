@@ -60,6 +60,13 @@
   font-size: 14px;
   line-height: 1.45;
 }
+.messaging__system-updates { flex: 0 0 auto; max-height: 210px; overflow-y: auto; padding: 10px; border-bottom: 1px solid #e4e0d8; }
+.messaging__system-updates h2 { margin: 0 0 8px; font-size: 13px; }
+.messaging__system-updates > p { margin: 0; color: #78736a; font-size: 12px; }
+.messaging__system-card { padding: 8px; margin: 6px 0; border: 1px solid #e4e0d8; border-radius: 8px; background: #fffefa; font-size: 12px; }
+.messaging__system-card.is-unread { border-color: #c5aa74; background: #fff8e8; }
+.messaging__system-card p { margin: 4px 0; }
+.messaging__system-card button { padding: 4px 8px; border: 1px solid #c5aa74; border-radius: 6px; background: #fffefa; cursor: pointer; }
 
 .messaging *,
 .messaging *::before,

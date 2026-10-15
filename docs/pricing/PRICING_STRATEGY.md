@@ -1,7 +1,7 @@
 # MoveOn — Pricing Engine Technical Strategy and Implementation Specification
 
 **Audience:** Coding agents, developers, data analysts, course reviewers  
-**Status:** Implementation specification, not proof of existing functionality  
+**Status:** Features 1 and 2 implemented; Feature 3 pricing proposed. This document also records earlier implementation guidance.
 **Companion:** `PRICING_METHODOLOGY_OVERVIEW.md`  
 **Target:** Existing `6-moveon` Django application; confirm current checkout branch before implementation.
 
@@ -193,22 +193,32 @@ Connect pricing to current listing form only after service tests. Display benchm
 
 ### 6.1 Definition and research boundary
 
-For fixed initial selling window \(T\), time remaining \(0\le t\le T\), initial seller-approved price \(P_0\), approved normal floor \(P_{\min}\):
+For fixed initial selling window \(T\), time remaining \(0\le t\le T\), seller-approved markdown base \(P_0\) (filled from the original listing price until the seller edits it), approved normal floor \(P_{\min}\):
 
 \[
-P(t)=P_{\min}+(P_0-P_{\min})\left(\frac{t}{T}\right)^{\gamma},\qquad \gamma>1.
+P(t)=P_{\min}+(P_0-P_{\min})\left[1-\left(1-\frac{t}{T}\right)^{\gamma}\right],\qquad \gamma>1.
 \]
 
-This is a **bounded power curve**, not exponential decay. Designed so \(P(T)=P_0\), \(P(0)=P_{\min}\), and markdowns accelerate near deadline when time flows forward. Example: \(P_0=100\), floor 60, \(T=30\), exponent 2 => day 30 $100; day 15 $70; day 0 $60. These values are illustrations. Gallego & van Ryzin [R3] motivate finite-horizon dynamic pricing; they do **not** validate \(\gamma=2\) or this exact interpolation rule.
+This is a **bounded complementary power curve**, not exponential decay. Designed so \(P(T)=P_0\), \(P(0)=P_{\min}\), and markdowns accelerate near deadline when time flows forward. Example: \(P_0=100\), floor 60, \(T=30\), exponent 2 => day 30 $100; day 15 $90; day 0 $60. These values are illustrations. The earlier written form \((t/T)^\gamma\) with \(\gamma>1\) decreased faster *early*, contrary to the stated product objective; this correction is required for acceleration. Gallego & van Ryzin [R3] motivate finite-horizon dynamic pricing; they do **not** validate \(\gamma=2\) or this exact interpolation rule.
+
+For **Sell no matter what**, retain the same seller-approved \(P_0\) and use a separately
+approved urgent minimum \(P_u\le P_{\min}\) with a smaller exponent
+\(1<\gamma_u<\gamma_n\). Pilot defaults are \(\gamma_n=2\) and
+\(\gamma_u=1.2\); neither is an empirically optimal setting. The seller
+chooses \(P_u\), and each proposal below the normal minimum needs separate
+approval. Apply only a target below the current listing price; accepting an
+earlier markdown or toggling urgency never replaces \(P_0\); only a seller edit to the markdown base does.
 
 ### 6.2 Policy rules and timeline
 
-- Capture `initial_window_start`, original `T`, initial base price, floor, exponent/policy version and approval mode. Verify if existing models cover these; propose smallest required changes.
-- Do not reset selling-window duration each day; new seller-modified prices require explicit policy handling (e.g., new approved baseline/schedule), not silent overwriting.
+- Capture `initial_window_start`, original `T`, seller-editable markdown base, floor, exponent/policy version and approval mode.
+- When a seller starts a schedule with fewer than 30 days left, use the 30-day date before move-out as the reference start while snapshotting the seller's current price and approved floor. This gives an immediate proposal based on remaining time; it is a policy reference date, not a claim that the item was listed earlier. For longer windows, use the actual schedule start date.
+- Do not reset selling-window duration each day. Fill the markdown base from the original listing price and preserve it through accepted markdowns and ordinary listing edits. Sellers may edit the base directly; recalculate suggestions from that value and the current minimum, urgency, and move-out date. Applying a suggested price still requires seller approval.
 - Clamp time input into [0,T] and guard against zero-length window and invalid price/floor/exponent.
 - Run scheduled management command to evaluate ACTIVE/available listings; avoid repeated suggestions for unchanged parameters/day; exclude sold/reserved where not appropriate.
+- Create seller-only MoveOn inbox reminders at exactly 30, 21, 14, 7, and 3 days remaining when the curve yields a lower proposal. These days control notifications only; on-demand My Listings suggestions remain available on other days. A schedule started exactly 30 days before move-out has no day-zero markdown, so its 30-day reminder has no price-drop proposal to send.
 - Recommendation is a **proposal** until accepted. Respect listing price and seller floor. Record previous/recommended/applied, timestamp, accepted/declined/pending, policy version and rationale.
-- `sell_no_matter_what`: separately recommend possible below-floor price only under enabled option *and* record explicit per-change approval. Never silently apply beyond minimum.
+- `sell_no_matter_what`: require a seller-entered urgent minimum no higher than the normal minimum, and record explicit approval for each below-normal-minimum application. Never automatically apply a proposal or cross the urgent minimum.
 - Detect existing bundle negotiations/reservations to avoid incompatible edits; revalidate on apply.
 - Initially use views/inquiries for **review triggers**, not statistically established sale elasticity; treat future use as measured and calibrated.
 

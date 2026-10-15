@@ -23,7 +23,7 @@
   <header class="messaging__header">
     <div class="messaging__header-titles">
       <h1 class="messaging__title">Messages</h1>
-      <p class="messaging__subtitle">Product inquiries &amp; Move-In Bundle requests</p>
+      <p class="messaging__subtitle">Product inquiries, Move-In Bundle requests, and MoveOn updates</p>
     </div>
     <div class="messaging__header-actions">
       <span class="messaging__search-icon" aria-hidden="true">
@@ -50,6 +50,20 @@
 
     <!-- ---------- LEFT: conversation list ---------- -->
     <aside class="messaging__sidebar">
+      <section class="messaging__system-updates" aria-label="MoveOn updates">
+        <h2>MoveOn updates</h2>
+        {% for notification in system_notifications %}
+          <article class="messaging__system-card{% if not notification.read_at %} is-unread{% endif %}">
+            <strong>MoveOn{% if not notification.read_at %} · New{% endif %}</strong>
+            <p>{{ notification.listing.title }}: {{ notification.trigger_days }} days until move-out. Markdown suggestion at notification: ${{ notification.suggested_price_snapshot|floatformat:2 }}.</p>
+            {% if notification.resolved_at %}<small>Reviewed</small>{% else %}
+              <form method="post" action="{% url 'deadline-notification-open' notification.pk %}">
+                {% csrf_token %}<button type="submit">Review current suggestion</button>
+              </form>
+            {% endif %}
+          </article>
+        {% empty %}<p>No MoveOn updates yet.</p>{% endfor %}
+      </section>
       <div class="messaging__filters" data-filters>
         <button class="messaging__pill is-active" type="button" data-filter="all">All</button>
         <button class="messaging__pill" type="button" data-filter="buying">Buying</button>

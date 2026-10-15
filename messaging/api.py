@@ -20,7 +20,7 @@ from PIL import Image, UnidentifiedImageError
 
 from bundles.models import Bundle, BundleItem
 from marketplace.auth_backend import has_campus_access
-from marketplace.models import Listing, Transaction
+from marketplace.models import DeadlineNotification, Listing, Transaction
 from .models import Conversation, DealProposal, Message, MessageImage
 
 PAGE_SIZE = 30
@@ -340,8 +340,15 @@ def conversation_data(conversation, user):
 
 @require_GET
 def page(request):
+    campus_access = has_campus_access(request.user)
+    system_notifications = (
+        DeadlineNotification.objects.filter(seller=request.user)
+        .select_related("listing")[:30]
+        if campus_access else []
+    )
     return render(request, "messaging/page.html", {
-        "campus_access": has_campus_access(request.user),
+        "campus_access": campus_access,
+        "system_notifications": system_notifications,
         "messaging_config": {
             "conversations": reverse("messaging_conversations"),
             "create": reverse("messaging_create"),
@@ -392,6 +399,7 @@ def unread(request):
         Q(conversation__buyer=request.user) | Q(conversation__seller=request.user),
         is_read=False,
     ).exclude(sender=request.user).count()
+    count += DeadlineNotification.objects.filter(seller=request.user, read_at__isnull=True).count()
     response = JsonResponse({"unreadCount": count})
     response["Cache-Control"] = "private, no-store"
     return response

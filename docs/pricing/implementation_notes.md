@@ -1,6 +1,6 @@
 # Phase 1 implementation notes
 
-Feature 1 is implemented. Features 2 and 3 remain untouched. The concise
+Feature 1 and Feature 2 pricing are implemented. Feature 3 discount pricing remains unimplemented, although bundle selection exists. The concise
 status is in [implementation progress](IMPLEMENTATION_PROGRESS.md); this file
 keeps the implementation history and file inventory. Source profiles and
 statistical reports are under `validation/`.
