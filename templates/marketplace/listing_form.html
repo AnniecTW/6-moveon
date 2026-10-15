@@ -31,7 +31,7 @@
         {{ form.image_ids }}
         {{ initial_photos|json_script:"initial-photos" }}
         <input id="photo-file-input" class="photo-file-input" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-label="Choose listing photos">
-        <div class="photo-drop-surface" data-photo-surface data-upload-url="{% url 'listing_image_upload' %}">
+        <div class="photo-drop-surface" data-photo-surface data-upload-url="{% url 'listing_image_upload' %}" data-delete-url="{% url 'listing_image_delete' %}">
           <button class="photo-url-dropzone" data-photo-empty type="button" aria-label="Add listing photos. Press Enter or Space to browse.">
             <span class="photo-upload-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" focusable="false">
@@ -52,8 +52,11 @@
             <input id="photo-url-input" type="url" placeholder="https://example.com/photo.jpg" autocomplete="url">
             <button class="button photo-url-add" type="button" data-photo-url-add>Add</button>
           </div>
+          <button class="button photo-analysis-button" type="button" data-analyze-photos data-analyze-url="{% url 'listing_image_analyze' %}">Fill details from photos</button>
+          <small class="photo-analysis-hint">Analysis uses the first 3 photos shown above. Photos added by URL cannot be analyzed yet. You can analyze up to 5 times every 10 minutes.</small>
         </div>
         <p class="photo-live-message" data-photo-message aria-live="polite"></p>
+        <p class="photo-live-message photo-analysis-message" data-analysis-message aria-live="polite">Photos are analyzed automatically after upload. You can also use the button to retry.</p>
         {% for error in form.image_ids.errors %}<p class="field-error photo-error" role="alert">{{ error }}</p>{% endfor %}
       </section>
 
@@ -214,9 +217,99 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{% static 'marketplace/listing_photos.js' %}"></script>
+<script src="{% static 'marketplace/listing_photos.js' %}?v=3"></script>
 <script>
   const listingForm = document.getElementById("listing-form");
+  const analyzeButton = document.querySelector("[data-analyze-photos]");
+  const analysisMessage = document.querySelector("[data-analysis-message]");
+  const setAnalysisMessage = (text, isError = false) => {
+    if (!analysisMessage) return;
+    analysisMessage.textContent = text;
+    analysisMessage.classList.toggle("is-error", isError);
+  };
+  let isAnalyzingPhotos = false;
+  const analyzePhotos = async (automatic = false) => {
+    if (isAnalyzingPhotos) return;
+    const imageIds = document.getElementById("id_image_ids")?.value.split(",").filter(Boolean) || [];
+    if (window.listingPhotos?.isUploading()) {
+      setAnalysisMessage("Your photos are still uploading. Please wait for the upload to finish.", true);
+      return;
+    }
+    if (!imageIds.length) {
+      setAnalysisMessage("Upload a photo before starting the analysis.", true);
+      return;
+    }
+    const selectedImageIds = imageIds.slice(0, 3);
+    const fieldsToAnalyze = [
+      ["id_title", "title"],
+      ["id_description", "description"],
+      ["id_condition", "condition"],
+      ["id_item_type", "category"],
+    ];
+    const existingFieldCount = fieldsToAnalyze.filter(([id]) => {
+      return Boolean(document.getElementById(id)?.value.trim());
+    }).length;
+    const overwriteExisting = existingFieldCount === fieldsToAnalyze.length;
+    if (overwriteExisting && !window.confirm("All suggested fields already contain information. If you continue, AI suggestions may replace your existing title, description, condition, and category. Continue?")) {
+      setAnalysisMessage("Analysis canceled. Your existing details were kept.");
+      return;
+    }
+    const formData = new FormData();
+    selectedImageIds.forEach((id) => formData.append("image_ids", id));
+    isAnalyzingPhotos = true;
+    if (analyzeButton) {
+      analyzeButton.disabled = true;
+      analyzeButton.setAttribute("aria-busy", "true");
+    }
+    setAnalysisMessage(automatic ? "Photos uploaded. Analyzing them now…" : "Analyzing your photos…");
+    try {
+      const response = await fetch(analyzeButton.dataset.analyzeUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-CSRFToken": listingForm.querySelector("[name=csrfmiddlewaretoken]")?.value || "" },
+        body: formData,
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Photo analysis is unavailable. Please enter the listing details manually.");
+      const currentImageIds = document.getElementById("id_image_ids")?.value.split(",").filter(Boolean) || [];
+      if (currentImageIds.length !== imageIds.length || currentImageIds.some((id, index) => id !== imageIds[index])) {
+        setAnalysisMessage("Your photos changed while analysis was running. The suggestions were not applied; analyze the current photos again.", true);
+        return;
+      }
+      const fields = fieldsToAnalyze.map(([id, key]) => [id, result[key === "category" ? "item_type_id" : key]]);
+      let filledCount = 0;
+      let replacedCount = 0;
+      fields.forEach(([id, value]) => {
+        const field = document.getElementById(id);
+        if (!field || value === null || value === undefined || String(value) === "") return;
+        const hadValue = Boolean(field.value.trim());
+        if (hadValue && !overwriteExisting) return;
+        if (field.value === String(value)) return;
+        field.value = value;
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        field.dispatchEvent(new Event("change", { bubbles: true }));
+        if (hadValue) replacedCount += 1;
+        else filledCount += 1;
+      });
+      if (replacedCount) {
+        setAnalysisMessage(`Analysis complete. AI suggestions replaced existing information in ${replacedCount} field${replacedCount === 1 ? "" : "s"}. Review the changes and add a price or any missing details.`);
+      } else if (filledCount) {
+        setAnalysisMessage("Analysis complete. Suggestions were added to empty fields. Review them and add a price and any missing details.");
+      } else {
+        setAnalysisMessage("Analysis complete. No new suggestions were available; your existing details were kept.");
+      }
+    } catch (error) {
+      setAnalysisMessage(`${error.message || "Photo analysis ran into a problem."} You can still complete the listing manually.`, true);
+    } finally {
+      isAnalyzingPhotos = false;
+      if (analyzeButton) {
+        analyzeButton.disabled = false;
+        analyzeButton.removeAttribute("aria-busy");
+      }
+    }
+  };
+  analyzeButton?.addEventListener("click", () => analyzePhotos());
+  window.listingPhotos?.onUploadComplete?.(() => analyzePhotos(true));
   document.querySelectorAll("[data-range-target]").forEach((range) => {
     range.addEventListener("click", (event) => {
       if (event.target.closest(".info-button")) return;

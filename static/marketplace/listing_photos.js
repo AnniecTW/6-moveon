@@ -19,18 +19,27 @@
   const counter = document.querySelector("[data-photo-count]");
   const message = document.querySelector("[data-photo-message]");
   const uploadUrl = surface?.dataset.uploadUrl;
+  const deleteUrl = surface?.dataset.deleteUrl;
   if (!form || !surface || !emptyState || !grid || !fileInput || !idsInput || !uploadUrl) return;
 
   let photos = [];
   let activeUploads = 0;
   const uploadQueue = [];
   const uploadingListeners = new Set();
+  const uploadCompleteListeners = new Set();
+  let pendingUploadCycle = false;
 
   const csrfToken = () => form.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
   const isUploading = () => activeUploads > 0 || uploadQueue.length > 0;
 
   function notifyUploading() {
     uploadingListeners.forEach((listener) => listener(isUploading()));
+  }
+
+  function notifyUploadComplete() {
+    if (isUploading() || !pendingUploadCycle) return;
+    pendingUploadCycle = false;
+    uploadCompleteListeners.forEach((listener) => listener());
   }
 
   function announce(text, isError = false) {
@@ -199,6 +208,23 @@
     announce(`Photo moved to position ${nextPosition + 1}`);
   }
 
+  async function discardUploadedImage(imageId) {
+    if (!deleteUrl || imageId === undefined || imageId === null) return;
+    const body = new FormData();
+    body.append("image_id", String(imageId));
+    try {
+      const response = await fetch(deleteUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-CSRFToken": csrfToken() },
+        body,
+      });
+      if (!response.ok) throw new Error("Photo cleanup failed.");
+    } catch (_error) {
+      announce("The photo was removed from this form, but could not be deleted from storage. It may be cleaned up later.", true);
+    }
+  }
+
   function removePhoto(photo) {
     const index = photos.indexOf(photo);
     if (index < 0) return;
@@ -206,6 +232,7 @@
     for (let queuedIndex = uploadQueue.length - 1; queuedIndex >= 0; queuedIndex -= 1) {
       if (uploadQueue[queuedIndex] === photo) uploadQueue.splice(queuedIndex, 1);
     }
+    discardUploadedImage(photo.id);
     releasePreview(photo);
     persistAndRender();
   }
@@ -236,7 +263,10 @@
       activeUploads += 1;
       sendUpload(photo)
         .then((result) => {
-          if (!photos.includes(photo)) return;
+          if (!photos.includes(photo)) {
+            discardUploadedImage(result.id);
+            return;
+          }
           photo.id = result.id;
           photo.url = result.url;
           photo.status = "done";
@@ -252,12 +282,14 @@
           activeUploads -= 1;
           persistAndRender();
           pumpQueue();
+          notifyUploadComplete();
         });
     }
     notifyUploading();
   }
 
   function enqueue(photo) {
+    pendingUploadCycle = true;
     photo.status = "uploading";
     photo.error = "";
     uploadQueue.push(photo);
@@ -407,6 +439,9 @@
     onUploadingChange(listener) {
       uploadingListeners.add(listener);
       listener(isUploading());
+    },
+    onUploadComplete(listener) {
+      uploadCompleteListeners.add(listener);
     },
   };
 })();

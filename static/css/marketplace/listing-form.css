@@ -113,6 +113,21 @@
   min-width: 0;
 }
 
+.photo-analysis-button {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+.photo-analysis-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
 .photo-count {
   flex: 0 0 auto;
   color: var(--muted);
@@ -537,6 +552,23 @@
   margin-top: 5px;
 }
 
+.photo-analysis-message:not(:empty) {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid #d8e2d8;
+  border-radius: 7px;
+  background: #f4f8f3;
+  color: #405943;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.photo-analysis-message.is-error {
+  border-color: #e3c3bd;
+  background: #fff5f3;
+  color: #8d3b35;
+}
+
 .photo-uploading-message {
   margin-left: auto;
   color: #5d765f;
@@ -880,6 +912,8 @@
   display: block;
   min-height: 104px;
   resize: vertical;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .listing-form-page input::placeholder,
@@ -1288,11 +1322,16 @@
   display: block;
 }
 
+.consent-choice strong {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
 .consent-choice small {
   margin-top: 2px;
   color: var(--muted);
-  font-size: 10px;
-  line-height: 1.35;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .consent-choice small .info-button {

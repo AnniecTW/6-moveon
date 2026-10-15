@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.cache import cache
 from django.core.validators import URLValidator
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import logout
@@ -29,7 +30,7 @@ from .auth_forms import CampusAuthenticationForm, ListingSignupForm
 from .auth_backend import credential_user, has_campus_access
 from .email_verification import EmailDeliveryError, consume_code, issue_code
 from .oauth import google_configured
-from .models import ItemCategory, Listing, ListingImage, Transaction, User, WatchlistItem
+from .models import ItemCategory, ItemType, Listing, ListingImage, Transaction, User, WatchlistItem
 from django.views.generic import CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .featured import decorate_listing, discount_percent
@@ -441,6 +442,9 @@ def listing_publish(request, primary_key):
 
 MAX_LISTING_IMAGE_BYTES = 5 * 1024 * 1024
 MAX_UNATTACHED_LISTING_IMAGES = 30
+MAX_ANALYSIS_IMAGES = 3
+MAX_IMAGE_ANALYSES_PER_WINDOW = 5
+IMAGE_ANALYSIS_RATE_LIMIT_SECONDS = 600
 LISTING_IMAGE_FORMATS = {
     "JPEG": "jpg",
     "PNG": "png",
@@ -505,6 +509,88 @@ def listing_image_upload(request):
 
     pending_image.save(using=database)
     return JsonResponse({"id": pending_image.pk, "url": pending_image.url}, status=201)
+
+
+@login_required
+@require_POST
+def listing_image_delete(request):
+    try:
+        image_id = int(request.POST.get("image_id", ""))
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "Choose a valid photo."}, status=400)
+
+    pending_image = ListingImage(listing=None, uploaded_by=request.user)
+    database = database_for(pending_image)
+    image = get_object_or_404(
+        ListingImage.objects.using(database),
+        pk=image_id,
+        uploaded_by=request.user,
+    )
+    if image.listing_id is not None:
+        return JsonResponse({"deleted": False, "deferred": True})
+
+    image.delete(using=database)
+    return JsonResponse({"deleted": True})
+
+
+@login_required
+@require_POST
+def listing_image_analyze(request):
+    raw_ids = request.POST.getlist("image_ids")
+    if len(raw_ids) == 1 and "," in raw_ids[0]:
+        raw_ids = raw_ids[0].split(",")
+    try:
+        image_ids = [int(value) for value in raw_ids]
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "Choose valid photos and try again.", "kind": "photo"}, status=400)
+    if not image_ids or len(image_ids) > MAX_ANALYSIS_IMAGES or len(set(image_ids)) != len(image_ids):
+        return JsonResponse({"error": "Choose 1 to 3 photos to analyze.", "kind": "photo"}, status=400)
+
+    pending_image = ListingImage(listing=None, uploaded_by=request.user)
+    database = database_for(pending_image)
+    images = list(
+        ListingImage.objects.using(database)
+        .filter(pk__in=image_ids, uploaded_by=request.user)
+        .filter(Q(listing__isnull=True) | Q(listing__seller=request.user))
+    )
+    by_id = {image.pk: image for image in images}
+    if len(by_id) != len(image_ids):
+        return JsonResponse({"error": "One or more photos are unavailable. Please upload them again and retry.", "kind": "photo"}, status=400)
+    selected_images = [by_id[image_id] for image_id in image_ids]
+    uploaded_images = [image for image in selected_images if image.image]
+    if len(uploaded_images) != len(selected_images):
+        return JsonResponse({"error": "Photos added by URL cannot be analyzed yet. Upload the image file or enter the details manually.", "kind": "photo"}, status=422)
+
+    rate_limit_key = f"listing-image-analysis:{request.user.pk}"
+    if not cache.add(rate_limit_key, 1, timeout=IMAGE_ANALYSIS_RATE_LIMIT_SECONDS):
+        try:
+            analysis_count = cache.incr(rate_limit_key)
+        except ValueError:
+            analysis_count = 1
+            cache.set(rate_limit_key, analysis_count, timeout=IMAGE_ANALYSIS_RATE_LIMIT_SECONDS)
+        if analysis_count > MAX_IMAGE_ANALYSES_PER_WINDOW:
+            return JsonResponse(
+                {
+                    "error": "You've reached the photo analysis limit. Please wait a few minutes and try again.",
+                    "kind": "rate_limit",
+                },
+                status=429,
+                headers={"Retry-After": str(IMAGE_ANALYSIS_RATE_LIMIT_SECONDS)},
+            )
+
+    item_types = list(
+        ItemType.objects.using(database).select_related("category").order_by("category__category_name", "item_type_name")
+    )
+    if not item_types:
+        return JsonResponse({"error": "No listing categories are available right now. Please choose a category manually or try again later.", "kind": "service"}, status=503)
+
+    from .image_analysis import analyze_listing_images
+
+    result, error = analyze_listing_images(uploaded_images, item_types, settings.GEMINI_API_KEY)
+    if error:
+        status = 422 if error["kind"] == "photo" else 503
+        return JsonResponse(error, status=status)
+    return JsonResponse(result)
 
 
 def _seller_profile(user):

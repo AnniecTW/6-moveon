@@ -8,6 +8,8 @@ from marketplace.views import (
     ListingListView,
     ListingPreviewView,
     ListingUpdateView,
+    listing_image_analyze,
+    listing_image_delete,
     listing_image_upload,
     listing_publish,
 )
@@ -68,6 +70,8 @@ urlpatterns = [
         name="listing-update-url",
     ),
     path("listings/images/upload/", listing_image_upload, name="listing_image_upload"),
+    path("listings/images/delete/", listing_image_delete, name="listing_image_delete"),
+    path("listings/images/analyze/", listing_image_analyze, name="listing_image_analyze"),
     path("listings/", ListingListView.as_view(), name="listing-list-url"),
     path(
         "listings/<int:primary_key>/",

@@ -3,5 +3,5 @@
 @import url("./marketplace/components.css?v=ai-fallback-dialog-1");
 @import url("./marketplace/featured.css");
 @import url("./marketplace/account.css");
-@import url("./marketplace/detail.css");
+@import url("./marketplace/detail.css?v=2");
 @import url("./marketplace/listing-form.css");

@@ -4,11 +4,13 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from unittest.mock import patch
 from PIL import Image
 
 from marketplace.forms import ListingCreateForm
@@ -142,6 +144,81 @@ class ListingImageUploadTests(ListingImageTestMixin, TestCase):
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["code"], "login_required")
+
+
+class ListingImageDeleteTests(ListingImageTestMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+        self.url = reverse("listing_image_delete")
+
+    def test_delete_removes_owned_unattached_image_and_file(self):
+        uploaded = self.client.post(
+            reverse("listing_image_upload"), {"file": self.image_file()}
+        )
+        image = ListingImage.objects.get(pk=uploaded.json()["id"])
+        stored_path = Path(image.image.path)
+
+        response = self.client.post(self.url, {"image_id": image.pk})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"deleted": True})
+        self.assertFalse(ListingImage.objects.filter(pk=image.pk).exists())
+        self.assertFalse(stored_path.exists())
+
+    def test_delete_cannot_remove_another_users_image(self):
+        image = self.external_image(user=self.other_user)
+
+        response = self.client.post(self.url, {"image_id": image.pk})
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(ListingImage.objects.filter(pk=image.pk).exists())
+
+    def test_delete_defers_removing_image_attached_to_a_listing(self):
+        listing = Listing.objects.create(
+            seller=self.user,
+            item_type=self.item_type,
+            title="Desk",
+            listing_price=50,
+            condition=Listing.Condition.GOOD,
+            fulfillment_option=Listing.Fulfillment.PICKUP,
+            status=Listing.Status.DRAFT,
+        )
+        image = self.external_image(listing=listing)
+
+        response = self.client.post(self.url, {"image_id": image.pk})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"deleted": False, "deferred": True})
+        self.assertTrue(ListingImage.objects.filter(pk=image.pk).exists())
+
+
+class ListingImageAnalysisRateLimitTests(ListingImageTestMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+        self.analysis_url = reverse("listing_image_analyze")
+        self.rate_limit_key = f"listing-image-analysis:{self.user.pk}"
+        cache.delete(self.rate_limit_key)
+        self.addCleanup(cache.delete, self.rate_limit_key)
+        uploaded = self.client.post(
+            reverse("listing_image_upload"), {"file": self.image_file()}
+        )
+        self.image_id = uploaded.json()["id"]
+
+    @patch(
+        "marketplace.image_analysis.analyze_listing_images",
+        return_value=({"title": "Desk"}, None),
+    )
+    def test_limits_user_to_five_analyses_per_ten_minutes(self, analyze):
+        responses = [
+            self.client.post(self.analysis_url, {"image_ids": [self.image_id]})
+            for _ in range(6)
+        ]
+
+        self.assertEqual([response.status_code for response in responses], [200] * 5 + [429])
+        self.assertEqual(responses[-1]["Retry-After"], "600")
+        self.assertEqual(analyze.call_count, 5)
 
 
 class ListingImageFormTests(ListingImageTestMixin, TestCase):

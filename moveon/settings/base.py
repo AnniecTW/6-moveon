@@ -28,9 +28,9 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
-# Optional: powers the AI Bundle Builder's tier classification (bundles app).
-# Left blank, that feature falls back to a plain price-based heuristic
-# instead of failing.
+# Optional: powers AI Bundle Builder tier classification and listing image
+# analysis. The Bundle Builder falls back to a heuristic when blank; image
+# analysis is unavailable until this key is configured.
 GEMINI_API_KEY = "" if is_a5_preview_settings() else env("GEMINI_API_KEY", default="")
 LOCAL_LLM_MODEL_ID = env(
     "LOCAL_LLM_MODEL_ID", default="meta-llama/Llama-3.2-3B-Instruct"
