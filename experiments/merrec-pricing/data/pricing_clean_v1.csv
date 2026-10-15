@@ -1,0 +1,1408 @@
+item_id,observed_at,price,category,item_type,condition,brand,source_shard
+223796010,2023-05-01T00:56:34+00:00,13.0,kitchen & dining,servingware,LIKE_NEW,holiday time,20230501/000000000019.parquet
+108325655,2023-05-01T04:05:58+00:00,16.0,home decor,wall art & frames,NEW,,20230501/000000000074.parquet
+57991283,2023-05-01T05:41:35+00:00,20.0,home decor,lamp & lighting,NEW,,20230501/000000000019.parquet
+103212416,2023-05-01T13:21:29+00:00,21.0,kitchen & dining,mugs & cups,NEW,peanuts,20230501/000000000109.parquet
+48000103,2023-05-01T13:39:52+00:00,75.0,home decor,decorative accessories,LIKE_NEW,,20230501/000000000003.parquet
+5675250,2023-05-01T16:16:23+00:00,61.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000306.parquet
+60761930,2023-05-01T16:19:51+00:00,20.0,home decor,curtains & window treatments,NEW,waverly,20230501/000000000109.parquet
+110508115,2023-05-01T18:01:30+00:00,9.0,kitchen & dining,food storage,LIKE_NEW,,20230501/000000000019.parquet
+38320615,2023-05-01T19:08:30+00:00,43.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000109.parquet
+75190363,2023-05-01T20:09:10+00:00,21.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000003.parquet
+164958195,2023-05-01T20:21:18+00:00,39.0,home decor,seasonal decorations,NEW,christopher radko,20230501/000000000306.parquet
+169241055,2023-05-01T20:23:16+00:00,25.0,kitchen & dining,kitchen & table linens,NEW,,20230501/000000000019.parquet
+18239647,2023-05-01T20:42:22+00:00,55.0,home decor,curtains & window treatments,NEW,opalhouse,20230501/000000000074.parquet
+131883888,2023-05-01T20:47:07+00:00,14.0,home decor,seasonal decorations,NEW,lenox,20230501/000000000301.parquet
+167395545,2023-05-02T00:06:41+00:00,13.0,bedding & bath,blankets & comforters,GOOD,opalhouse,20230501/000000000019.parquet
+206775249,2023-05-02T01:21:55+00:00,24.0,bedding & bath,sheets & pillowcases,NEW,opalhouse,20230501/000000000074.parquet
+35828414,2023-05-02T02:22:16+00:00,30.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000109.parquet
+115735355,2023-05-02T02:33:13+00:00,15.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000068.parquet
+179544345,2023-05-02T02:44:20+00:00,35.0,bedding & bath,blankets & comforters,NEW,hot topic,20230501/000000000068.parquet
+150535671,2023-05-02T02:46:31+00:00,80.0,bedding & bath,blankets & comforters,NEW,,20230501/000000000068.parquet
+177153587,2023-05-02T15:31:58+00:00,5.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000074.parquet
+150400903,2023-05-02T15:51:49+00:00,15.0,home decor,home fragrance,NEW,better homes & gardens,20230501/000000000003.parquet
+226209715,2023-05-02T17:49:09+00:00,58.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000109.parquet
+48551402,2023-05-02T17:58:41+00:00,7.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000301.parquet
+97384837,2023-05-02T21:04:23+00:00,30.0,appliances,kitchen appliance,GOOD,kitchenaid,20230501/000000000084.parquet
+68609238,2023-05-02T21:18:53+00:00,14.0,home decor,candles,NEW,goose creek,20230501/000000000306.parquet
+80092273,2023-05-02T23:14:51+00:00,49.0,appliances,kitchen appliance,GOOD,farberware,20230501/000000000019.parquet
+1117803,2023-05-02T23:28:15+00:00,34.0,appliances,coffee & espresso machine,GOOD,bunn,20230501/000000000019.parquet
+197723960,2023-05-03T14:43:41+00:00,4.0,home decor,decorative accessories,NEW,,20230501/000000000074.parquet
+26611169,2023-05-03T17:35:27+00:00,8.0,home decor,home fragrance,NEW,scentsy,20230501/000000000109.parquet
+149420657,2023-05-03T19:42:06+00:00,15.0,kitchen & dining,food storage,NEW,pioneer woman,20230501/000000000003.parquet
+174232876,2023-05-03T20:14:19+00:00,11.0,bedding & bath,blankets & comforters,GOOD,,20230501/000000000068.parquet
+216771477,2023-05-03T23:56:08+00:00,24.0,kitchen & dining,mugs & cups,GOOD,carlton,20230501/000000000131.parquet
+77735156,2023-05-04T00:20:05+00:00,55.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230501/000000000074.parquet
+157388971,2023-05-04T00:47:03+00:00,152.0,home decor,lamp & lighting,NEW,,20230501/000000000306.parquet
+13031068,2023-05-04T00:51:55+00:00,57.0,home decor,rug & mat,LIKE_NEW,,20230501/000000000301.parquet
+167695443,2023-05-04T01:23:11+00:00,80.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000306.parquet
+240248031,2023-05-04T02:42:08+00:00,8.0,kitchen & dining,bottles & tumblers,LIKE_NEW,,20230501/000000000074.parquet
+196674422,2023-05-04T03:48:51+00:00,10.0,home decor,lamp & lighting,NEW,disney,20230501/000000000003.parquet
+77658978,2023-05-04T15:10:55+00:00,24.0,storage & organization,storage shelves & racks,NEW,,20230501/000000000019.parquet
+199178795,2023-05-04T18:14:34+00:00,46.0,appliances,kitchen appliance,NEW,hamilton beach,20230501/000000000003.parquet
+224656012,2023-05-05T01:01:28+00:00,7.0,home decor,decorative accessories,NEW,,20230501/000000000068.parquet
+238859897,2023-05-05T01:01:59+00:00,45.0,home decor,wall art & frames,NEW,,20230501/000000000300.parquet
+65251142,2023-05-05T01:33:43+00:00,19.0,kitchen & dining,food storage,GOOD,tupperware,20230501/000000000306.parquet
+83482979,2023-05-05T02:35:14+00:00,20.0,kitchen & dining,bottles & tumblers,NEW,spongebob squarepants,20230501/000000000074.parquet
+100877769,2023-05-05T11:47:46+00:00,8.0,kitchen & dining,mugs & cups,NEW,rainbow collection,20230501/000000000306.parquet
+127663982,2023-05-05T12:26:37+00:00,10.0,kitchen & dining,mugs & cups,LIKE_NEW,,20230501/000000000306.parquet
+14438752,2023-05-05T12:36:28+00:00,8.0,home decor,home fragrance,NEW,scentsy,20230501/000000000074.parquet
+211491069,2023-05-05T12:38:11+00:00,12.0,home decor,home fragrance,NEW,scentsy,20230501/000000000074.parquet
+62765520,2023-05-05T12:38:58+00:00,16.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000068.parquet
+115268530,2023-05-05T12:39:20+00:00,6.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000068.parquet
+243594643,2023-05-05T13:22:08+00:00,33.0,kitchen & dining,mugs & cups,NEW,disney,20230501/000000000074.parquet
+236915699,2023-05-05T15:56:44+00:00,28.0,appliances,vacuum,NEW,kenmore,20230501/000000000068.parquet
+5910833,2023-05-05T19:43:19+00:00,47.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230501/000000000074.parquet
+115471951,2023-05-05T23:28:26+00:00,10.0,appliances,iron & steamer,LIKE_NEW,conair,20230501/000000000003.parquet
+23319784,2023-05-06T06:01:00+00:00,12.0,kitchen & dining,mugs & cups,GOOD,fire king,20230501/000000000131.parquet
+207655922,2023-05-06T07:04:52+00:00,125.0,home decor,wall art & frames,NEW,,20230501/000000000109.parquet
+67810762,2023-05-06T14:21:45+00:00,11.0,home decor,candles,NEW,bath & body works,20230501/000000000084.parquet
+219955937,2023-05-06T14:42:29+00:00,20.0,kitchen & dining,dinnerware,GOOD,pfaltzgraff,20230501/000000000003.parquet
+57612957,2023-05-06T17:23:06+00:00,24.0,home decor,rug & mat,NEW,,20230501/000000000084.parquet
+159474772,2023-05-06T18:16:01+00:00,20.0,home decor,wall art & frames,FAIR,,20230501/000000000301.parquet
+167128862,2023-05-06T19:01:58+00:00,16.0,home decor,decorative accessories,GOOD,,20230501/000000000003.parquet
+181949159,2023-05-06T20:26:18+00:00,130.0,home decor,wall art & frames,LIKE_NEW,customized & personalized,20230501/000000000019.parquet
+60229140,2023-05-06T21:31:27+00:00,13.0,kitchen & dining,kitchen utensils & tools,NEW,handmade,20230501/000000000084.parquet
+43889527,2023-05-06T22:35:21+00:00,25.0,home decor,seasonal decorations,NEW,,20230501/000000000019.parquet
+24122322,2023-05-07T04:50:54+00:00,50.0,home decor,seasonal decorations,NEW,nintendo,20230501/000000000300.parquet
+41054950,2023-05-07T15:44:23+00:00,11.0,kitchen & dining,kitchen & table linens,GOOD,,20230501/000000000068.parquet
+209109253,2023-05-07T16:39:05+00:00,30.0,home decor,decorative pillow,LIKE_NEW,pink,20230501/000000000068.parquet
+157063826,2023-05-07T16:43:20+00:00,18.0,kitchen & dining,bottles & tumblers,NEW,gatorade,20230501/000000000019.parquet
+192483937,2023-05-07T23:27:34+00:00,39.0,bedding & bath,blankets & comforters,NEW,south shore,20230501/000000000068.parquet
+180008653,2023-05-07T23:28:34+00:00,33.0,home decor,curtains & window treatments,GOOD,laura ashley,20230501/000000000068.parquet
+152830879,2023-05-08T03:11:10+00:00,15.0,home decor,lamp & lighting,GOOD,,20230501/000000000109.parquet
+65862228,2023-05-08T15:34:47+00:00,10.0,kitchen & dining,mugs & cups,LIKE_NEW,rae dunn,20230501/000000000084.parquet
+189158619,2023-05-08T19:41:18+00:00,40.0,kitchen & dining,mugs & cups,LIKE_NEW,,20230501/000000000074.parquet
+112558955,2023-05-09T00:24:15+00:00,15.0,home decor,mirror,LIKE_NEW,,20230501/000000000306.parquet
+191481683,2023-05-09T21:42:04+00:00,17.0,kitchen & dining,kitchen & table linens,LIKE_NEW,unique vintage,20230501/000000000074.parquet
+56491150,2023-05-10T21:09:12+00:00,28.0,kitchen & dining,food storage,NEW,tupperware,20230501/000000000084.parquet
+75218655,2023-05-11T01:31:43+00:00,18.0,kitchen & dining,kitchen utensils & tools,NEW,fortessa,20230501/000000000003.parquet
+30037540,2023-05-11T01:48:51+00:00,16.0,kitchen & dining,kitchen utensils & tools,GOOD,pfaltzgraff,20230501/000000000003.parquet
+189199918,2023-05-11T05:21:14+00:00,150.0,home decor,clock,NEW,seiko,20230501/000000000306.parquet
+137183752,2023-05-11T08:24:14+00:00,16.0,home decor,candles,NEW,bath & body works,20230501/000000000068.parquet
+39902660,2023-05-11T11:14:14+00:00,100.0,furniture,table,LIKE_NEW,winsome wood,20230501/000000000074.parquet
+12643894,2023-05-11T17:56:57+00:00,5.0,home decor,wall art & frames,GOOD,,20230501/000000000074.parquet
+132437486,2023-05-11T19:15:26+00:00,9.0,kitchen & dining,servingware,NEW,boutique,20230501/000000000131.parquet
+201673583,2023-05-11T21:04:44+00:00,12.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000074.parquet
+96108739,2023-05-12T12:59:55+00:00,68.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000068.parquet
+63909956,2023-05-12T16:15:16+00:00,24.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230501/000000000019.parquet
+42941429,2023-05-12T19:53:43+00:00,13.0,home decor,lamp & lighting,GOOD,,20230501/000000000300.parquet
+125459882,2023-05-12T20:33:35+00:00,28.0,kitchen & dining,dinnerware,GOOD,,20230501/000000000074.parquet
+16288851,2023-05-12T22:25:20+00:00,6.0,kitchen & dining,bakeware,NEW,,20230501/000000000019.parquet
+145650402,2023-05-12T22:25:43+00:00,15.0,kitchen & dining,bakeware,NEW,,20230501/000000000019.parquet
+31576195,2023-05-13T08:41:29+00:00,17.0,kitchen & dining,food storage,LIKE_NEW,,20230501/000000000068.parquet
+241026006,2023-05-13T17:52:31+00:00,34.0,home decor,clock,NEW,pioneer woman,20230501/000000000109.parquet
+83140843,2023-05-13T17:54:04+00:00,100.0,home decor,decorative accessories,LIKE_NEW,jim shore,20230501/000000000300.parquet
+226460799,2023-05-13T21:10:58+00:00,70.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000003.parquet
+223968103,2023-05-13T21:16:30+00:00,25.0,home decor,lamp & lighting,NEW,better homes & gardens,20230501/000000000306.parquet
+35783668,2023-05-13T21:21:25+00:00,7.0,kitchen & dining,mugs & cups,GOOD,rae dunn,20230501/000000000084.parquet
+36641158,2023-05-13T21:24:57+00:00,12.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000084.parquet
+160082650,2023-05-14T00:55:09+00:00,10.0,home decor,wall art & frames,NEW,,20230501/000000000301.parquet
+53781360,2023-05-14T02:57:39+00:00,42.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230501/000000000084.parquet
+224837777,2023-05-14T10:05:02+00:00,17.0,appliances,air care & climate,LIKE_NEW,,20230501/000000000068.parquet
+219484691,2023-05-14T14:58:52+00:00,12.0,bedding & bath,sheets & pillowcases,NEW,,20230501/000000000306.parquet
+73083783,2023-05-14T15:43:18+00:00,9.0,bedding & bath,blankets & comforters,GOOD,justice,20230501/000000000109.parquet
+68838664,2023-05-14T16:00:15+00:00,6.0,home decor,candles,NEW,foundry,20230501/000000000306.parquet
+3509814,2023-05-14T18:34:35+00:00,18.0,kitchen & dining,food storage,NEW,tupperware,20230501/000000000068.parquet
+166907917,2023-05-14T22:16:01+00:00,12.0,home decor,wall art & frames,NEW,,20230501/000000000003.parquet
+181769882,2023-05-14T22:48:32+00:00,30.0,kitchen & dining,mugs & cups,NEW,thermos,20230501/000000000068.parquet
+189687341,2023-05-15T15:17:12+00:00,40.0,home decor,seasonal decorations,NEW,christopher radko,20230501/000000000306.parquet
+8285735,2023-05-15T15:20:29+00:00,36.0,home decor,seasonal decorations,NEW,christopher radko,20230501/000000000306.parquet
+145388777,2023-05-15T16:45:17+00:00,10.0,kitchen & dining,bottles & tumblers,POOR,,20230501/000000000074.parquet
+152407387,2023-05-15T18:51:15+00:00,16.0,kitchen & dining,food storage,LIKE_NEW,rae dunn,20230501/000000000300.parquet
+51580371,2023-05-15T19:04:42+00:00,24.0,home decor,rug & mat,NEW,peanuts,20230501/000000000074.parquet
+238773207,2023-05-16T17:37:44+00:00,70.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000019.parquet
+147296036,2023-05-16T20:33:58+00:00,25.0,kitchen & dining,kitchen utensils & tools,GOOD,,20230501/000000000003.parquet
+204148864,2023-05-16T22:12:36+00:00,94.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000300.parquet
+103525437,2023-05-16T23:11:12+00:00,40.0,home decor,seasonal decorations,NEW,christopher radko,20230501/000000000306.parquet
+10994416,2023-05-17T01:33:37+00:00,114.0,kitchen & dining,kitchen & table linens,NEW,,20230501/000000000306.parquet
+127730277,2023-05-17T11:30:48+00:00,35.0,kitchen & dining,bottles & tumblers,GOOD,blackberry,20230501/000000000074.parquet
+44007209,2023-05-17T12:58:09+00:00,10.0,kitchen & dining,kitchen utensils & tools,NEW,cuisinart,20230501/000000000003.parquet
+227371398,2023-05-17T15:25:55+00:00,31.0,bedding & bath,sheets & pillowcases,NEW,uncommon,20230501/000000000301.parquet
+182388368,2023-05-17T16:48:10+00:00,38.0,bedding & bath,blankets & comforters,GOOD,,20230501/000000000003.parquet
+227164271,2023-05-17T17:27:49+00:00,50.0,bedding & bath,sheets & pillowcases,NEW,,20230501/000000000300.parquet
+13662710,2023-05-17T17:59:44+00:00,23.0,home decor,lamp & lighting,LIKE_NEW,target,20230501/000000000019.parquet
+100341605,2023-05-17T18:16:53+00:00,45.0,home decor,seasonal decorations,NEW,christopher radko,20230501/000000000306.parquet
+127350134,2023-05-17T18:19:00+00:00,50.0,home decor,seasonal decorations,NEW,christopher radko,20230501/000000000306.parquet
+231965234,2023-05-17T18:29:35+00:00,65.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000300.parquet
+162093700,2023-05-17T18:30:26+00:00,71.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000300.parquet
+117848148,2023-05-17T19:05:14+00:00,5.0,home decor,lamp & lighting,GOOD,,20230501/000000000084.parquet
+105374644,2023-05-17T20:16:35+00:00,8.0,appliances,kitchen appliance,LIKE_NEW,dash,20230501/000000000074.parquet
+93216605,2023-05-17T20:33:54+00:00,39.0,appliances,kitchen appliance,NEW,,20230501/000000000003.parquet
+198185507,2023-05-17T21:39:49+00:00,20.0,kitchen & dining,servingware,NEW,t.j.maxx,20230501/000000000068.parquet
+190935670,2023-05-17T21:40:08+00:00,20.0,kitchen & dining,servingware,NEW,t.j.maxx,20230501/000000000068.parquet
+74507351,2023-05-17T21:40:25+00:00,35.0,kitchen & dining,servingware,NEW,t.j.maxx,20230501/000000000068.parquet
+38272885,2023-05-17T22:18:41+00:00,23.0,kitchen & dining,bottles & tumblers,NEW,target,20230501/000000000068.parquet
+163328482,2023-05-17T23:15:34+00:00,26.0,home decor,wall art & frames,NEW,rae dunn,20230501/000000000109.parquet
+203974138,2023-05-18T03:04:56+00:00,232.0,appliances,vacuum,NEW,bissell,20230501/000000000003.parquet
+144033735,2023-05-18T04:50:22+00:00,20.0,kitchen & dining,bottles & tumblers,NEW,igloo,20230501/000000000131.parquet
+87047274,2023-05-18T05:20:21+00:00,300.0,kitchen & dining,bottles & tumblers,GOOD,stanley,20230501/000000000306.parquet
+218400985,2023-05-18T05:33:27+00:00,96.0,home decor,clock,LIKE_NEW,coca-cola,20230501/000000000300.parquet
+211275074,2023-05-18T05:41:15+00:00,90.0,appliances,refrigerator,NEW,,20230501/000000000131.parquet
+129670009,2023-05-18T06:26:45+00:00,52.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000084.parquet
+78005811,2023-05-18T15:36:28+00:00,122.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000084.parquet
+103524767,2023-05-18T18:54:14+00:00,60.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000084.parquet
+189589439,2023-05-18T20:33:44+00:00,60.0,kitchen & dining,dinnerware,GOOD,johnson bros.,20230501/000000000306.parquet
+171958482,2023-05-18T21:18:00+00:00,24.0,home decor,home fragrance,NEW,bath & body works,20230501/000000000074.parquet
+203059679,2023-05-19T01:54:24+00:00,39.0,bedding & bath,sheets & pillowcases,NEW,charisma,20230501/000000000301.parquet
+73412105,2023-05-19T13:01:34+00:00,15.0,kitchen & dining,mugs & cups,GOOD,starbucks,20230501/000000000084.parquet
+185453905,2023-05-19T15:39:14+00:00,23.0,kitchen & dining,mugs & cups,NEW,starbucks,20230501/000000000300.parquet
+132371641,2023-05-19T19:17:34+00:00,25.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230501/000000000131.parquet
+65424505,2023-05-19T20:47:39+00:00,45.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000074.parquet
+88688762,2023-05-19T21:03:52+00:00,18.0,kitchen & dining,bottles & tumblers,LIKE_NEW,starbucks,20230501/000000000019.parquet
+169383504,2023-05-19T22:43:11+00:00,44.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000068.parquet
+36183267,2023-05-20T05:04:34+00:00,22.0,kitchen & dining,dinnerware,NEW,,20230501/000000000019.parquet
+100136060,2023-05-20T10:34:46+00:00,14.0,kitchen & dining,mugs & cups,NEW,opalhouse,20230501/000000000109.parquet
+177121969,2023-05-20T13:53:17+00:00,20.0,kitchen & dining,dinnerware,NEW,rae dunn,20230501/000000000300.parquet
+127021609,2023-05-20T17:19:06+00:00,60.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000084.parquet
+122771797,2023-05-20T17:25:10+00:00,23.0,appliances,kitchen appliance,NEW,,20230501/000000000301.parquet
+216747917,2023-05-20T17:31:34+00:00,79.0,appliances,kitchen appliance,NEW,cuckoo,20230501/000000000084.parquet
+97364661,2023-05-20T17:55:02+00:00,38.0,appliances,kitchen appliance,NEW,nostalgia,20230501/000000000109.parquet
+246655725,2023-05-20T18:28:31+00:00,17.0,kitchen & dining,mugs & cups,LIKE_NEW,starbucks,20230501/000000000074.parquet
+88510277,2023-05-21T03:55:05+00:00,10.0,home decor,clock,GOOD,,20230501/000000000068.parquet
+143995731,2023-05-21T06:27:52+00:00,4.0,home decor,home fragrance,NEW,scentsy,20230501/000000000084.parquet
+143671349,2023-05-21T11:47:01+00:00,59.0,bedding & bath,pillow & bedding accessories,LIKE_NEW,,20230501/000000000131.parquet
+86728966,2023-05-21T12:00:00+00:00,59.0,bedding & bath,sheets & pillowcases,LIKE_NEW,,20230501/000000000131.parquet
+119933302,2023-05-21T13:11:20+00:00,125.0,bedding & bath,sheets & pillowcases,NEW,bed bath & beyond,20230501/000000000109.parquet
+18464682,2023-05-21T15:27:17+00:00,85.0,home decor,lamp & lighting,NEW,hearth & hand with magnolia,20230501/000000000003.parquet
+95338022,2023-05-21T15:56:52+00:00,38.0,kitchen & dining,kitchen utensils & tools,GOOD,pampered chef,20230501/000000000084.parquet
+90260938,2023-05-21T20:53:02+00:00,76.0,bedding & bath,pillow & bedding accessories,NEW,serta,20230501/000000000019.parquet
+194249451,2023-05-21T22:26:20+00:00,110.0,kitchen & dining,mugs & cups,NEW,jonathan adler,20230501/000000000306.parquet
+14193086,2023-05-21T23:44:58+00:00,50.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000084.parquet
+204431429,2023-05-22T01:10:48+00:00,15.0,bedding & bath,bathroom accessories,LIKE_NEW,kohler,20230501/000000000300.parquet
+197029346,2023-05-22T01:46:28+00:00,33.0,home decor,seasonal decorations,NEW,hallmark,20230501/000000000131.parquet
+83463502,2023-05-22T01:47:02+00:00,35.0,home decor,seasonal decorations,GOOD,hallmark,20230501/000000000131.parquet
+13515653,2023-05-22T02:12:02+00:00,18.0,home decor,wall art & frames,NEW,handmade,20230501/000000000003.parquet
+117286361,2023-05-22T02:23:06+00:00,30.0,kitchen & dining,dinnerware,GOOD,,20230501/000000000068.parquet
+155312282,2023-05-22T03:16:05+00:00,5.0,kitchen & dining,kitchen & table linens,NEW,,20230501/000000000301.parquet
+24286835,2023-05-22T03:51:51+00:00,55.0,appliances,kitchen appliance,NEW,west bend,20230501/000000000306.parquet
+169946980,2023-05-22T15:28:06+00:00,52.0,kitchen & dining,servingware,NEW,terramoto,20230501/000000000131.parquet
+194218410,2023-05-22T17:42:40+00:00,40.0,appliances,coffee & espresso machine,GOOD,cuisinart,20230501/000000000074.parquet
+204977808,2023-05-22T17:51:45+00:00,13.0,kitchen & dining,cookware,NEW,as seen on tv,20230501/000000000300.parquet
+97651339,2023-05-22T18:49:12+00:00,29.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230501/000000000068.parquet
+63032688,2023-05-22T19:13:22+00:00,16.0,kitchen & dining,bottles & tumblers,NEW,pusheen,20230501/000000000003.parquet
+241790877,2023-05-22T20:50:33+00:00,45.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230501/000000000068.parquet
+67940901,2023-05-22T23:23:12+00:00,26.0,home decor,seasonal decorations,NEW,christopher radko,20230501/000000000306.parquet
+115798599,2023-05-23T01:25:22+00:00,85.0,home decor,lamp & lighting,NEW,access lighting,20230501/000000000084.parquet
+137046440,2023-05-23T02:11:25+00:00,44.0,bedding & bath,sheets & pillowcases,NEW,,20230501/000000000074.parquet
+182484909,2023-05-23T03:16:06+00:00,73.0,kitchen & dining,kitchen utensils & tools,NEW,cutco,20230501/000000000074.parquet
+46476990,2023-05-23T03:38:43+00:00,24.0,kitchen & dining,mugs & cups,NEW,,20230501/000000000003.parquet
+221199540,2023-05-23T03:40:19+00:00,5.0,kitchen & dining,mugs & cups,LIKE_NEW,,20230501/000000000068.parquet
+225513846,2023-05-23T04:45:18+00:00,55.0,bedding & bath,sheets & pillowcases,NEW,nfl,20230501/000000000068.parquet
+129670140,2023-05-23T04:58:00+00:00,13.0,kitchen & dining,servingware,GOOD,,20230501/000000000068.parquet
+63010998,2023-05-23T14:56:03+00:00,46.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230501/000000000068.parquet
+100408220,2023-05-23T15:37:18+00:00,48.0,bedding & bath,blankets & comforters,NEW,threshold,20230501/000000000068.parquet
+217424094,2023-05-23T17:17:07+00:00,39.0,appliances,iron & steamer,GOOD,euro-pro,20230501/000000000306.parquet
+214105367,2023-05-23T20:02:51+00:00,20.0,kitchen & dining,bottles & tumblers,NEW,target,20230501/000000000074.parquet
+167061767,2023-05-23T20:34:09+00:00,25.0,kitchen & dining,dinnerware,LIKE_NEW,,20230501/000000000306.parquet
+167086622,2023-05-23T20:34:55+00:00,37.0,kitchen & dining,dinnerware,NEW,costco,20230501/000000000306.parquet
+70517085,2023-05-23T20:56:12+00:00,10.0,bedding & bath,bath towels,NEW,tsum tsum,20230501/000000000084.parquet
+20933519,2023-05-23T21:30:21+00:00,28.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000300.parquet
+206652649,2023-05-23T22:30:59+00:00,23.0,home decor,wall art & frames,NEW,,20230501/000000000074.parquet
+219030524,2023-05-23T23:52:36+00:00,7.0,home decor,candles,GOOD,bath & body works,20230501/000000000068.parquet
+12789881,2023-05-24T00:17:48+00:00,35.0,appliances,vacuum,GOOD,kenmore,20230501/000000000109.parquet
+192297796,2023-05-24T02:31:02+00:00,85.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000301.parquet
+191777493,2023-05-24T04:57:42+00:00,65.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000109.parquet
+52901013,2023-05-24T13:42:01+00:00,104.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000300.parquet
+169186803,2023-05-24T14:50:31+00:00,150.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000300.parquet
+73839958,2023-05-24T15:39:20+00:00,38.0,home decor,seasonal decorations,NEW,disney,20230501/000000000068.parquet
+80369828,2023-05-24T18:16:37+00:00,28.0,home decor,seasonal decorations,LIKE_NEW,christopher radko,20230501/000000000306.parquet
+37272201,2023-05-24T21:42:18+00:00,17.0,home decor,curtains & window treatments,NEW,target,20230501/000000000300.parquet
+228956687,2023-05-24T21:50:36+00:00,10.0,bedding & bath,sheets & pillowcases,NEW,,20230501/000000000074.parquet
+43171405,2023-05-25T16:23:29+00:00,8.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230501/000000000306.parquet
+94985107,2023-05-25T18:39:06+00:00,10.0,bedding & bath,blankets & comforters,NEW,,20230501/000000000109.parquet
+211683751,2023-05-25T23:29:10+00:00,13.0,home decor,decorative pillow,NEW,rockins,20230501/000000000109.parquet
+33227449,2023-05-26T01:47:18+00:00,12.0,kitchen & dining,mugs & cups,NEW,disney,20230501/000000000300.parquet
+231194406,2023-05-26T16:14:48+00:00,28.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230501/000000000074.parquet
+46354884,2023-05-26T17:43:28+00:00,40.0,kitchen & dining,bottles & tumblers,GOOD,stanley,20230501/000000000084.parquet
+82775197,2023-05-26T18:18:09+00:00,67.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000019.parquet
+85672925,2023-05-26T19:21:37+00:00,18.0,storage & organization,closet organizers,LIKE_NEW,,20230501/000000000003.parquet
+182857890,2023-05-26T21:27:37+00:00,17.0,kitchen & dining,dinnerware,GOOD,johnson bros.,20230501/000000000306.parquet
+111332838,2023-05-26T21:35:30+00:00,31.0,kitchen & dining,dinnerware,GOOD,,20230501/000000000306.parquet
+124867312,2023-05-26T21:39:00+00:00,23.0,kitchen & dining,dinnerware,LIKE_NEW,noritake,20230501/000000000306.parquet
+92482962,2023-05-26T22:00:30+00:00,21.0,kitchen & dining,dinnerware,LIKE_NEW,johnson bros.,20230501/000000000306.parquet
+197630023,2023-05-27T00:21:54+00:00,6.0,kitchen & dining,food storage,LIKE_NEW,threshold,20230501/000000000301.parquet
+78779856,2023-05-27T01:36:45+00:00,14.0,home decor,home fragrance,NEW,,20230501/000000000003.parquet
+127683508,2023-05-27T02:10:34+00:00,41.0,appliances,vacuum,GOOD,bissell,20230501/000000000019.parquet
+130282298,2023-05-27T03:32:10+00:00,20.0,home decor,candles,NEW,bath & body works,20230501/000000000301.parquet
+212054961,2023-05-27T04:04:52+00:00,70.0,home decor,lamp & lighting,NEW,,20230501/000000000109.parquet
+124261474,2023-05-27T18:51:05+00:00,11.0,kitchen & dining,cookware,NEW,disney,20230501/000000000084.parquet
+38244630,2023-05-27T19:06:28+00:00,25.0,kitchen & dining,food storage,NEW,rae dunn,20230501/000000000306.parquet
+90621252,2023-05-27T20:26:14+00:00,10.0,home decor,wall art & frames,NEW,zumiez,20230501/000000000074.parquet
+45737640,2023-05-27T23:16:56+00:00,39.0,home decor,decorative accessories,GOOD,,20230501/000000000074.parquet
+93532697,2023-05-28T06:15:04+00:00,10.0,bedding & bath,bathroom accessories,NEW,waterpik,20230501/000000000019.parquet
+12814684,2023-05-28T12:26:19+00:00,31.0,home decor,seasonal decorations,LIKE_NEW,christopher radko,20230501/000000000300.parquet
+3624063,2023-05-28T15:00:21+00:00,52.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230501/000000000306.parquet
+63617053,2023-05-28T19:00:12+00:00,36.0,kitchen & dining,dinnerware,GOOD,the grinch,20230501/000000000003.parquet
+95362770,2023-05-28T19:18:00+00:00,8.0,home decor,seasonal decorations,LIKE_NEW,carlton,20230501/000000000301.parquet
+26002322,2023-05-28T21:52:06+00:00,35.0,storage & organization,storage bins & baskets,NEW,,20230501/000000000068.parquet
+58062527,2023-05-28T23:16:56+00:00,100.0,furniture,dresser,GOOD,,20230501/000000000109.parquet
+206790196,2023-05-28T23:21:17+00:00,104.0,furniture,desk,NEW,,20230501/000000000109.parquet
+223979718,2023-05-29T02:04:55+00:00,75.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000084.parquet
+65423866,2023-05-29T02:43:29+00:00,25.0,kitchen & dining,bottles & tumblers,GOOD,stanley,20230501/000000000306.parquet
+40738402,2023-05-29T02:45:00+00:00,40.0,kitchen & dining,bottles & tumblers,GOOD,stanley,20230501/000000000306.parquet
+28229426,2023-05-29T04:28:05+00:00,76.0,kitchen & dining,bottles & tumblers,NEW,,20230501/000000000084.parquet
+10635704,2023-05-29T17:17:04+00:00,19.0,home decor,curtains & window treatments,LIKE_NEW,,20230501/000000000109.parquet
+13625580,2023-05-29T17:56:55+00:00,38.0,bedding & bath,bath towels,NEW,ensky,20230501/000000000019.parquet
+128152661,2023-05-29T18:12:32+00:00,17.0,home decor,wall art & frames,NEW,hobby lobby,20230501/000000000306.parquet
+152304953,2023-05-29T18:58:21+00:00,44.0,appliances,coffee & espresso machine,GOOD,corningware,20230501/000000000084.parquet
+81103130,2023-05-30T02:52:01+00:00,22.0,home decor,wall art & frames,NEW,bts,20230501/000000000084.parquet
+68641576,2023-05-30T07:25:22+00:00,50.0,appliances,kitchen appliance,NEW,ninja,20230501/000000000074.parquet
+1239758,2023-05-30T16:26:07+00:00,7.0,home decor,home fragrance,NEW,scentsy,20230501/000000000301.parquet
+125656001,2023-05-30T20:47:00+00:00,20.0,bedding & bath,bathroom accessories,NEW,delta,20230501/000000000003.parquet
+244975075,2023-05-30T21:11:20+00:00,13.0,kitchen & dining,kitchen & table linens,NEW,,20230501/000000000074.parquet
+186860011,2023-06-01T02:33:24+00:00,9.0,home decor,curtains & window treatments,NEW,,20230601/000000000206.parquet
+76187725,2023-06-01T04:26:04+00:00,4.0,kitchen & dining,bottles & tumblers,NEW,zak designs,20230601/000000000310.parquet
+236726675,2023-06-01T09:54:05+00:00,15.0,kitchen & dining,kitchen utensils & tools,GOOD,studio mcgee,20230601/000000000310.parquet
+160583995,2023-06-01T12:51:10+00:00,40.0,home decor,candles,NEW,yankee candle,20230601/000000000141.parquet
+79485359,2023-06-01T14:30:25+00:00,18.0,home decor,candles,NEW,bath & body works,20230601/000000000148.parquet
+130037012,2023-06-01T19:26:04+00:00,17.0,home decor,lamp & lighting,GOOD,,20230601/000000000077.parquet
+46547095,2023-06-01T22:43:43+00:00,16.0,appliances,kitchen appliance,NEW,,20230601/000000000148.parquet
+179802421,2023-06-01T22:59:04+00:00,15.0,appliances,air care & climate,LIKE_NEW,,20230601/000000000141.parquet
+56000685,2023-06-01T23:04:59+00:00,18.0,bedding & bath,blankets & comforters,NEW,disney,20230601/000000000206.parquet
+190046315,2023-06-02T00:35:12+00:00,85.0,bedding & bath,sheets & pillowcases,NEW,pottery barn,20230601/000000000234.parquet
+26543123,2023-06-02T07:21:14+00:00,160.0,appliances,coffee & espresso machine,NEW,keurig,20230601/000000000241.parquet
+73854723,2023-06-02T09:33:07+00:00,20.0,bedding & bath,sheets & pillowcases,NEW,crate & barrel,20230601/000000000148.parquet
+70046439,2023-06-02T13:50:35+00:00,65.0,bedding & bath,sheets & pillowcases,NEW,sears,20230601/000000000206.parquet
+152778670,2023-06-02T14:17:18+00:00,33.0,home decor,wall art & frames,NEW,amc,20230601/000000000241.parquet
+209149272,2023-06-02T19:18:50+00:00,25.0,kitchen & dining,dinnerware,LIKE_NEW,le creuset,20230601/000000000077.parquet
+1171161,2023-06-02T19:22:31+00:00,93.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230601/000000000310.parquet
+137324247,2023-06-02T23:42:30+00:00,90.0,bedding & bath,blankets & comforters,NEW,ugg australia,20230601/000000000141.parquet
+213276795,2023-06-02T23:47:14+00:00,17.0,kitchen & dining,cookware,GOOD,t-fal,20230601/000000000148.parquet
+51294371,2023-06-03T03:41:35+00:00,30.0,appliances,kitchen appliance,GOOD,ninja,20230601/000000000222.parquet
+197656121,2023-06-03T13:59:27+00:00,64.0,bedding & bath,sheets & pillowcases,NEW,ugg australia,20230601/000000000234.parquet
+215030782,2023-06-03T16:36:39+00:00,13.0,home decor,wall art & frames,LIKE_NEW,bts,20230601/000000000206.parquet
+114990410,2023-06-03T21:41:04+00:00,61.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230601/000000000241.parquet
+104595197,2023-06-04T01:30:20+00:00,8.0,kitchen & dining,bakeware,NEW,,20230601/000000000310.parquet
+160258491,2023-06-04T02:02:11+00:00,24.0,kitchen & dining,bottles & tumblers,NEW,target,20230601/000000000237.parquet
+38369948,2023-06-04T02:23:55+00:00,60.0,home decor,decorative accessories,LIKE_NEW,pottery barn,20230601/000000000213.parquet
+211671589,2023-06-04T12:10:12+00:00,34.0,bedding & bath,sheets & pillowcases,NEW,sears,20230601/000000000241.parquet
+26037721,2023-06-04T12:49:04+00:00,65.0,bedding & bath,blankets & comforters,NEW,threshold,20230601/000000000234.parquet
+41369431,2023-06-04T16:18:40+00:00,85.0,appliances,kitchen appliance,GOOD,ninja,20230601/000000000310.parquet
+243164182,2023-06-04T18:32:35+00:00,10.0,home decor,decorative pillow,LIKE_NEW,target,20230601/000000000234.parquet
+39696661,2023-06-04T18:45:10+00:00,600.0,appliances,vacuum,NEW,,20230601/000000000237.parquet
+177511936,2023-06-04T19:15:37+00:00,109.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230601/000000000148.parquet
+214108680,2023-06-04T19:59:57+00:00,14.0,kitchen & dining,mugs & cups,GOOD,,20230601/000000000222.parquet
+179062715,2023-06-04T21:05:31+00:00,49.0,kitchen & dining,dinnerware,LIKE_NEW,villeroy & boch,20230601/000000000141.parquet
+65888553,2023-06-04T22:39:38+00:00,90.0,bedding & bath,blankets & comforters,NEW,,20230601/000000000206.parquet
+26852390,2023-06-04T23:23:18+00:00,28.0,bedding & bath,blankets & comforters,GOOD,nintendo,20230601/000000000310.parquet
+182332031,2023-06-05T01:34:47+00:00,45.0,home decor,decorative pillow,NEW,threshold,20230601/000000000141.parquet
+10989186,2023-06-05T11:01:03+00:00,29.0,kitchen & dining,bottles & tumblers,NEW,dunkin',20230601/000000000206.parquet
+172015956,2023-06-05T13:31:00+00:00,19.0,appliances,kitchen appliance,GOOD,,20230601/000000000077.parquet
+102231884,2023-06-05T23:08:08+00:00,5.0,kitchen & dining,mugs & cups,NEW,,20230601/000000000222.parquet
+93374661,2023-06-05T23:22:36+00:00,12.0,bedding & bath,blankets & comforters,LIKE_NEW,handmade,20230601/000000000222.parquet
+23494561,2023-06-06T18:58:08+00:00,11.0,home decor,wall art & frames,GOOD,american eagle,20230601/000000000310.parquet
+179966695,2023-06-06T19:55:44+00:00,200.0,appliances,kitchen appliance,NEW,kitchenaid,20230601/000000000213.parquet
+182340287,2023-06-06T20:04:17+00:00,20.0,home decor,rug & mat,NEW,,20230601/000000000237.parquet
+145436989,2023-06-07T00:26:28+00:00,54.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230601/000000000234.parquet
+9138976,2023-06-07T05:13:45+00:00,25.0,home decor,home fragrance,NEW,,20230601/000000000241.parquet
+147216172,2023-06-07T06:32:06+00:00,35.0,home decor,candles,NEW,bath & body works,20230601/000000000077.parquet
+52345164,2023-06-07T13:40:32+00:00,35.0,kitchen & dining,bottles & tumblers,NEW,dunkin',20230601/000000000222.parquet
+246093057,2023-06-07T14:50:57+00:00,10.0,kitchen & dining,food storage,GOOD,tupperware,20230601/000000000234.parquet
+159778904,2023-06-07T17:00:18+00:00,55.0,appliances,kitchen appliance,NEW,handmade,20230601/000000000141.parquet
+30796442,2023-06-08T01:06:15+00:00,12.0,kitchen & dining,bottles & tumblers,NEW,brumate,20230601/000000000241.parquet
+87791704,2023-06-08T01:17:26+00:00,50.0,bedding & bath,sheets & pillowcases,NEW,cuddl duds,20230601/000000000213.parquet
+197583189,2023-06-08T01:38:22+00:00,4.0,kitchen & dining,mugs & cups,LIKE_NEW,starbucks,20230601/000000000148.parquet
+27387000,2023-06-08T02:49:01+00:00,23.0,home decor,decorative accessories,NEW,,20230601/000000000206.parquet
+107379587,2023-06-08T03:32:40+00:00,22.0,kitchen & dining,bakeware,LIKE_NEW,,20230601/000000000222.parquet
+110044481,2023-06-08T14:30:12+00:00,120.0,bedding & bath,blankets & comforters,NEW,hearth & hand with magnolia,20230601/000000000206.parquet
+88991280,2023-06-08T18:02:59+00:00,22.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230601/000000000206.parquet
+211577801,2023-06-08T18:07:34+00:00,26.0,kitchen & dining,food storage,NEW,rae dunn,20230601/000000000206.parquet
+56937777,2023-06-08T20:37:21+00:00,8.0,home decor,wall art & frames,LIKE_NEW,,20230601/000000000213.parquet
+58464290,2023-06-08T21:31:59+00:00,109.0,home decor,wall art & frames,GOOD,mohawk home,20230601/000000000141.parquet
+110010987,2023-06-09T10:53:30+00:00,38.0,kitchen & dining,mugs & cups,LIKE_NEW,rae dunn,20230601/000000000237.parquet
+78117293,2023-06-09T13:57:45+00:00,13.0,home decor,wall art & frames,NEW,,20230601/000000000234.parquet
+142277266,2023-06-09T23:52:25+00:00,29.0,home decor,seasonal decorations,NEW,hallmark,20230601/000000000077.parquet
+168696210,2023-06-10T03:27:30+00:00,15.0,kitchen & dining,mugs & cups,LIKE_NEW,loot crate,20230601/000000000241.parquet
+50601111,2023-06-10T03:28:47+00:00,14.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230601/000000000206.parquet
+78396448,2023-06-10T04:29:02+00:00,3.0,kitchen & dining,kitchen utensils & tools,GOOD,amazon,20230601/000000000310.parquet
+186862069,2023-06-10T18:10:40+00:00,115.0,home decor,lamp & lighting,NEW,progress lighting,20230601/000000000234.parquet
+162292053,2023-06-10T19:02:20+00:00,13.0,storage & organization,storage shelves & racks,LIKE_NEW,,20230601/000000000077.parquet
+123102181,2023-06-10T19:31:03+00:00,11.0,kitchen & dining,kitchen utensils & tools,LIKE_NEW,,20230601/000000000148.parquet
+105724579,2023-06-10T21:36:11+00:00,100.0,home decor,seasonal decorations,NEW,,20230601/000000000310.parquet
+171221665,2023-06-10T21:38:45+00:00,100.0,home decor,seasonal decorations,NEW,,20230601/000000000310.parquet
+242394205,2023-06-10T22:05:55+00:00,14.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230601/000000000141.parquet
+70466834,2023-06-11T01:16:01+00:00,16.0,home decor,wall art & frames,LIKE_NEW,,20230601/000000000141.parquet
+93545283,2023-06-11T12:55:33+00:00,20.0,appliances,air care & climate,GOOD,,20230601/000000000213.parquet
+38028899,2023-06-11T17:40:25+00:00,15.0,storage & organization,storage bins & baskets,NEW,magnolia,20230601/000000000213.parquet
+114052189,2023-06-11T20:00:09+00:00,9.0,kitchen & dining,dinnerware,GOOD,pier one,20230601/000000000206.parquet
+193755980,2023-06-11T21:03:08+00:00,9.0,home decor,rug & mat,FAIR,sanrio,20230601/000000000310.parquet
+235799058,2023-06-11T23:54:24+00:00,12.0,bedding & bath,sheets & pillowcases,LIKE_NEW,disney,20230601/000000000234.parquet
+212164127,2023-06-11T23:55:37+00:00,200.0,home decor,candles,GOOD,empire,20230601/000000000234.parquet
+135033128,2023-06-12T01:56:39+00:00,16.0,kitchen & dining,bottles & tumblers,LIKE_NEW,starbucks,20230601/000000000310.parquet
+109747864,2023-06-12T02:51:07+00:00,5.0,bedding & bath,blankets & comforters,NEW,,20230601/000000000310.parquet
+194435715,2023-06-12T03:19:45+00:00,17.0,kitchen & dining,mugs & cups,NEW,t.j.maxx,20230601/000000000148.parquet
+184942921,2023-06-12T13:23:19+00:00,25.0,kitchen & dining,kitchen utensils & tools,NEW,rae dunn,20230601/000000000234.parquet
+80928489,2023-06-12T16:02:24+00:00,120.0,kitchen & dining,mugs & cups,LIKE_NEW,breville,20230601/000000000141.parquet
+36326847,2023-06-12T21:15:03+00:00,32.0,kitchen & dining,bottles & tumblers,NEW,yeti,20230601/000000000241.parquet
+132957477,2023-06-12T21:19:07+00:00,19.0,kitchen & dining,food storage,GOOD,pokemon,20230601/000000000234.parquet
+211550654,2023-06-12T23:03:35+00:00,489.0,kitchen & dining,cookware,NEW,palm,20230601/000000000310.parquet
+160970272,2023-06-13T00:57:04+00:00,48.0,kitchen & dining,bottles & tumblers,LIKE_NEW,lenox,20230601/000000000241.parquet
+29253179,2023-06-13T01:30:05+00:00,39.0,home decor,clock,GOOD,bulova,20230601/000000000241.parquet
+118105845,2023-06-13T02:08:40+00:00,17.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230601/000000000141.parquet
+48293402,2023-06-13T04:24:11+00:00,3.0,home decor,seasonal decorations,GOOD,avon,20230601/000000000241.parquet
+39145002,2023-06-13T07:50:49+00:00,133.0,home decor,lamp & lighting,NEW,,20230601/000000000148.parquet
+225309415,2023-06-13T11:05:56+00:00,32.0,kitchen & dining,mugs & cups,LIKE_NEW,fiesta,20230601/000000000148.parquet
+114704751,2023-06-13T16:20:47+00:00,13.0,bedding & bath,blankets & comforters,LIKE_NEW,vera bradley,20230601/000000000213.parquet
+38507716,2023-06-13T16:25:29+00:00,25.0,kitchen & dining,bakeware,LIKE_NEW,wilton,20230601/000000000077.parquet
+206532570,2023-06-13T18:05:58+00:00,26.0,kitchen & dining,mugs & cups,LIKE_NEW,royal doulton,20230601/000000000141.parquet
+164513384,2023-06-13T20:51:08+00:00,32.0,bedding & bath,blankets & comforters,NEW,envogue,20230601/000000000310.parquet
+194825797,2023-06-13T22:16:38+00:00,24.0,kitchen & dining,food storage,NEW,thl,20230601/000000000234.parquet
+77630231,2023-06-13T22:35:57+00:00,75.0,kitchen & dining,mugs & cups,GOOD,tiffany & co.,20230601/000000000148.parquet
+80994805,2023-06-13T22:38:03+00:00,22.0,home decor,wall art & frames,NEW,,20230601/000000000213.parquet
+231432634,2023-06-14T06:25:16+00:00,50.0,kitchen & dining,food storage,LIKE_NEW,rae dunn,20230601/000000000237.parquet
+231455457,2023-06-14T06:35:30+00:00,213.0,kitchen & dining,food storage,LIKE_NEW,rae dunn,20230601/000000000237.parquet
+158040247,2023-06-14T16:58:21+00:00,5.0,kitchen & dining,dinnerware,NEW,,20230601/000000000206.parquet
+184871263,2023-06-14T17:28:35+00:00,120.0,home decor,seasonal decorations,GOOD,union,20230601/000000000237.parquet
+32230620,2023-06-15T02:59:00+00:00,54.0,kitchen & dining,servingware,NEW,rae dunn,20230601/000000000222.parquet
+129267247,2023-06-15T06:24:58+00:00,350.0,kitchen & dining,food storage,LIKE_NEW,rae dunn,20230601/000000000237.parquet
+77933792,2023-06-15T09:43:42+00:00,10.0,kitchen & dining,kitchen utensils & tools,NEW,,20230601/000000000077.parquet
+43853745,2023-06-15T14:39:50+00:00,130.0,appliances,kitchen appliance,NEW,jack lalanne,20230601/000000000148.parquet
+192920014,2023-06-15T16:41:04+00:00,28.0,bedding & bath,blankets & comforters,LIKE_NEW,nicole miller,20230601/000000000222.parquet
+31438282,2023-06-15T18:19:46+00:00,27.0,home decor,home fragrance,NEW,bath & body works,20230601/000000000077.parquet
+63556348,2023-06-15T20:01:48+00:00,25.0,kitchen & dining,bottles & tumblers,NEW,,20230601/000000000222.parquet
+179633137,2023-06-15T22:11:34+00:00,10.0,kitchen & dining,mugs & cups,NEW,starbucks,20230601/000000000234.parquet
+212324720,2023-06-16T00:09:48+00:00,95.0,kitchen & dining,cookware,NEW,palm,20230601/000000000148.parquet
+110302274,2023-06-16T06:17:43+00:00,24.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230601/000000000206.parquet
+184976173,2023-06-16T19:07:55+00:00,67.0,kitchen & dining,bottles & tumblers,NEW,,20230601/000000000241.parquet
+46349365,2023-06-16T21:25:32+00:00,24.0,home decor,wall art & frames,NEW,,20230601/000000000148.parquet
+139005254,2023-06-16T21:41:27+00:00,18.0,bedding & bath,sheets & pillowcases,NEW,,20230601/000000000234.parquet
+211609468,2023-06-16T22:19:14+00:00,24.0,kitchen & dining,dinnerware,NEW,,20230601/000000000241.parquet
+173074966,2023-06-17T01:16:43+00:00,55.0,home decor,wall art & frames,NEW,,20230601/000000000241.parquet
+60987858,2023-06-17T02:22:41+00:00,17.0,kitchen & dining,mugs & cups,NEW,,20230601/000000000206.parquet
+236770584,2023-06-17T02:23:12+00:00,17.0,kitchen & dining,mugs & cups,NEW,,20230601/000000000206.parquet
+136066431,2023-06-17T18:01:56+00:00,9.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230601/000000000148.parquet
+9088610,2023-06-17T18:02:44+00:00,5.0,kitchen & dining,mugs & cups,LIKE_NEW,rae dunn,20230601/000000000148.parquet
+55847549,2023-06-17T18:03:26+00:00,4.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230601/000000000148.parquet
+227001082,2023-06-17T22:59:44+00:00,100.0,kitchen & dining,cookware,GOOD,le creuset,20230601/000000000237.parquet
+65561702,2023-06-18T01:23:39+00:00,10.0,home decor,clock,GOOD,donald trump,20230601/000000000234.parquet
+79263026,2023-06-18T02:13:54+00:00,10.0,kitchen & dining,mugs & cups,FAIR,camel,20230601/000000000141.parquet
+147805228,2023-06-18T03:08:05+00:00,50.0,home decor,wall art & frames,NEW,,20230601/000000000148.parquet
+164249605,2023-06-18T15:40:07+00:00,18.0,home decor,wall art & frames,GOOD,,20230601/000000000213.parquet
+138881167,2023-06-18T16:15:03+00:00,19.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230601/000000000310.parquet
+219686394,2023-06-18T16:42:45+00:00,105.0,appliances,kitchen appliance,LIKE_NEW,gourmia,20230601/000000000241.parquet
+179956861,2023-06-18T20:12:35+00:00,38.0,bedding & bath,blankets & comforters,NEW,,20230601/000000000141.parquet
+204727410,2023-06-18T23:18:03+00:00,18.0,kitchen & dining,mugs & cups,LIKE_NEW,,20230601/000000000234.parquet
+117776936,2023-06-19T16:17:06+00:00,75.0,bedding & bath,blankets & comforters,NEW,,20230601/000000000206.parquet
+47833982,2023-06-19T19:41:00+00:00,125.0,home decor,seasonal decorations,NEW,handmade,20230601/000000000241.parquet
+83380233,2023-06-19T19:41:52+00:00,24.0,kitchen & dining,kitchen utensils & tools,NEW,,20230601/000000000234.parquet
+240713651,2023-06-19T22:39:36+00:00,130.0,bedding & bath,blankets & comforters,NEW,little sleepies,20230601/000000000148.parquet
+40791224,2023-06-20T02:27:09+00:00,16.0,home decor,wall art & frames,GOOD,activision,20230601/000000000077.parquet
+86030212,2023-06-20T16:55:16+00:00,15.0,kitchen & dining,servingware,NEW,,20230601/000000000241.parquet
+106491309,2023-06-20T20:07:41+00:00,15.0,kitchen & dining,mugs & cups,GOOD,disney,20230601/000000000234.parquet
+232616203,2023-06-20T23:06:22+00:00,255.0,home decor,wall art & frames,NEW,street fighter,20230601/000000000241.parquet
+135464093,2023-06-21T09:30:30+00:00,14.0,home decor,curtains & window treatments,NEW,,20230601/000000000237.parquet
+208394671,2023-06-21T14:25:23+00:00,10.0,home decor,home fragrance,NEW,scentsy,20230601/000000000077.parquet
+18184002,2023-06-21T14:28:24+00:00,20.0,kitchen & dining,cookware,GOOD,martha stewart,20230601/000000000234.parquet
+146419056,2023-06-21T15:44:59+00:00,47.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230601/000000000077.parquet
+10993799,2023-06-21T18:21:07+00:00,47.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230601/000000000222.parquet
+234404555,2023-06-21T18:30:15+00:00,30.0,bedding & bath,sheets & pillowcases,NEW,charisma,20230601/000000000077.parquet
+13850355,2023-06-21T22:44:00+00:00,26.0,appliances,air care & climate,NEW,,20230601/000000000077.parquet
+135192447,2023-06-21T23:03:40+00:00,12.0,bedding & bath,bath towels,NEW,disney,20230601/000000000234.parquet
+244157518,2023-06-22T14:21:46+00:00,15.0,storage & organization,closet organizers,NEW,,20230601/000000000213.parquet
+244486114,2023-06-22T15:25:15+00:00,8.0,kitchen & dining,mugs & cups,NEW,,20230601/000000000148.parquet
+48468214,2023-06-23T00:39:00+00:00,8.0,home decor,decorative pillow,GOOD,,20230601/000000000241.parquet
+199040519,2023-06-23T03:29:31+00:00,30.0,kitchen & dining,bottles & tumblers,NEW,,20230601/000000000222.parquet
+202643111,2023-06-23T05:28:48+00:00,15.0,kitchen & dining,mugs & cups,LIKE_NEW,celebrate it,20230601/000000000234.parquet
+132432422,2023-06-23T05:34:29+00:00,98.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230601/000000000213.parquet
+221295522,2023-06-23T19:47:04+00:00,13.0,bedding & bath,bathroom accessories,NEW,pegasus,20230601/000000000222.parquet
+213774224,2023-06-23T22:40:44+00:00,20.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230601/000000000237.parquet
+146112455,2023-06-24T00:07:10+00:00,24.0,home decor,home fragrance,NEW,scentsy,20230601/000000000077.parquet
+44144913,2023-06-24T04:01:52+00:00,20.0,kitchen & dining,food storage,NEW,rae dunn,20230601/000000000237.parquet
+122919361,2023-06-24T04:47:46+00:00,25.0,storage & organization,storage shelves & racks,NEW,,20230601/000000000148.parquet
+199552639,2023-06-24T08:10:08+00:00,6.0,bedding & bath,pillow & bedding accessories,LIKE_NEW,martha stewart,20230601/000000000237.parquet
+6676812,2023-06-24T10:20:45+00:00,22.0,home decor,wall art & frames,NEW,,20230601/000000000234.parquet
+95798865,2023-06-24T13:38:58+00:00,15.0,kitchen & dining,dinnerware,FAIR,pioneer woman,20230601/000000000310.parquet
+160132535,2023-06-24T17:54:06+00:00,20.0,kitchen & dining,mugs & cups,LIKE_NEW,crofton,20230601/000000000237.parquet
+26451560,2023-06-24T18:11:00+00:00,35.0,home decor,decorative accessories,GOOD,,20230601/000000000310.parquet
+11851077,2023-06-24T21:16:46+00:00,45.0,home decor,decorative pillow,GOOD,isaac mizrahi,20230601/000000000141.parquet
+96203276,2023-06-24T21:32:36+00:00,12.0,kitchen & dining,food storage,NEW,threshold,20230601/000000000234.parquet
+176237774,2023-06-25T01:12:30+00:00,12.0,bedding & bath,sheets & pillowcases,NEW,ikea,20230601/000000000206.parquet
+20320081,2023-06-25T05:36:30+00:00,72.0,appliances,coffee & espresso machine,GOOD,,20230601/000000000241.parquet
+142730703,2023-06-25T12:18:11+00:00,29.0,home decor,candles,NEW,bath & body works,20230601/000000000148.parquet
+158560083,2023-06-25T14:23:06+00:00,5.0,storage & organization,storage bins & baskets,GOOD,target,20230601/000000000206.parquet
+108053362,2023-06-25T15:10:11+00:00,1.0,home decor,seasonal decorations,GOOD,target,20230601/000000000148.parquet
+134066516,2023-06-25T15:26:22+00:00,6.0,kitchen & dining,mugs & cups,NEW,,20230601/000000000141.parquet
+190668307,2023-06-25T15:36:24+00:00,9.0,home decor,candles,GOOD,opalhouse,20230601/000000000241.parquet
+46156381,2023-06-25T20:23:29+00:00,76.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230601/000000000310.parquet
+96733373,2023-06-25T21:34:44+00:00,95.0,furniture,desk,GOOD,,20230601/000000000141.parquet
+5998673,2023-06-25T21:37:43+00:00,44.0,bedding & bath,blankets & comforters,NEW,disney,20230601/000000000148.parquet
+213879224,2023-06-26T14:21:00+00:00,13.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230601/000000000206.parquet
+127702469,2023-06-26T23:21:31+00:00,20.0,kitchen & dining,bottles & tumblers,NEW,handmade,20230601/000000000148.parquet
+192240290,2023-06-27T15:08:38+00:00,24.0,kitchen & dining,kitchen utensils & tools,NEW,macy's,20230601/000000000222.parquet
+89617209,2023-06-27T16:52:58+00:00,160.0,bedding & bath,blankets & comforters,GOOD,roberta roller rabbit,20230601/000000000141.parquet
+209980260,2023-06-27T17:29:27+00:00,29.0,kitchen & dining,food storage,NEW,tupperware,20230601/000000000222.parquet
+114900187,2023-06-27T17:32:36+00:00,23.0,kitchen & dining,food storage,NEW,tupperware,20230601/000000000222.parquet
+107538293,2023-06-27T18:48:26+00:00,14.0,kitchen & dining,kitchen utensils & tools,LIKE_NEW,hello kitty,20230601/000000000206.parquet
+188553991,2023-06-27T19:24:51+00:00,60.0,appliances,coffee & espresso machine,NEW,keurig,20230601/000000000077.parquet
+159612405,2023-06-27T22:46:38+00:00,45.0,bedding & bath,blankets & comforters,LIKE_NEW,disney pixar,20230601/000000000077.parquet
+184614032,2023-06-28T02:01:28+00:00,40.0,home decor,candles,NEW,bath & body works,20230601/000000000148.parquet
+35813585,2023-06-28T16:35:04+00:00,18.0,home decor,home fragrance,NEW,shinola,20230601/000000000213.parquet
+199514819,2023-06-28T19:49:57+00:00,300.0,kitchen & dining,cookware,NEW,supreme,20230601/000000000206.parquet
+229205548,2023-06-28T20:59:33+00:00,13.0,home decor,lamp & lighting,NEW,,20230601/000000000241.parquet
+78210379,2023-06-28T23:04:20+00:00,29.0,kitchen & dining,bottles & tumblers,NEW,tervis,20230601/000000000241.parquet
+141481862,2023-06-29T03:26:15+00:00,59.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230601/000000000141.parquet
+167019426,2023-06-29T03:56:56+00:00,35.0,home decor,clock,NEW,hello kitty,20230601/000000000237.parquet
+28162397,2023-06-29T04:04:32+00:00,28.0,kitchen & dining,mugs & cups,NEW,hello kitty,20230601/000000000237.parquet
+197658394,2023-06-29T04:37:31+00:00,20.0,storage & organization,jewelry storage,LIKE_NEW,,20230601/000000000241.parquet
+180008095,2023-06-29T13:06:44+00:00,16.0,kitchen & dining,bottles & tumblers,GOOD,thermos,20230601/000000000237.parquet
+73162516,2023-07-01T01:57:50+00:00,8.0,kitchen & dining,dinnerware,NEW,room essentials,20230701/000000000177.parquet
+61087738,2023-07-01T04:04:46+00:00,15.0,bedding & bath,blankets & comforters,NEW,,20230701/000000000098.parquet
+100650282,2023-07-01T07:34:33+00:00,39.0,home decor,candles,NEW,bath & body works,20230701/000000000334.parquet
+167885717,2023-07-01T14:33:10+00:00,18.0,bedding & bath,blankets & comforters,NEW,bed bath & beyond,20230701/000000000116.parquet
+153936291,2023-07-01T19:11:15+00:00,15.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230701/000000000112.parquet
+108254971,2023-07-01T23:05:26+00:00,5.0,home decor,wall art & frames,NEW,,20230701/000000000105.parquet
+124184829,2023-07-01T23:59:02+00:00,35.0,home decor,seasonal decorations,FAIR,,20230701/000000000177.parquet
+176780287,2023-07-02T00:32:48+00:00,30.0,bedding & bath,blankets & comforters,GOOD,amazon,20230701/000000000334.parquet
+7945643,2023-07-02T18:22:39+00:00,21.0,kitchen & dining,food storage,LIKE_NEW,rae dunn,20230701/000000000098.parquet
+127026611,2023-07-02T21:12:28+00:00,111.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230701/000000000334.parquet
+84764006,2023-07-02T22:58:05+00:00,39.0,bedding & bath,blankets & comforters,NEW,disney,20230701/000000000334.parquet
+120462251,2023-07-03T14:29:39+00:00,20.0,home decor,home fragrance,GOOD,young living essential oils,20230701/000000000098.parquet
+83149805,2023-07-03T16:24:59+00:00,70.0,kitchen & dining,dinnerware,NEW,disney,20230701/000000000177.parquet
+5980102,2023-07-03T16:52:32+00:00,20.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230701/000000000177.parquet
+85590514,2023-07-03T17:50:35+00:00,39.0,kitchen & dining,dinnerware,GOOD,the pampered chef,20230701/000000000325.parquet
+168427294,2023-07-03T21:20:08+00:00,15.0,bedding & bath,pillow & bedding accessories,NEW,,20230701/000000000325.parquet
+206118224,2023-07-03T22:07:50+00:00,75.0,appliances,vacuum,NEW,,20230701/000000000177.parquet
+124351281,2023-07-03T23:04:08+00:00,10.0,kitchen & dining,kitchen & table linens,LIKE_NEW,,20230701/000000000105.parquet
+207208689,2023-07-04T01:33:07+00:00,55.0,kitchen & dining,bottles & tumblers,NEW,barbie,20230701/000000000334.parquet
+147049883,2023-07-04T04:03:36+00:00,9.0,kitchen & dining,servingware,LIKE_NEW,independent,20230701/000000000177.parquet
+11821919,2023-07-04T09:48:42+00:00,20.0,home decor,rug & mat,NEW,handmade,20230701/000000000105.parquet
+170596066,2023-07-04T21:18:47+00:00,30.0,home decor,candles,NEW,slatkin & co.,20230701/000000000325.parquet
+164081926,2023-07-04T23:14:53+00:00,24.0,appliances,coffee & espresso machine,NEW,starbucks,20230701/000000000098.parquet
+39630063,2023-07-05T02:35:34+00:00,20.0,kitchen & dining,kitchen utensils & tools,NEW,,20230701/000000000177.parquet
+50948006,2023-07-05T05:20:12+00:00,32.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230701/000000000341.parquet
+2797468,2023-07-05T08:01:16+00:00,50.0,kitchen & dining,mugs & cups,NEW,killstar,20230701/000000000177.parquet
+75625427,2023-07-05T17:13:59+00:00,16.0,kitchen & dining,food storage,NEW,tupperware,20230701/000000000105.parquet
+191171453,2023-07-05T18:14:22+00:00,5.0,bedding & bath,bathroom accessories,GOOD,,20230701/000000000112.parquet
+82822036,2023-07-05T18:25:37+00:00,48.0,kitchen & dining,dinnerware,LIKE_NEW,portmeirion,20230701/000000000334.parquet
+178652880,2023-07-05T19:58:54+00:00,10.0,home decor,wall art & frames,NEW,mainstays,20230701/000000000341.parquet
+63745808,2023-07-05T19:59:00+00:00,21.0,kitchen & dining,kitchen utensils & tools,NEW,kitchenaid,20230701/000000000200.parquet
+32202440,2023-07-06T01:48:58+00:00,12.0,home decor,candles,NEW,,20230701/000000000341.parquet
+237811807,2023-07-06T02:08:24+00:00,90.0,bedding & bath,blankets & comforters,GOOD,,20230701/000000000098.parquet
+20473595,2023-07-06T15:37:35+00:00,18.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230701/000000000275.parquet
+192093209,2023-07-06T17:09:36+00:00,18.0,bedding & bath,bath towels,LIKE_NEW,,20230701/000000000334.parquet
+62947899,2023-07-06T20:33:00+00:00,53.0,home decor,rug & mat,NEW,forever 21,20230701/000000000325.parquet
+245831730,2023-07-06T21:44:35+00:00,5.0,kitchen & dining,mugs & cups,LIKE_NEW,rae dunn,20230701/000000000116.parquet
+148592474,2023-07-07T14:48:12+00:00,10.0,kitchen & dining,mugs & cups,GOOD,,20230701/000000000105.parquet
+144300641,2023-07-07T14:52:41+00:00,38.0,bedding & bath,pillow & bedding accessories,NEW,,20230701/000000000177.parquet
+127935568,2023-07-07T16:31:03+00:00,38.0,appliances,kitchen appliance,GOOD,nuwave,20230701/000000000275.parquet
+107200163,2023-07-07T22:18:07+00:00,30.0,kitchen & dining,dinnerware,GOOD,,20230701/000000000341.parquet
+114339158,2023-07-07T23:01:32+00:00,10.0,bedding & bath,blankets & comforters,GOOD,seventeen,20230701/000000000275.parquet
+122963098,2023-07-08T00:31:44+00:00,50.0,home decor,seasonal decorations,NEW,hallmark,20230701/000000000098.parquet
+105569073,2023-07-08T01:02:39+00:00,10.0,kitchen & dining,bottles & tumblers,LIKE_NEW,starbucks,20230701/000000000098.parquet
+111268280,2023-07-08T01:05:40+00:00,5.0,kitchen & dining,bottles & tumblers,GOOD,starbucks,20230701/000000000098.parquet
+654950,2023-07-08T02:39:18+00:00,5.0,kitchen & dining,bottles & tumblers,NEW,,20230701/000000000098.parquet
+103184870,2023-07-08T11:33:37+00:00,17.0,kitchen & dining,bakeware,NEW,pioneer woman,20230701/000000000200.parquet
+10594921,2023-07-08T15:57:41+00:00,17.0,bedding & bath,blankets & comforters,NEW,,20230701/000000000341.parquet
+162802116,2023-07-08T16:18:03+00:00,25.0,kitchen & dining,mugs & cups,GOOD,rae dunn,20230701/000000000341.parquet
+197340456,2023-07-08T17:52:01+00:00,9.0,appliances,kitchen appliance,NEW,,20230701/000000000112.parquet
+120656210,2023-07-08T17:52:21+00:00,14.0,appliances,kitchen appliance,NEW,,20230701/000000000112.parquet
+8725037,2023-07-08T19:12:54+00:00,15.0,home decor,candles,NEW,anthropologie,20230701/000000000341.parquet
+178649876,2023-07-08T20:34:16+00:00,28.0,home decor,lamp & lighting,NEW,,20230701/000000000200.parquet
+172316866,2023-07-08T20:59:27+00:00,25.0,bedding & bath,bathroom accessories,NEW,,20230701/000000000105.parquet
+37352559,2023-07-09T00:13:33+00:00,16.0,kitchen & dining,dinnerware,NEW,hello kitty,20230701/000000000325.parquet
+191977695,2023-07-09T01:51:46+00:00,9.0,home decor,candles,LIKE_NEW,yankee candle,20230701/000000000116.parquet
+130405642,2023-07-09T01:53:12+00:00,15.0,home decor,candles,NEW,yankee candle,20230701/000000000116.parquet
+91169417,2023-07-09T04:41:57+00:00,38.0,kitchen & dining,cookware,LIKE_NEW,,20230701/000000000112.parquet
+83423543,2023-07-09T21:31:58+00:00,20.0,appliances,air care & climate,NEW,taotronics,20230701/000000000341.parquet
+179808621,2023-07-09T23:29:12+00:00,23.0,home decor,curtains & window treatments,FAIR,peri,20230701/000000000341.parquet
+104586278,2023-07-10T01:29:53+00:00,24.0,kitchen & dining,bottles & tumblers,GOOD,starbucks,20230701/000000000177.parquet
+20612796,2023-07-10T02:46:37+00:00,35.0,kitchen & dining,bottles & tumblers,NEW,,20230701/000000000275.parquet
+65189721,2023-07-10T03:14:15+00:00,71.0,appliances,coffee & espresso machine,NEW,oxo,20230701/000000000177.parquet
+35019367,2023-07-10T07:48:17+00:00,91.0,appliances,coffee & espresso machine,NEW,keurig,20230701/000000000341.parquet
+100327806,2023-07-10T11:14:00+00:00,35.0,kitchen & dining,bottles & tumblers,NEW,thermos,20230701/000000000116.parquet
+177829447,2023-07-10T14:41:56+00:00,45.0,bedding & bath,blankets & comforters,LIKE_NEW,target,20230701/000000000105.parquet
+132047391,2023-07-10T15:17:10+00:00,59.0,bedding & bath,blankets & comforters,LIKE_NEW,frye,20230701/000000000341.parquet
+140218353,2023-07-10T15:49:33+00:00,80.0,home decor,seasonal decorations,GOOD,,20230701/000000000200.parquet
+72841442,2023-07-10T19:43:57+00:00,269.0,kitchen & dining,bakeware,NEW,,20230701/000000000200.parquet
+137322573,2023-07-10T20:59:04+00:00,38.0,kitchen & dining,kitchen utensils & tools,NEW,kenmore,20230701/000000000105.parquet
+15527248,2023-07-10T22:11:17+00:00,57.0,bedding & bath,blankets & comforters,NEW,,20230701/000000000116.parquet
+150324980,2023-07-10T23:15:53+00:00,139.0,kitchen & dining,food storage,GOOD,,20230701/000000000275.parquet
+131878847,2023-07-11T01:11:38+00:00,15.0,storage & organization,storage bins & baskets,NEW,cloud island,20230701/000000000116.parquet
+74609969,2023-07-11T01:31:06+00:00,20.0,bedding & bath,blankets & comforters,LIKE_NEW,,20230701/000000000341.parquet
+95562939,2023-07-11T01:44:10+00:00,25.0,bedding & bath,blankets & comforters,NEW,sanrio,20230701/000000000341.parquet
+120517851,2023-07-11T14:47:04+00:00,16.0,home decor,lamp & lighting,NEW,allen + roth,20230701/000000000105.parquet
+186746110,2023-07-11T15:00:20+00:00,361.0,home decor,wall art & frames,LIKE_NEW,,20230701/000000000200.parquet
+233469487,2023-07-11T16:14:03+00:00,55.0,kitchen & dining,bottles & tumblers,NEW,hydrapak,20230701/000000000116.parquet
+48180283,2023-07-11T16:40:36+00:00,35.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230701/000000000200.parquet
+82354515,2023-07-11T19:48:37+00:00,160.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230701/000000000105.parquet
+159953100,2023-07-11T21:02:00+00:00,40.0,kitchen & dining,mugs & cups,NEW,disney,20230701/000000000341.parquet
+5045277,2023-07-11T22:05:40+00:00,21.0,home decor,lamp & lighting,GOOD,,20230701/000000000116.parquet
+164527866,2023-07-11T22:36:44+00:00,44.0,home decor,seasonal decorations,NEW,gemmy,20230701/000000000275.parquet
+60678062,2023-07-11T22:38:01+00:00,100.0,kitchen & dining,bakeware,NEW,princess house,20230701/000000000098.parquet
+228883337,2023-07-12T00:19:53+00:00,99.0,home decor,wall art & frames,NEW,taylor swift,20230701/000000000116.parquet
+134906680,2023-07-12T18:32:40+00:00,25.0,kitchen & dining,dinnerware,NEW,,20230701/000000000098.parquet
+131963474,2023-07-13T03:49:02+00:00,90.0,bedding & bath,blankets & comforters,NEW,rachel zoe,20230701/000000000098.parquet
+12884712,2023-07-13T04:04:18+00:00,42.0,home decor,decorative pillow,NEW,,20230701/000000000098.parquet
+93764260,2023-07-13T15:48:23+00:00,30.0,home decor,wall art & frames,NEW,mud pie,20230701/000000000341.parquet
+173438295,2023-07-13T20:34:32+00:00,5.0,home decor,home fragrance,NEW,bath & body works,20230701/000000000116.parquet
+155287685,2023-07-13T22:33:09+00:00,22.0,home decor,wall art & frames,NEW,,20230701/000000000275.parquet
+221880369,2023-07-14T00:53:31+00:00,7.0,home decor,curtains & window treatments,NEW,room essentials,20230701/000000000116.parquet
+240950028,2023-07-14T01:33:52+00:00,12.0,kitchen & dining,kitchen utensils & tools,NEW,,20230701/000000000275.parquet
+8228996,2023-07-14T02:35:34+00:00,55.0,kitchen & dining,bottles & tumblers,NEW,,20230701/000000000098.parquet
+231982726,2023-07-14T03:15:35+00:00,31.0,home decor,wall art & frames,NEW,taylor swift,20230701/000000000098.parquet
+173992180,2023-07-14T16:31:48+00:00,30.0,kitchen & dining,mugs & cups,NEW,starbucks,20230701/000000000105.parquet
+226308741,2023-07-14T17:43:49+00:00,150.0,kitchen & dining,servingware,NEW,nora fleming,20230701/000000000098.parquet
+85966415,2023-07-14T20:23:11+00:00,22.0,home decor,wall art & frames,NEW,,20230701/000000000334.parquet
+117330381,2023-07-14T20:49:07+00:00,12.0,bedding & bath,bath towels,NEW,better homes & gardens,20230701/000000000112.parquet
+94026138,2023-07-14T23:31:13+00:00,25.0,kitchen & dining,servingware,LIKE_NEW,,20230701/000000000325.parquet
+87424769,2023-07-15T02:23:53+00:00,45.0,bedding & bath,blankets & comforters,NEW,rachel zoe,20230701/000000000200.parquet
+129429718,2023-07-15T05:51:40+00:00,108.0,appliances,kitchen appliance,NEW,foodsaver,20230701/000000000275.parquet
+189801856,2023-07-15T06:06:49+00:00,36.0,bedding & bath,blankets & comforters,NEW,envogue,20230701/000000000105.parquet
+181442275,2023-07-15T12:07:36+00:00,9.0,home decor,candles,NEW,yankee candle,20230701/000000000341.parquet
+139428189,2023-07-15T22:37:08+00:00,170.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230701/000000000105.parquet
+63359180,2023-07-16T02:13:59+00:00,17.0,kitchen & dining,kitchen utensils & tools,LIKE_NEW,,20230701/000000000105.parquet
+75392642,2023-07-16T12:06:51+00:00,11.0,bedding & bath,blankets & comforters,NEW,rachel zoe,20230701/000000000105.parquet
+88620660,2023-07-16T14:50:33+00:00,39.0,home decor,candles,NEW,slatkin & co.,20230701/000000000112.parquet
+11269713,2023-07-16T21:04:34+00:00,10.0,kitchen & dining,servingware,GOOD,,20230701/000000000105.parquet
+191426661,2023-07-16T22:50:57+00:00,150.0,kitchen & dining,bottles & tumblers,NEW,barbie,20230701/000000000334.parquet
+182474418,2023-07-16T23:48:29+00:00,25.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230701/000000000341.parquet
+60250512,2023-07-17T01:00:14+00:00,250.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230701/000000000341.parquet
+47827526,2023-07-17T01:34:25+00:00,80.0,home decor,seasonal decorations,NEW,department 56,20230701/000000000341.parquet
+30518209,2023-07-17T15:48:53+00:00,18.0,home decor,wall art & frames,NEW,autograph,20230701/000000000177.parquet
+154523479,2023-07-17T17:50:04+00:00,34.0,home decor,lamp & lighting,NEW,target,20230701/000000000098.parquet
+170718898,2023-07-17T20:04:31+00:00,29.0,home decor,candles,NEW,,20230701/000000000177.parquet
+105056751,2023-07-17T21:23:05+00:00,18.0,home decor,wall art & frames,NEW,,20230701/000000000116.parquet
+226066850,2023-07-17T21:40:51+00:00,9.0,home decor,decorative pillow,GOOD,,20230701/000000000116.parquet
+18764447,2023-07-18T00:28:57+00:00,60.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230701/000000000325.parquet
+83668172,2023-07-18T02:52:44+00:00,29.0,kitchen & dining,dinnerware,GOOD,unique boutique,20230701/000000000275.parquet
+29163905,2023-07-18T06:20:59+00:00,15.0,kitchen & dining,cookware,NEW,star wars,20230701/000000000200.parquet
+193586407,2023-07-18T12:20:43+00:00,19.0,kitchen & dining,bottles & tumblers,NEW,zak designs,20230701/000000000200.parquet
+47806839,2023-07-18T14:11:27+00:00,45.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230701/000000000105.parquet
+10566756,2023-07-18T15:28:51+00:00,45.0,home decor,decorative accessories,NEW,,20230701/000000000105.parquet
+150348886,2023-07-18T17:45:56+00:00,110.0,home decor,seasonal decorations,GOOD,union,20230701/000000000200.parquet
+61097902,2023-07-19T12:01:47+00:00,9.0,home decor,decorative pillow,NEW,ikea,20230701/000000000116.parquet
+239735473,2023-07-19T12:08:17+00:00,10.0,home decor,decorative pillow,GOOD,ikea,20230701/000000000116.parquet
+189826881,2023-07-19T14:03:06+00:00,25.0,kitchen & dining,kitchen utensils & tools,NEW,,20230701/000000000105.parquet
+13017732,2023-07-19T18:38:07+00:00,85.0,bedding & bath,blankets & comforters,NEW,cupcakes and cashmere,20230701/000000000112.parquet
+241214802,2023-07-19T18:48:14+00:00,165.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230701/000000000341.parquet
+208849412,2023-07-19T20:06:55+00:00,24.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230701/000000000341.parquet
+57820792,2023-07-19T21:22:09+00:00,83.0,bedding & bath,blankets & comforters,NEW,barbie,20230701/000000000275.parquet
+134805717,2023-07-20T14:02:02+00:00,12.0,kitchen & dining,mugs & cups,LIKE_NEW,route 66,20230701/000000000334.parquet
+144353084,2023-07-20T14:10:57+00:00,33.0,home decor,seasonal decorations,NEW,,20230701/000000000112.parquet
+208646664,2023-07-20T15:45:52+00:00,399.0,appliances,kitchen appliance,NEW,ninja,20230701/000000000200.parquet
+83656009,2023-07-20T16:52:55+00:00,9.0,kitchen & dining,kitchen utensils & tools,NEW,boutique,20230701/000000000334.parquet
+229580576,2023-07-21T02:31:35+00:00,20.0,home decor,photo albums,LIKE_NEW,disney,20230701/000000000105.parquet
+33598783,2023-07-21T03:48:48+00:00,12.0,home decor,seasonal decorations,LIKE_NEW,,20230701/000000000098.parquet
+196528132,2023-07-21T12:19:15+00:00,54.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230701/000000000325.parquet
+40255357,2023-07-21T12:55:22+00:00,19.0,home decor,lamp & lighting,NEW,,20230701/000000000116.parquet
+8533788,2023-07-21T14:20:50+00:00,5.0,home decor,decorative pillow,GOOD,,20230701/000000000275.parquet
+122058381,2023-07-21T14:23:28+00:00,45.0,kitchen & dining,kitchen utensils & tools,FAIR,miyabi,20230701/000000000200.parquet
+20496624,2023-07-21T14:26:12+00:00,10.0,kitchen & dining,servingware,NEW,t.j.maxx,20230701/000000000200.parquet
+156759407,2023-07-21T16:17:49+00:00,39.0,bedding & bath,blankets & comforters,NEW,disney,20230701/000000000275.parquet
+41669435,2023-07-21T16:42:26+00:00,60.0,furniture,desk,NEW,,20230701/000000000105.parquet
+216261198,2023-07-21T17:35:26+00:00,34.0,kitchen & dining,food storage,NEW,johanna parker,20230701/000000000275.parquet
+174099408,2023-07-21T17:48:52+00:00,55.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230701/000000000098.parquet
+229398036,2023-07-21T18:40:50+00:00,48.0,home decor,decorative pillow,NEW,,20230701/000000000200.parquet
+199121727,2023-07-21T23:36:05+00:00,16.0,kitchen & dining,mugs & cups,NEW,mikasa,20230701/000000000325.parquet
+144368724,2023-07-22T01:18:42+00:00,11.0,home decor,wall art & frames,GOOD,zumiez,20230701/000000000200.parquet
+135667667,2023-07-22T01:25:35+00:00,19.0,kitchen & dining,bottles & tumblers,NEW,,20230701/000000000334.parquet
+15933201,2023-07-22T01:58:31+00:00,34.0,bedding & bath,sheets & pillowcases,NEW,rae dunn,20230701/000000000177.parquet
+39193769,2023-07-22T03:11:27+00:00,30.0,kitchen & dining,cookware,GOOD,palm,20230701/000000000098.parquet
+3432890,2023-07-22T11:08:57+00:00,35.0,appliances,kitchen appliance,LIKE_NEW,chefman,20230701/000000000105.parquet
+100049945,2023-07-22T15:08:11+00:00,11.0,bedding & bath,sheets & pillowcases,NEW,pillowfort,20230701/000000000200.parquet
+131600906,2023-07-22T15:12:47+00:00,19.99,kitchen & dining,kitchen utensils & tools,NEW,crofton,20230701/000000000200.parquet
+15669627,2023-07-22T16:55:01+00:00,83.0,bedding & bath,blankets & comforters,NEW,barbie,20230701/000000000200.parquet
+45330593,2023-07-22T17:07:00+00:00,18.0,kitchen & dining,mugs & cups,NEW,starbucks,20230701/000000000200.parquet
+47853997,2023-07-22T18:34:52+00:00,32.0,bedding & bath,blankets & comforters,GOOD,ugg australia,20230701/000000000341.parquet
+181663495,2023-07-22T18:50:18+00:00,8.0,bedding & bath,bath towels,NEW,,20230701/000000000177.parquet
+27916455,2023-07-23T03:12:22+00:00,35.0,bedding & bath,blankets & comforters,NEW,berkshire,20230701/000000000200.parquet
+15518568,2023-07-23T12:46:23+00:00,15.0,home decor,lamp & lighting,NEW,,20230701/000000000116.parquet
+94435726,2023-07-23T18:46:02+00:00,51.0,kitchen & dining,dinnerware,GOOD,pier 1 imports,20230701/000000000098.parquet
+55554957,2023-07-23T19:05:52+00:00,15.0,home decor,wall art & frames,NEW,disney,20230701/000000000200.parquet
+226099400,2023-07-23T21:54:43+00:00,26.0,home decor,wall art & frames,NEW,,20230701/000000000200.parquet
+23940577,2023-07-23T23:43:58+00:00,75.0,bedding & bath,blankets & comforters,NEW,rachel zoe,20230701/000000000334.parquet
+171657246,2023-07-23T23:44:29+00:00,99.0,bedding & bath,blankets & comforters,NEW,cupcakes and cashmere,20230701/000000000334.parquet
+90326389,2023-07-24T00:07:40+00:00,9.0,kitchen & dining,kitchen utensils & tools,LIKE_NEW,,20230701/000000000116.parquet
+105968131,2023-07-24T01:27:38+00:00,150.0,home decor,wall art & frames,NEW,,20230701/000000000112.parquet
+152416255,2023-07-24T01:56:24+00:00,198.0,appliances,vacuum,NEW,neato,20230701/000000000200.parquet
+146793243,2023-07-24T05:13:01+00:00,89.0,bedding & bath,blankets & comforters,NEW,hello kitty,20230701/000000000105.parquet
+145187875,2023-07-24T06:27:13+00:00,14.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230701/000000000112.parquet
+99813030,2023-07-24T13:44:45+00:00,30.0,home decor,curtains & window treatments,NEW,,20230701/000000000334.parquet
+65358045,2023-07-24T15:00:58+00:00,10.0,home decor,candles,NEW,bath & body works,20230701/000000000200.parquet
+48188194,2023-07-24T19:07:16+00:00,47.0,bedding & bath,blankets & comforters,NEW,pottery barn,20230701/000000000275.parquet
+201381708,2023-07-25T03:38:07+00:00,18.0,kitchen & dining,dinnerware,NEW,t.j.maxx,20230701/000000000098.parquet
+223665632,2023-07-25T14:29:26+00:00,14.0,kitchen & dining,mugs & cups,NEW,disney,20230701/000000000112.parquet
+19030255,2023-07-25T18:57:44+00:00,20.0,home decor,candles,GOOD,,20230701/000000000105.parquet
+70472384,2023-07-25T21:13:58+00:00,27.0,home decor,decorative accessories,NEW,better homes & gardens,20230701/000000000177.parquet
+192098595,2023-07-25T21:37:35+00:00,30.0,kitchen & dining,food storage,LIKE_NEW,magnolia,20230701/000000000325.parquet
+21505667,2023-07-25T21:42:03+00:00,15.0,home decor,seasonal decorations,NEW,starbucks,20230701/000000000105.parquet
+209523653,2023-07-25T21:44:47+00:00,18.0,home decor,wall art & frames,NEW,,20230701/000000000105.parquet
+16615200,2023-07-25T22:23:37+00:00,30.0,home decor,seasonal decorations,LIKE_NEW,harry potter,20230701/000000000116.parquet
+196307538,2023-07-26T15:14:55+00:00,10.0,appliances,air care & climate,NEW,,20230701/000000000334.parquet
+196477945,2023-07-26T20:55:42+00:00,89.0,appliances,kitchen appliance,NEW,breville,20230701/000000000275.parquet
+158730884,2023-07-27T02:32:18+00:00,24.0,bedding & bath,blankets & comforters,NEW,target,20230701/000000000112.parquet
+205587643,2023-07-27T11:33:41+00:00,60.0,appliances,air care & climate,NEW,hampton bay,20230701/000000000341.parquet
+228402296,2023-07-27T18:29:14+00:00,40.0,home decor,wall art & frames,NEW,precious moments,20230701/000000000098.parquet
+164064314,2023-07-27T22:40:30+00:00,15.0,kitchen & dining,mugs & cups,LIKE_NEW,rae dunn,20230701/000000000325.parquet
+69689682,2023-07-27T22:43:10+00:00,8.0,kitchen & dining,dinnerware,NEW,target,20230701/000000000325.parquet
+221154802,2023-07-28T01:19:58+00:00,18.0,home decor,decorative pillow,NEW,,20230701/000000000105.parquet
+10678789,2023-07-28T02:07:39+00:00,18.0,kitchen & dining,mugs & cups,NEW,,20230701/000000000177.parquet
+3502429,2023-07-28T04:14:05+00:00,54.0,bedding & bath,blankets & comforters,NEW,,20230701/000000000098.parquet
+230996511,2023-07-28T14:36:12+00:00,15.0,bedding & bath,sheets & pillowcases,LIKE_NEW,,20230701/000000000325.parquet
+193864832,2023-07-28T18:49:31+00:00,27.0,bedding & bath,pillow & bedding accessories,NEW,,20230701/000000000334.parquet
+237240998,2023-07-28T21:19:47+00:00,12.0,home decor,decorative accessories,GOOD,,20230701/000000000105.parquet
+16427985,2023-07-28T22:57:59+00:00,53.0,home decor,lamp & lighting,LIKE_NEW,allen + roth,20230701/000000000200.parquet
+193911623,2023-07-28T23:12:22+00:00,17.0,bedding & bath,blankets & comforters,NEW,ashley cooper,20230701/000000000112.parquet
+47797326,2023-07-28T23:31:37+00:00,15.0,kitchen & dining,bakeware,GOOD,,20230701/000000000200.parquet
+224630667,2023-07-29T02:57:30+00:00,9.0,kitchen & dining,bakeware,NEW,disney,20230701/000000000275.parquet
+141942015,2023-07-29T03:36:17+00:00,17.0,kitchen & dining,bottles & tumblers,NEW,sanrio,20230701/000000000325.parquet
+104585914,2023-07-29T14:48:50+00:00,8.0,home decor,candles,LIKE_NEW,bath & body works,20230701/000000000325.parquet
+65057583,2023-07-29T17:01:52+00:00,12.0,kitchen & dining,food storage,NEW,tupperware,20230701/000000000105.parquet
+198905470,2023-07-29T22:41:33+00:00,24.0,kitchen & dining,food storage,NEW,marshalls,20230701/000000000116.parquet
+70444925,2023-07-30T01:32:31+00:00,14.0,kitchen & dining,mugs & cups,NEW,disney,20230701/000000000325.parquet
+12896149,2023-07-30T02:09:25+00:00,21.0,home decor,rug & mat,NEW,,20230701/000000000098.parquet
+70128461,2023-07-30T02:54:04+00:00,7.0,kitchen & dining,bottles & tumblers,GOOD,starbucks,20230701/000000000105.parquet
+186471552,2023-07-30T16:09:54+00:00,39.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230701/000000000116.parquet
+186372684,2023-07-30T17:18:41+00:00,17.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230701/000000000341.parquet
+21761517,2023-07-30T17:54:51+00:00,10.0,bedding & bath,sheets & pillowcases,GOOD,dkny,20230701/000000000105.parquet
+108311454,2023-07-30T18:13:35+00:00,66.0,furniture,table,NEW,amazon,20230701/000000000325.parquet
+212095884,2023-07-30T18:37:46+00:00,20.0,kitchen & dining,mugs & cups,GOOD,,20230701/000000000325.parquet
+183941719,2023-07-30T19:09:23+00:00,61.0,kitchen & dining,kitchen utensils & tools,NEW,rae dunn,20230701/000000000334.parquet
+226191164,2023-07-30T22:10:50+00:00,18.0,home decor,wall art & frames,NEW,autograph,20230701/000000000112.parquet
+165100422,2023-07-30T22:29:20+00:00,15.0,kitchen & dining,mugs & cups,NEW,disney,20230701/000000000177.parquet
+47205825,2023-08-01T02:49:29+00:00,9.0,appliances,coffee & espresso machine,GOOD,,20230801/000000000257.parquet
+139416282,2023-08-01T13:09:49+00:00,20.0,storage & organization,storage bins & baskets,NEW,costco,20230801/000000000090.parquet
+178936323,2023-08-01T13:54:00+00:00,55.0,home decor,rug & mat,NEW,disney,20230801/000000000292.parquet
+233503181,2023-08-01T14:19:00+00:00,7.0,appliances,air care & climate,LIKE_NEW,mainstays,20230801/000000000016.parquet
+124567826,2023-08-02T01:41:44+00:00,45.0,home decor,decorative accessories,NEW,t.j.maxx,20230801/000000000166.parquet
+148146559,2023-08-02T04:45:05+00:00,62.0,home decor,candles,NEW,diptyque,20230801/000000000090.parquet
+171951260,2023-08-02T14:43:01+00:00,19.0,kitchen & dining,mugs & cups,NEW,hydro flask,20230801/000000000096.parquet
+115989769,2023-08-02T15:57:46+00:00,60.0,bedding & bath,sheets & pillowcases,NEW,,20230801/000000000090.parquet
+64343201,2023-08-02T17:25:22+00:00,115.0,bedding & bath,blankets & comforters,NEW,hello kitty,20230801/000000000090.parquet
+1002412,2023-08-02T23:20:52+00:00,17.0,kitchen & dining,kitchen utensils & tools,NEW,tupperware,20230801/000000000292.parquet
+81304516,2023-08-02T23:39:16+00:00,55.0,bedding & bath,blankets & comforters,NEW,hello kitty,20230801/000000000166.parquet
+56415779,2023-08-03T00:08:33+00:00,68.0,home decor,decorative accessories,NEW,t.j.maxx,20230801/000000000118.parquet
+119609165,2023-08-03T01:19:34+00:00,36.0,home decor,wall art & frames,NEW,disney,20230801/000000000144.parquet
+77520997,2023-08-03T02:13:46+00:00,10.0,bedding & bath,sheets & pillowcases,LIKE_NEW,ikea,20230801/000000000144.parquet
+196387659,2023-08-03T02:26:04+00:00,22.0,home decor,lamp & lighting,GOOD,ikea,20230801/000000000231.parquet
+196439218,2023-08-03T03:35:42+00:00,35.0,home decor,candles,NEW,bath & body works,20230801/000000000316.parquet
+140512595,2023-08-03T03:58:26+00:00,26.0,bedding & bath,blankets & comforters,LIKE_NEW,,20230801/000000000118.parquet
+72765900,2023-08-03T12:11:24+00:00,15.0,kitchen & dining,dinnerware,GOOD,mainstays,20230801/000000000144.parquet
+238446259,2023-08-03T12:54:11+00:00,75.0,home decor,decorative accessories,GOOD,,20230801/000000000090.parquet
+15584425,2023-08-03T16:39:46+00:00,17.0,kitchen & dining,bottles & tumblers,NEW,under armour,20230801/000000000118.parquet
+198920936,2023-08-03T23:30:36+00:00,45.0,home decor,rug & mat,NEW,handmade,20230801/000000000231.parquet
+240540403,2023-08-04T06:01:24+00:00,20.0,kitchen & dining,dinnerware,LIKE_NEW,better homes & gardens,20230801/000000000144.parquet
+208837542,2023-08-04T10:18:04+00:00,29.0,kitchen & dining,mugs & cups,LIKE_NEW,,20230801/000000000016.parquet
+75934075,2023-08-04T12:48:05+00:00,23.0,home decor,candles,NEW,voluspa,20230801/000000000292.parquet
+216176230,2023-08-04T16:19:48+00:00,20.0,home decor,decorative pillow,LIKE_NEW,pottery barn,20230801/000000000257.parquet
+184624395,2023-08-04T16:53:35+00:00,21.0,kitchen & dining,mugs & cups,GOOD,,20230801/000000000118.parquet
+196364332,2023-08-04T17:07:58+00:00,50.0,kitchen & dining,food storage,NEW,disney,20230801/000000000096.parquet
+201316967,2023-08-04T19:39:58+00:00,25.0,kitchen & dining,bottles & tumblers,NEW,pioneer woman,20230801/000000000118.parquet
+213716064,2023-08-04T22:58:22+00:00,10.0,appliances,kitchen appliance,NEW,chefman,20230801/000000000257.parquet
+147142734,2023-08-05T02:54:03+00:00,54.0,bedding & bath,blankets & comforters,NEW,rachel zoe,20230801/000000000118.parquet
+83656763,2023-08-05T11:20:43+00:00,16.0,kitchen & dining,mugs & cups,GOOD,mainstays,20230801/000000000144.parquet
+124563409,2023-08-05T15:36:25+00:00,85.0,bedding & bath,blankets & comforters,NEW,t.j.maxx,20230801/000000000144.parquet
+88695036,2023-08-05T15:52:47+00:00,12.0,kitchen & dining,dinnerware,GOOD,,20230801/000000000231.parquet
+75290115,2023-08-05T17:31:31+00:00,57.0,kitchen & dining,bottles & tumblers,LIKE_NEW,stanley,20230801/000000000118.parquet
+140826001,2023-08-05T17:52:08+00:00,38.0,kitchen & dining,kitchen utensils & tools,NEW,rae dunn,20230801/000000000166.parquet
+64161012,2023-08-05T22:49:46+00:00,15.0,home decor,wall art & frames,GOOD,,20230801/000000000096.parquet
+189764561,2023-08-06T12:42:01+00:00,21.0,kitchen & dining,food storage,NEW,herschel supply co.,20230801/000000000096.parquet
+189152916,2023-08-06T13:25:17+00:00,12.0,kitchen & dining,kitchen utensils & tools,NEW,,20230801/000000000016.parquet
+174144517,2023-08-06T13:37:38+00:00,12.0,bedding & bath,bath towels,NEW,threshold,20230801/000000000144.parquet
+114696971,2023-08-06T15:31:15+00:00,100.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000118.parquet
+180748913,2023-08-06T19:59:03+00:00,30.0,kitchen & dining,bakeware,NEW,rae dunn,20230801/000000000118.parquet
+30800797,2023-08-06T19:59:19+00:00,15.0,kitchen & dining,bottles & tumblers,NEW,zak designs,20230801/000000000118.parquet
+42913766,2023-08-06T19:59:56+00:00,28.0,kitchen & dining,kitchen utensils & tools,NEW,rae dunn,20230801/000000000118.parquet
+135793200,2023-08-06T20:18:33+00:00,45.0,bedding & bath,blankets & comforters,NEW,t.j.maxx,20230801/000000000118.parquet
+4795014,2023-08-07T01:32:04+00:00,60.0,kitchen & dining,dinnerware,NEW,,20230801/000000000090.parquet
+227062081,2023-08-07T02:14:07+00:00,11.0,bedding & bath,blankets & comforters,NEW,,20230801/000000000316.parquet
+160182815,2023-08-07T02:50:32+00:00,14.0,kitchen & dining,mugs & cups,NEW,20th century fox,20230801/000000000292.parquet
+247479795,2023-08-07T12:46:03+00:00,10.0,kitchen & dining,dinnerware,LIKE_NEW,,20230801/000000000090.parquet
+91097243,2023-08-07T19:11:51+00:00,8.0,home decor,wall art & frames,NEW,handmade,20230801/000000000166.parquet
+141018990,2023-08-07T22:37:24+00:00,18.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000016.parquet
+62700527,2023-08-07T22:57:24+00:00,19.0,kitchen & dining,food storage,NEW,,20230801/000000000257.parquet
+178691900,2023-08-08T02:02:52+00:00,20.0,bedding & bath,pillow & bedding accessories,LIKE_NEW,,20230801/000000000016.parquet
+224866338,2023-08-08T03:15:56+00:00,13.0,kitchen & dining,mugs & cups,LIKE_NEW,mancera,20230801/000000000316.parquet
+221082639,2023-08-08T09:02:28+00:00,71.0,appliances,vacuum,LIKE_NEW,ridgid,20230801/000000000292.parquet
+128658119,2023-08-08T14:30:52+00:00,36.0,bedding & bath,sheets & pillowcases,NEW,t.j.maxx,20230801/000000000090.parquet
+201396709,2023-08-08T15:43:07+00:00,33.0,appliances,iron & steamer,GOOD,,20230801/000000000096.parquet
+230116934,2023-08-08T18:10:46+00:00,43.0,appliances,vacuum,GOOD,eureka!,20230801/000000000144.parquet
+243168347,2023-08-08T18:27:42+00:00,24.0,home decor,lamp & lighting,NEW,hampton bay,20230801/000000000166.parquet
+80614439,2023-08-08T20:07:07+00:00,20.0,kitchen & dining,mugs & cups,GOOD,starbucks,20230801/000000000016.parquet
+216142229,2023-08-09T05:16:28+00:00,12.0,home decor,wall art & frames,GOOD,,20230801/000000000118.parquet
+228586405,2023-08-09T05:42:44+00:00,22.0,home decor,home fragrance,NEW,bath & body works,20230801/000000000090.parquet
+181500321,2023-08-09T14:08:23+00:00,57.0,home decor,rug & mat,NEW,forever 21,20230801/000000000118.parquet
+143984503,2023-08-09T15:03:41+00:00,20.0,bedding & bath,blankets & comforters,NEW,,20230801/000000000144.parquet
+178017615,2023-08-09T18:36:36+00:00,218.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000257.parquet
+123683478,2023-08-09T22:48:11+00:00,30.0,home decor,wall art & frames,LIKE_NEW,manga,20230801/000000000292.parquet
+207264432,2023-08-09T23:12:12+00:00,17.0,home decor,candles,NEW,pioneer woman,20230801/000000000144.parquet
+220526673,2023-08-10T01:36:39+00:00,175.0,bedding & bath,blankets & comforters,LIKE_NEW,handmade,20230801/000000000090.parquet
+242049540,2023-08-10T17:59:14+00:00,11.0,kitchen & dining,kitchen utensils & tools,NEW,pampered chef,20230801/000000000316.parquet
+31833544,2023-08-10T23:49:27+00:00,15.0,kitchen & dining,mugs & cups,NEW,,20230801/000000000257.parquet
+201587438,2023-08-11T01:04:17+00:00,56.0,home decor,wall art & frames,NEW,autograph,20230801/000000000090.parquet
+69270495,2023-08-11T01:27:22+00:00,44.0,bedding & bath,sheets & pillowcases,NEW,boutique,20230801/000000000090.parquet
+24532563,2023-08-11T10:00:09+00:00,95.0,home decor,decorative accessories,NEW,burlington,20230801/000000000118.parquet
+21646962,2023-08-11T14:04:42+00:00,20.0,kitchen & dining,bottles & tumblers,GOOD,disney,20230801/000000000118.parquet
+118480908,2023-08-11T14:49:16+00:00,13.0,home decor,home fragrance,NEW,,20230801/000000000016.parquet
+230508521,2023-08-11T17:40:49+00:00,60.0,kitchen & dining,bottles & tumblers,GOOD,bkr,20230801/000000000118.parquet
+210439417,2023-08-12T00:32:16+00:00,105.0,kitchen & dining,kitchen utensils & tools,NEW,rae dunn,20230801/000000000144.parquet
+7720387,2023-08-12T19:36:14+00:00,260.0,kitchen & dining,cookware,GOOD,le creuset,20230801/000000000118.parquet
+56658725,2023-08-13T00:44:18+00:00,25.0,kitchen & dining,bottles & tumblers,LIKE_NEW,starbucks,20230801/000000000118.parquet
+173268660,2023-08-13T00:46:00+00:00,28.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000118.parquet
+154273097,2023-08-13T02:49:37+00:00,159.0,kitchen & dining,cookware,LIKE_NEW,,20230801/000000000292.parquet
+51948830,2023-08-13T06:03:00+00:00,25.0,kitchen & dining,food storage,NEW,jansport,20230801/000000000257.parquet
+108561663,2023-08-13T07:08:53+00:00,225.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000257.parquet
+207734161,2023-08-13T12:49:48+00:00,38.0,bedding & bath,blankets & comforters,NEW,,20230801/000000000292.parquet
+57794357,2023-08-13T16:20:17+00:00,30.0,kitchen & dining,dinnerware,LIKE_NEW,rae dunn,20230801/000000000166.parquet
+247499616,2023-08-13T16:27:59+00:00,55.0,kitchen & dining,dinnerware,NEW,rae dunn,20230801/000000000166.parquet
+159167669,2023-08-13T18:47:46+00:00,152.0,bedding & bath,blankets & comforters,NEW,hotel collection,20230801/000000000292.parquet
+213134745,2023-08-13T20:27:01+00:00,12.0,kitchen & dining,mugs & cups,NEW,,20230801/000000000166.parquet
+23094920,2023-08-13T21:54:31+00:00,50.0,bedding & bath,bathroom accessories,NEW,kohler,20230801/000000000118.parquet
+202852471,2023-08-13T22:28:42+00:00,16.0,home decor,seasonal decorations,NEW,,20230801/000000000118.parquet
+163411127,2023-08-14T01:54:57+00:00,120.0,appliances,kitchen appliance,NEW,nuwave,20230801/000000000144.parquet
+158220326,2023-08-14T17:24:28+00:00,162.0,kitchen & dining,bottles & tumblers,NEW,brumate,20230801/000000000118.parquet
+131113587,2023-08-14T19:18:19+00:00,12.0,home decor,wall art & frames,NEW,,20230801/000000000090.parquet
+148271441,2023-08-14T19:55:25+00:00,48.0,home decor,decorative pillow,NEW,,20230801/000000000316.parquet
+218132495,2023-08-14T21:35:58+00:00,90.0,bedding & bath,blankets & comforters,NEW,hello kitty,20230801/000000000090.parquet
+156716057,2023-08-15T00:07:52+00:00,6.0,bedding & bath,blankets & comforters,NEW,,20230801/000000000016.parquet
+145688176,2023-08-15T14:12:09+00:00,15.0,kitchen & dining,mugs & cups,NEW,,20230801/000000000096.parquet
+178952646,2023-08-15T14:25:41+00:00,119.0,appliances,kitchen appliance,NEW,kitchenaid,20230801/000000000257.parquet
+143445050,2023-08-15T14:32:27+00:00,25.0,kitchen & dining,bottles & tumblers,NEW,,20230801/000000000090.parquet
+86360137,2023-08-15T22:44:09+00:00,126.0,home decor,lamp & lighting,NEW,ikea,20230801/000000000118.parquet
+183451868,2023-08-16T01:55:14+00:00,1.0,kitchen & dining,mugs & cups,GOOD,godiva,20230801/000000000316.parquet
+149306247,2023-08-16T11:16:25+00:00,5.0,kitchen & dining,kitchen utensils & tools,GOOD,,20230801/000000000016.parquet
+104750118,2023-08-16T17:17:42+00:00,15.0,furniture,dresser,LIKE_NEW,,20230801/000000000016.parquet
+235462835,2023-08-16T19:12:03+00:00,36.0,home decor,decorative accessories,NEW,t.j.maxx,20230801/000000000118.parquet
+164345021,2023-08-16T20:04:37+00:00,9.0,kitchen & dining,bottles & tumblers,GOOD,sodastream,20230801/000000000292.parquet
+150090995,2023-08-16T20:37:51+00:00,19.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230801/000000000144.parquet
+37493070,2023-08-16T20:42:31+00:00,7.0,kitchen & dining,mugs & cups,GOOD,warner brothers,20230801/000000000118.parquet
+136826949,2023-08-16T21:50:12+00:00,55.0,kitchen & dining,dinnerware,NEW,royal stafford,20230801/000000000292.parquet
+136885330,2023-08-17T02:42:46+00:00,16.0,kitchen & dining,mugs & cups,NEW,ross,20230801/000000000316.parquet
+39234667,2023-08-17T17:41:19+00:00,13.0,home decor,wall art & frames,NEW,star trek,20230801/000000000144.parquet
+60231919,2023-08-17T19:51:42+00:00,19.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000016.parquet
+222349638,2023-08-17T21:33:44+00:00,44.0,appliances,vacuum,GOOD,hoover,20230801/000000000118.parquet
+139750154,2023-08-17T23:43:55+00:00,45.0,kitchen & dining,dinnerware,GOOD,mirage,20230801/000000000144.parquet
+192919924,2023-08-18T05:27:22+00:00,18.0,home decor,decorative pillow,LIKE_NEW,urban outfitters,20230801/000000000118.parquet
+25515556,2023-08-18T15:51:57+00:00,22.0,home decor,wall art & frames,NEW,,20230801/000000000257.parquet
+142270222,2023-08-18T16:04:16+00:00,39.0,bedding & bath,blankets & comforters,NEW,nordstrom,20230801/000000000016.parquet
+69143583,2023-08-18T17:51:23+00:00,93.0,home decor,decorative pillow,LIKE_NEW,taylor swift,20230801/000000000118.parquet
+159522240,2023-08-18T19:58:07+00:00,12.0,home decor,wall art & frames,GOOD,,20230801/000000000016.parquet
+65042018,2023-08-19T04:05:36+00:00,25.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000016.parquet
+240040967,2023-08-19T04:05:40+00:00,323.0,appliances,coffee & espresso machine,LIKE_NEW,breville,20230801/000000000292.parquet
+220052547,2023-08-19T05:00:55+00:00,44.0,home decor,candles,NEW,bath & body works,20230801/000000000292.parquet
+12306226,2023-08-19T05:43:29+00:00,64.0,home decor,candles,NEW,bath & body works,20230801/000000000166.parquet
+226567759,2023-08-19T14:09:24+00:00,4.0,kitchen & dining,kitchen utensils & tools,NEW,,20230801/000000000166.parquet
+150908026,2023-08-19T17:06:28+00:00,20.0,home decor,wall art & frames,NEW,handmade,20230801/000000000292.parquet
+25716794,2023-08-19T18:34:58+00:00,12.0,home decor,wall art & frames,NEW,hobby lobby,20230801/000000000118.parquet
+111385853,2023-08-19T20:25:05+00:00,15.0,kitchen & dining,food storage,NEW,marshalls,20230801/000000000257.parquet
+96376760,2023-08-19T20:27:19+00:00,17.0,kitchen & dining,mugs & cups,NEW,t.j.maxx,20230801/000000000257.parquet
+41954648,2023-08-19T20:28:12+00:00,19.0,kitchen & dining,mugs & cups,NEW,,20230801/000000000257.parquet
+138453152,2023-08-19T21:19:48+00:00,26.0,kitchen & dining,bottles & tumblers,NEW,t.j.maxx,20230801/000000000257.parquet
+28685116,2023-08-19T23:05:26+00:00,30.0,kitchen & dining,bottles & tumblers,GOOD,starbucks,20230801/000000000316.parquet
+234326821,2023-08-19T23:38:13+00:00,22.0,kitchen & dining,mugs & cups,NEW,mikasa,20230801/000000000166.parquet
+73213123,2023-08-20T01:48:52+00:00,40.0,storage & organization,storage bins & baskets,NEW,,20230801/000000000316.parquet
+70085379,2023-08-20T02:40:05+00:00,16.0,home decor,wall art & frames,NEW,,20230801/000000000166.parquet
+126360877,2023-08-20T06:17:23+00:00,10.0,home decor,lamp & lighting,NEW,,20230801/000000000016.parquet
+123561490,2023-08-20T16:51:20+00:00,38.0,kitchen & dining,bottles & tumblers,LIKE_NEW,stanley,20230801/000000000118.parquet
+238429793,2023-08-20T17:05:17+00:00,155.0,bedding & bath,blankets & comforters,NEW,kate spade,20230801/000000000118.parquet
+168517929,2023-08-20T22:14:17+00:00,27.0,home decor,decorative pillow,NEW,marshalls,20230801/000000000090.parquet
+135906711,2023-08-20T22:16:35+00:00,40.0,home decor,mirror,NEW,,20230801/000000000090.parquet
+71454471,2023-08-21T04:20:54+00:00,34.0,kitchen & dining,kitchen utensils & tools,NEW,rae dunn,20230801/000000000118.parquet
+163178056,2023-08-21T16:12:41+00:00,8.0,home decor,seasonal decorations,LIKE_NEW,mary engelbreit,20230801/000000000118.parquet
+5742145,2023-08-21T17:41:13+00:00,23.0,appliances,coffee & espresso machine,GOOD,aeropress,20230801/000000000166.parquet
+49263663,2023-08-21T18:12:54+00:00,33.0,kitchen & dining,dinnerware,NEW,,20230801/000000000316.parquet
+49344967,2023-08-21T23:38:21+00:00,14.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000118.parquet
+78081537,2023-08-22T02:34:08+00:00,40.0,kitchen & dining,bottles & tumblers,LIKE_NEW,disney,20230801/000000000144.parquet
+24207296,2023-08-22T03:59:04+00:00,100.0,home decor,decorative accessories,NEW,jim shore,20230801/000000000166.parquet
+113499873,2023-08-22T12:22:28+00:00,23.0,kitchen & dining,dinnerware,LIKE_NEW,hearthside collection,20230801/000000000292.parquet
+175507852,2023-08-22T17:44:00+00:00,26.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000257.parquet
+113217565,2023-08-22T22:11:12+00:00,17.0,kitchen & dining,bottles & tumblers,NEW,tervis,20230801/000000000292.parquet
+188871883,2023-08-23T00:57:33+00:00,30.0,home decor,wall art & frames,LIKE_NEW,kate spade,20230801/000000000292.parquet
+151844339,2023-08-23T01:59:06+00:00,171.0,furniture,chair,NEW,,20230801/000000000090.parquet
+114857581,2023-08-23T11:42:03+00:00,100.0,furniture,desk,NEW,,20230801/000000000118.parquet
+86922223,2023-08-23T12:37:28+00:00,35.0,home decor,decorative accessories,NEW,,20230801/000000000090.parquet
+83906080,2023-08-23T13:27:47+00:00,46.0,kitchen & dining,bottles & tumblers,NEW,hydrapak,20230801/000000000090.parquet
+74986257,2023-08-23T14:19:17+00:00,65.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000090.parquet
+29584696,2023-08-23T14:43:08+00:00,122.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000090.parquet
+177354605,2023-08-23T16:51:52+00:00,28.0,kitchen & dining,mugs & cups,NEW,met,20230801/000000000257.parquet
+184285713,2023-08-23T17:13:57+00:00,18.0,home decor,seasonal decorations,NEW,disney,20230801/000000000096.parquet
+61026853,2023-08-23T18:39:08+00:00,28.0,kitchen & dining,food storage,NEW,star wars,20230801/000000000231.parquet
+226567485,2023-08-23T19:57:02+00:00,16.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000118.parquet
+171509481,2023-08-23T19:58:09+00:00,148.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000118.parquet
+232533630,2023-08-23T19:58:35+00:00,19.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000118.parquet
+91604444,2023-08-23T20:06:57+00:00,30.0,kitchen & dining,bottles & tumblers,NEW,t.j.maxx,20230801/000000000090.parquet
+179412122,2023-08-23T20:31:45+00:00,18.0,bedding & bath,blankets & comforters,NEW,the big one,20230801/000000000231.parquet
+246360625,2023-08-24T03:40:40+00:00,9.0,bedding & bath,blankets & comforters,NEW,,20230801/000000000016.parquet
+158083268,2023-08-24T03:46:35+00:00,16.0,kitchen & dining,bottles & tumblers,NEW,,20230801/000000000090.parquet
+44351673,2023-08-24T17:10:44+00:00,209.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000231.parquet
+118951025,2023-08-24T17:11:43+00:00,4.0,kitchen & dining,food storage,NEW,,20230801/000000000166.parquet
+14800539,2023-08-24T17:58:01+00:00,100.0,kitchen & dining,dinnerware,LIKE_NEW,williams sonoma,20230801/000000000166.parquet
+54270610,2023-08-24T23:23:52+00:00,39.0,home decor,decorative accessories,NEW,,20230801/000000000118.parquet
+202820161,2023-08-25T00:14:39+00:00,36.0,home decor,candles,NEW,,20230801/000000000118.parquet
+148828668,2023-08-25T02:51:18+00:00,25.0,kitchen & dining,bottles & tumblers,GOOD,disney,20230801/000000000118.parquet
+75841831,2023-08-25T02:54:49+00:00,25.0,kitchen & dining,bottles & tumblers,NEW,disney,20230801/000000000118.parquet
+41724014,2023-08-25T12:22:25+00:00,250.0,bedding & bath,blankets & comforters,NEW,little sleepies,20230801/000000000166.parquet
+73938545,2023-08-25T17:01:47+00:00,39.0,home decor,candles,NEW,,20230801/000000000118.parquet
+16400335,2023-08-25T17:44:45+00:00,23.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000016.parquet
+149699068,2023-08-25T21:07:40+00:00,10.0,home decor,seasonal decorations,NEW,disney,20230801/000000000118.parquet
+119851844,2023-08-26T01:45:05+00:00,11.0,kitchen & dining,bottles & tumblers,LIKE_NEW,apana,20230801/000000000257.parquet
+239028458,2023-08-26T03:27:02+00:00,20.0,kitchen & dining,mugs & cups,GOOD,harley-davidson,20230801/000000000096.parquet
+148138480,2023-08-26T16:29:40+00:00,54.0,kitchen & dining,mugs & cups,LIKE_NEW,anthropologie,20230801/000000000316.parquet
+69689339,2023-08-26T18:31:58+00:00,40.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230801/000000000118.parquet
+177439394,2023-08-26T22:34:23+00:00,13.0,kitchen & dining,bottles & tumblers,NEW,igloo,20230801/000000000118.parquet
+235931658,2023-08-26T22:57:32+00:00,5.0,home decor,seasonal decorations,GOOD,nick jr.,20230801/000000000090.parquet
+108673519,2023-08-26T23:12:52+00:00,25.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000292.parquet
+247599759,2023-08-26T23:15:07+00:00,21.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000292.parquet
+5751899,2023-08-27T02:54:45+00:00,30.0,furniture,chair,GOOD,,20230801/000000000292.parquet
+191339307,2023-08-27T04:07:58+00:00,3.0,kitchen & dining,bottles & tumblers,LIKE_NEW,contigo,20230801/000000000292.parquet
+201271506,2023-08-27T05:09:18+00:00,12.0,bedding & bath,blankets & comforters,NEW,sega,20230801/000000000090.parquet
+202699987,2023-08-27T12:48:06+00:00,17.0,kitchen & dining,bottles & tumblers,NEW,yeti,20230801/000000000231.parquet
+171503532,2023-08-27T15:44:18+00:00,13.0,home decor,decorative accessories,NEW,hallmark,20230801/000000000257.parquet
+79047881,2023-08-27T16:38:18+00:00,15.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000231.parquet
+51775579,2023-08-27T18:36:20+00:00,7.0,bedding & bath,sheets & pillowcases,NEW,,20230801/000000000231.parquet
+7143883,2023-08-27T22:57:00+00:00,108.0,bedding & bath,blankets & comforters,NEW,juicy couture,20230801/000000000118.parquet
+73315316,2023-08-28T00:31:40+00:00,150.0,bedding & bath,blankets & comforters,NEW,,20230801/000000000090.parquet
+232768501,2023-08-28T01:28:53+00:00,10.0,appliances,kitchen appliance,GOOD,crock pot,20230801/000000000292.parquet
+84948422,2023-08-28T03:37:17+00:00,39.0,home decor,decorative accessories,NEW,t.j.maxx,20230801/000000000118.parquet
+73998865,2023-08-28T12:38:20+00:00,12.0,bedding & bath,bathroom accessories,NEW,,20230801/000000000090.parquet
+216147343,2023-08-28T15:31:45+00:00,319.0,kitchen & dining,cookware,NEW,master class,20230801/000000000016.parquet
+217651045,2023-08-28T15:41:57+00:00,75.0,kitchen & dining,kitchen utensils & tools,NEW,rae dunn,20230801/000000000231.parquet
+113530909,2023-08-28T22:35:50+00:00,57.0,furniture,desk,NEW,,20230801/000000000144.parquet
+51744900,2023-08-28T23:43:41+00:00,34.0,bedding & bath,blankets & comforters,NEW,,20230801/000000000257.parquet
+200230211,2023-08-29T01:17:25+00:00,18.0,kitchen & dining,bottles & tumblers,NEW,,20230801/000000000257.parquet
+46845064,2023-08-29T01:22:14+00:00,17.0,kitchen & dining,food storage,NEW,tupperware,20230801/000000000016.parquet
+14245013,2023-08-29T01:52:39+00:00,18.0,home decor,wall art & frames,LIKE_NEW,art,20230801/000000000118.parquet
+116313714,2023-08-29T02:55:25+00:00,54.0,bedding & bath,blankets & comforters,NEW,hello kitty,20230801/000000000118.parquet
+7132956,2023-08-29T03:19:50+00:00,20.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000118.parquet
+93793597,2023-08-29T03:20:25+00:00,29.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000118.parquet
+101236326,2023-08-29T03:20:49+00:00,20.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000118.parquet
+83907457,2023-08-29T06:16:19+00:00,18.0,home decor,rug & mat,GOOD,capri,20230801/000000000090.parquet
+74261939,2023-08-29T14:24:37+00:00,28.0,kitchen & dining,mugs & cups,GOOD,anthropologie,20230801/000000000090.parquet
+127805671,2023-08-29T14:25:25+00:00,11.0,kitchen & dining,mugs & cups,NEW,anthropologie,20230801/000000000090.parquet
+95871872,2023-08-29T15:17:46+00:00,78.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230801/000000000292.parquet
+230944699,2023-08-29T15:29:18+00:00,50.0,bedding & bath,blankets & comforters,NEW,,20230801/000000000144.parquet
+228568564,2023-08-29T15:29:53+00:00,34.0,home decor,decorative pillow,NEW,,20230801/000000000144.parquet
+119431516,2023-08-29T22:58:39+00:00,190.0,home decor,lamp & lighting,NEW,,20230801/000000000090.parquet
+64215922,2023-08-30T01:08:11+00:00,25.0,kitchen & dining,dinnerware,NEW,mikasa,20230801/000000000144.parquet
+188964370,2023-08-30T01:10:04+00:00,16.0,kitchen & dining,kitchen utensils & tools,GOOD,mikasa,20230801/000000000144.parquet
+195359701,2023-08-30T01:14:57+00:00,10.0,kitchen & dining,bottles & tumblers,LIKE_NEW,starbucks,20230801/000000000016.parquet
+143468232,2023-08-30T01:35:46+00:00,20.0,furniture,bed frame,NEW,,20230801/000000000166.parquet
+62574084,2023-08-30T06:12:01+00:00,49.0,home decor,candles,NEW,bath & body works,20230801/000000000257.parquet
+113864311,2023-08-30T17:14:40+00:00,120.0,kitchen & dining,bottles & tumblers,NEW,,20230801/000000000090.parquet
+207773600,2023-08-30T19:08:57+00:00,130.0,bedding & bath,blankets & comforters,NEW,juicy couture,20230801/000000000118.parquet
+194357706,2023-08-30T22:53:39+00:00,50.0,kitchen & dining,dinnerware,NEW,rae dunn,20230801/000000000166.parquet
+104828098,2023-08-30T23:56:34+00:00,6.0,kitchen & dining,bottles & tumblers,NEW,,20230801/000000000118.parquet
+153240118,2023-09-01T05:20:05+00:00,11.0,kitchen & dining,kitchen utensils & tools,NEW,amazonbasics,20230901/000000000080.parquet
+40392961,2023-09-01T05:23:09+00:00,5.0,kitchen & dining,kitchen utensils & tools,NEW,,20230901/000000000080.parquet
+229917829,2023-09-01T07:06:57+00:00,50.0,appliances,iron & steamer,NEW,rowenta,20230901/000000000094.parquet
+34611808,2023-09-01T13:57:40+00:00,180.0,appliances,air care & climate,NEW,shark,20230901/000000000026.parquet
+4551208,2023-09-01T16:39:42+00:00,39.0,bedding & bath,sheets & pillowcases,NEW,cynthia rowley,20230901/000000000094.parquet
+68619195,2023-09-01T19:19:12+00:00,80.0,kitchen & dining,food storage,NEW,disney,20230901/000000000038.parquet
+150762082,2023-09-01T19:57:25+00:00,172.0,home decor,decorative accessories,NEW,pottery barn,20230901/000000000019.parquet
+238375955,2023-09-01T20:34:54+00:00,13.0,kitchen & dining,bottles & tumblers,GOOD,starbucks,20230901/000000000019.parquet
+71266385,2023-09-01T21:31:10+00:00,200.0,appliances,vacuum,GOOD,dyson,20230901/000000000019.parquet
+235274648,2023-09-01T23:57:29+00:00,285.0,bedding & bath,blankets & comforters,GOOD,simply shabby chic,20230901/000000000080.parquet
+218561694,2023-09-02T00:45:08+00:00,35.0,bedding & bath,blankets & comforters,NEW,t.j.maxx,20230901/000000000094.parquet
+230044473,2023-09-02T00:58:13+00:00,162.0,appliances,coffee & espresso machine,NEW,ninja,20230901/000000000273.parquet
+46885587,2023-09-02T01:49:19+00:00,75.0,bedding & bath,blankets & comforters,NEW,cupcakes and cashmere,20230901/000000000273.parquet
+111530323,2023-09-02T02:46:31+00:00,5.0,home decor,seasonal decorations,GOOD,,20230901/000000000078.parquet
+124468411,2023-09-02T02:53:50+00:00,34.0,bedding & bath,blankets & comforters,NEW,peanuts,20230901/000000000360.parquet
+123628072,2023-09-02T03:07:33+00:00,25.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230901/000000000360.parquet
+31928422,2023-09-02T07:10:41+00:00,10.0,bedding & bath,blankets & comforters,GOOD,,20230901/000000000026.parquet
+22054364,2023-09-02T16:39:10+00:00,32.0,kitchen & dining,kitchen & table linens,NEW,,20230901/000000000019.parquet
+148404245,2023-09-02T19:51:58+00:00,109.0,bedding & bath,blankets & comforters,NEW,kate spade,20230901/000000000078.parquet
+37393951,2023-09-02T20:16:22+00:00,8.0,kitchen & dining,servingware,GOOD,party city,20230901/000000000343.parquet
+154122027,2023-09-02T22:43:03+00:00,22.0,kitchen & dining,food storage,NEW,,20230901/000000000078.parquet
+132029487,2023-09-02T22:44:49+00:00,23.0,appliances,kitchen appliance,NEW,dash,20230901/000000000343.parquet
+198812471,2023-09-03T01:50:49+00:00,10.0,kitchen & dining,kitchen utensils & tools,GOOD,unique vintage,20230901/000000000038.parquet
+225223210,2023-09-03T08:19:16+00:00,54.0,bedding & bath,blankets & comforters,NEW,hello kitty,20230901/000000000038.parquet
+32592151,2023-09-03T09:01:44+00:00,46.0,bedding & bath,sheets & pillowcases,NEW,betsey johnson,20230901/000000000360.parquet
+49108746,2023-09-03T15:01:02+00:00,32.0,appliances,coffee & espresso machine,GOOD,keurig,20230901/000000000360.parquet
+222996408,2023-09-03T16:05:43+00:00,35.0,kitchen & dining,servingware,NEW,target,20230901/000000000360.parquet
+101309234,2023-09-03T19:01:47+00:00,24.0,kitchen & dining,bottles & tumblers,NEW,wellness,20230901/000000000026.parquet
+61531591,2023-09-03T21:34:46+00:00,19.0,home decor,wall art & frames,LIKE_NEW,,20230901/000000000094.parquet
+154475507,2023-09-03T23:16:10+00:00,54.0,bedding & bath,blankets & comforters,NEW,,20230901/000000000343.parquet
+210659887,2023-09-03T23:26:21+00:00,89.0,kitchen & dining,food storage,NEW,rae dunn,20230901/000000000094.parquet
+8141932,2023-09-04T00:45:34+00:00,93.0,kitchen & dining,cookware,NEW,master class,20230901/000000000080.parquet
+83485583,2023-09-04T03:01:55+00:00,29.0,bedding & bath,blankets & comforters,NEW,nickelodeon,20230901/000000000078.parquet
+88838146,2023-09-04T05:09:13+00:00,28.0,kitchen & dining,food storage,NEW,t.j.maxx,20230901/000000000343.parquet
+227549233,2023-09-04T07:49:38+00:00,12.0,kitchen & dining,mugs & cups,LIKE_NEW,roy kirkham,20230901/000000000273.parquet
+87445355,2023-09-04T14:44:52+00:00,25.0,home decor,wall art & frames,LIKE_NEW,marvel,20230901/000000000019.parquet
+198183092,2023-09-04T14:51:53+00:00,50.0,kitchen & dining,bottles & tumblers,NEW,,20230901/000000000019.parquet
+66786122,2023-09-04T16:54:36+00:00,45.0,home decor,seasonal decorations,NEW,disney,20230901/000000000019.parquet
+69157311,2023-09-04T16:55:50+00:00,44.0,home decor,seasonal decorations,NEW,disney,20230901/000000000019.parquet
+125910084,2023-09-04T18:15:36+00:00,6.0,home decor,home fragrance,NEW,bath & body works,20230901/000000000019.parquet
+124375380,2023-09-04T19:34:40+00:00,33.0,kitchen & dining,mugs & cups,NEW,starbucks,20230901/000000000026.parquet
+62376788,2023-09-04T21:14:03+00:00,40.0,home decor,curtains & window treatments,GOOD,world market,20230901/000000000094.parquet
+164090456,2023-09-04T23:00:42+00:00,18.0,kitchen & dining,mugs & cups,NEW,t.j.maxx,20230901/000000000094.parquet
+3738482,2023-09-05T00:20:59+00:00,33.0,kitchen & dining,bottles & tumblers,NEW,walgreens,20230901/000000000273.parquet
+150726864,2023-09-05T00:31:34+00:00,88.0,bedding & bath,blankets & comforters,GOOD,ikea,20230901/000000000026.parquet
+165220591,2023-09-05T00:47:49+00:00,8.0,home decor,seasonal decorations,NEW,,20230901/000000000019.parquet
+35322484,2023-09-05T01:19:41+00:00,24.0,kitchen & dining,food storage,LIKE_NEW,tupperware,20230901/000000000094.parquet
+553511,2023-09-05T01:49:44+00:00,50.0,bedding & bath,sheets & pillowcases,NEW,betsey johnson,20230901/000000000078.parquet
+76400820,2023-09-05T14:23:01+00:00,17.0,kitchen & dining,food storage,GOOD,,20230901/000000000343.parquet
+244529651,2023-09-05T16:39:04+00:00,10.0,bedding & bath,pillow & bedding accessories,LIKE_NEW,,20230901/000000000094.parquet
+230057722,2023-09-05T20:13:43+00:00,35.0,kitchen & dining,bottles & tumblers,NEW,hydrapak,20230901/000000000080.parquet
+166401983,2023-09-05T20:21:17+00:00,64.0,appliances,kitchen appliance,NEW,,20230901/000000000080.parquet
+55140605,2023-09-05T23:35:08+00:00,25.0,kitchen & dining,dinnerware,GOOD,,20230901/000000000038.parquet
+66585366,2023-09-06T00:59:08+00:00,22.0,home decor,lamp & lighting,NEW,philips,20230901/000000000360.parquet
+232722761,2023-09-06T04:20:15+00:00,50.0,appliances,kitchen appliance,NEW,ninja,20230901/000000000019.parquet
+133987686,2023-09-06T06:11:10+00:00,40.0,bedding & bath,blankets & comforters,NEW,,20230901/000000000080.parquet
+210718013,2023-09-06T16:43:36+00:00,100.0,kitchen & dining,bottles & tumblers,NEW,brumate,20230901/000000000019.parquet
+118015558,2023-09-06T17:11:56+00:00,6.0,home decor,decorative accessories,NEW,t.j.maxx,20230901/000000000094.parquet
+55119268,2023-09-06T22:03:17+00:00,48.0,kitchen & dining,servingware,NEW,rae dunn,20230901/000000000360.parquet
+185164648,2023-09-06T22:29:55+00:00,13.0,kitchen & dining,servingware,GOOD,arthur court,20230901/000000000343.parquet
+186179656,2023-09-06T23:55:47+00:00,14.0,kitchen & dining,bottles & tumblers,NEW,,20230901/000000000026.parquet
+195265743,2023-09-07T02:25:22+00:00,35.0,appliances,vacuum,LIKE_NEW,,20230901/000000000019.parquet
+123437893,2023-09-07T02:28:12+00:00,38.0,bedding & bath,blankets & comforters,NEW,t.j.maxx,20230901/000000000094.parquet
+179673580,2023-09-07T02:52:30+00:00,45.0,home decor,candles,NEW,yankee candle,20230901/000000000273.parquet
+91954,2023-09-07T08:09:39+00:00,53.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230901/000000000343.parquet
+74004571,2023-09-07T17:01:49+00:00,10.0,kitchen & dining,kitchen & table linens,NEW,cupcakes and cashmere,20230901/000000000026.parquet
+22481367,2023-09-07T17:52:57+00:00,148.0,appliances,vacuum,GOOD,dyson,20230901/000000000138.parquet
+70974456,2023-09-07T17:53:28+00:00,39.0,kitchen & dining,kitchen utensils & tools,NEW,pioneer woman,20230901/000000000078.parquet
+173104323,2023-09-08T01:05:36+00:00,39.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230901/000000000080.parquet
+103943445,2023-09-08T01:06:23+00:00,50.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230901/000000000080.parquet
+109231775,2023-09-08T06:30:07+00:00,80.0,bedding & bath,blankets & comforters,NEW,hello kitty,20230901/000000000273.parquet
+25395737,2023-09-08T07:11:31+00:00,12.0,bedding & bath,sheets & pillowcases,NEW,,20230901/000000000138.parquet
+35181315,2023-09-08T08:27:59+00:00,18.0,kitchen & dining,kitchen utensils & tools,NEW,sanrio,20230901/000000000360.parquet
+57296755,2023-09-08T08:46:45+00:00,76.0,kitchen & dining,bottles & tumblers,NEW,handmade,20230901/000000000026.parquet
+157846985,2023-09-08T17:14:34+00:00,10.0,kitchen & dining,mugs & cups,LIKE_NEW,old navy,20230901/000000000078.parquet
+9609732,2023-09-08T19:05:32+00:00,17.0,kitchen & dining,bakeware,GOOD,southern living,20230901/000000000094.parquet
+84099652,2023-09-09T00:29:26+00:00,21.0,kitchen & dining,bottles & tumblers,NEW,nautica,20230901/000000000360.parquet
+193020973,2023-09-09T00:41:36+00:00,90.0,furniture,table,NEW,threshold,20230901/000000000094.parquet
+236734078,2023-09-09T01:12:44+00:00,7.0,kitchen & dining,kitchen utensils & tools,LIKE_NEW,disney,20230901/000000000138.parquet
+182294564,2023-09-09T14:14:45+00:00,28.0,home decor,decorative accessories,GOOD,department 56,20230901/000000000360.parquet
+241403367,2023-09-09T15:05:26+00:00,40.0,home decor,lamp & lighting,NEW,hampton bay,20230901/000000000360.parquet
+237547928,2023-09-09T15:24:36+00:00,71.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230901/000000000360.parquet
+181702670,2023-09-09T16:28:24+00:00,15.0,home decor,wall art & frames,NEW,,20230901/000000000038.parquet
+10095532,2023-09-09T16:53:14+00:00,8.0,kitchen & dining,bottles & tumblers,LIKE_NEW,,20230901/000000000343.parquet
+81414084,2023-09-09T17:34:59+00:00,228.0,home decor,lamp & lighting,NEW,uttermost,20230901/000000000019.parquet
+159036600,2023-09-09T18:14:49+00:00,65.0,kitchen & dining,mugs & cups,NEW,le creuset,20230901/000000000038.parquet
+39472389,2023-09-10T00:14:27+00:00,28.0,home decor,seasonal decorations,NEW,,20230901/000000000019.parquet
+208273562,2023-09-10T05:03:40+00:00,11.0,kitchen & dining,mugs & cups,NEW,t.j.maxx,20230901/000000000094.parquet
+37629362,2023-09-10T10:29:29+00:00,44.0,appliances,refrigerator,NEW,koolatron,20230901/000000000094.parquet
+46385413,2023-09-10T17:54:03+00:00,7.0,kitchen & dining,food storage,NEW,,20230901/000000000026.parquet
+134705942,2023-09-10T20:02:48+00:00,18.0,kitchen & dining,bottles & tumblers,LIKE_NEW,bodum,20230901/000000000026.parquet
+113549534,2023-09-10T20:46:28+00:00,115.0,kitchen & dining,mugs & cups,NEW,disney,20230901/000000000273.parquet
+226989890,2023-09-11T02:36:30+00:00,20.0,kitchen & dining,dinnerware,GOOD,polish pottery house,20230901/000000000273.parquet
+225807323,2023-09-11T08:58:17+00:00,14.0,kitchen & dining,bottles & tumblers,LIKE_NEW,starbucks,20230901/000000000343.parquet
+120533053,2023-09-11T20:55:59+00:00,14.0,kitchen & dining,kitchen utensils & tools,NEW,,20230901/000000000094.parquet
+151730987,2023-09-11T21:26:59+00:00,9.0,kitchen & dining,bottles & tumblers,LIKE_NEW,,20230901/000000000019.parquet
+103691736,2023-09-11T21:36:31+00:00,125.0,home decor,seasonal decorations,NEW,spirit halloween,20230901/000000000019.parquet
+240335177,2023-09-11T23:00:26+00:00,6.0,bedding & bath,bath towels,GOOD,,20230901/000000000080.parquet
+185654039,2023-09-11T23:41:42+00:00,29.0,home decor,wall art & frames,LIKE_NEW,,20230901/000000000026.parquet
+195388718,2023-09-11T23:42:42+00:00,17.0,home decor,seasonal decorations,NEW,pioneer woman,20230901/000000000019.parquet
+194108204,2023-09-12T00:16:51+00:00,20.0,home decor,wall art & frames,NEW,,20230901/000000000026.parquet
+171839219,2023-09-12T02:22:41+00:00,3.0,kitchen & dining,mugs & cups,LIKE_NEW,,20230901/000000000026.parquet
+243479599,2023-09-12T03:58:39+00:00,48.0,bedding & bath,sheets & pillowcases,NEW,,20230901/000000000360.parquet
+103790034,2023-09-12T14:14:05+00:00,17.0,kitchen & dining,food storage,NEW,tupperware,20230901/000000000038.parquet
+97360608,2023-09-12T14:36:12+00:00,18.0,kitchen & dining,bottles & tumblers,NEW,the pampered chef,20230901/000000000273.parquet
+101971518,2023-09-12T14:49:22+00:00,21.0,kitchen & dining,food storage,GOOD,tupperware,20230901/000000000080.parquet
+244814379,2023-09-12T15:10:29+00:00,269.0,appliances,kitchen appliance,NEW,kitchenaid,20230901/000000000038.parquet
+60209980,2023-09-12T18:29:47+00:00,22.0,home decor,wall art & frames,NEW,,20230901/000000000138.parquet
+233005995,2023-09-12T21:58:03+00:00,37.0,bedding & bath,sheets & pillowcases,NEW,berkshire,20230901/000000000273.parquet
+71600231,2023-09-13T00:23:41+00:00,20.0,bedding & bath,blankets & comforters,NEW,,20230901/000000000038.parquet
+171895284,2023-09-13T01:05:25+00:00,8.0,kitchen & dining,mugs & cups,NEW,,20230901/000000000360.parquet
+168660102,2023-09-13T01:14:46+00:00,10.0,kitchen & dining,kitchen & table linens,NEW,peanuts,20230901/000000000026.parquet
+113993317,2023-09-13T04:18:25+00:00,22.0,home decor,wall art & frames,NEW,,20230901/000000000094.parquet
+210699678,2023-09-13T05:09:43+00:00,20.0,home decor,wall art & frames,NEW,handmade,20230901/000000000273.parquet
+34382145,2023-09-13T06:02:14+00:00,29.0,home decor,decorative pillow,NEW,t.j.maxx,20230901/000000000138.parquet
+7634100,2023-09-13T06:20:16+00:00,26.0,kitchen & dining,bottles & tumblers,GOOD,starbucks,20230901/000000000138.parquet
+160266649,2023-09-13T06:32:22+00:00,50.0,kitchen & dining,bottles & tumblers,NEW,,20230901/000000000138.parquet
+68241199,2023-09-13T16:44:55+00:00,2.0,kitchen & dining,bakeware,LIKE_NEW,,20230901/000000000138.parquet
+94381775,2023-09-13T16:59:42+00:00,30.0,appliances,kitchen appliance,GOOD,cuisinart,20230901/000000000080.parquet
+89989087,2023-09-13T18:14:11+00:00,24.0,home decor,lamp & lighting,NEW,,20230901/000000000343.parquet
+203895737,2023-09-13T21:04:49+00:00,65.0,kitchen & dining,dinnerware,LIKE_NEW,,20230901/000000000080.parquet
+31324206,2023-09-13T21:31:00+00:00,58.0,kitchen & dining,cookware,NEW,,20230901/000000000273.parquet
+233318077,2023-09-13T22:06:17+00:00,38.0,kitchen & dining,food storage,NEW,disney,20230901/000000000094.parquet
+44807706,2023-09-14T01:39:25+00:00,38.0,kitchen & dining,bottles & tumblers,NEW,,20230901/000000000094.parquet
+154665831,2023-09-14T12:30:37+00:00,5.0,home decor,wall art & frames,GOOD,,20230901/000000000094.parquet
+133830043,2023-09-14T13:35:18+00:00,87.0,furniture,chair,NEW,,20230901/000000000019.parquet
+47736364,2023-09-14T14:51:09+00:00,15.0,bedding & bath,sheets & pillowcases,NEW,betsey johnson,20230901/000000000026.parquet
+210687200,2023-09-14T20:44:39+00:00,19.0,kitchen & dining,servingware,LIKE_NEW,pier 1 imports,20230901/000000000343.parquet
+84031661,2023-09-14T22:57:30+00:00,20.0,home decor,candles,NEW,t.j.maxx,20230901/000000000038.parquet
+143352146,2023-09-15T13:26:16+00:00,15.0,kitchen & dining,mugs & cups,NEW,t.j.maxx,20230901/000000000273.parquet
+52724088,2023-09-15T15:44:13+00:00,20.0,home decor,lamp & lighting,LIKE_NEW,ghibli,20230901/000000000078.parquet
+172958419,2023-09-15T22:18:18+00:00,10.0,home decor,wall art & frames,LIKE_NEW,,20230901/000000000019.parquet
+74557433,2023-09-15T22:55:32+00:00,26.0,kitchen & dining,bottles & tumblers,NEW,baden sports,20230901/000000000026.parquet
+79712276,2023-09-15T23:50:24+00:00,62.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230901/000000000094.parquet
+17058902,2023-09-16T02:28:59+00:00,29.0,bedding & bath,blankets & comforters,NEW,rae dunn,20230901/000000000019.parquet
+139445755,2023-09-16T04:06:58+00:00,24.0,bedding & bath,blankets & comforters,NEW,victoria's secret,20230901/000000000360.parquet
+163554897,2023-09-16T04:53:16+00:00,126.0,home decor,seasonal decorations,NEW,hobby lobby,20230901/000000000360.parquet
+7015468,2023-09-16T04:59:08+00:00,115.0,home decor,seasonal decorations,NEW,hobby lobby,20230901/000000000360.parquet
+15079799,2023-09-16T16:12:24+00:00,15.0,home decor,seasonal decorations,NEW,anthropologie,20230901/000000000094.parquet
+168615319,2023-09-16T16:14:07+00:00,15.0,home decor,seasonal decorations,NEW,anthropologie,20230901/000000000094.parquet
+183941411,2023-09-16T18:13:42+00:00,45.0,appliances,kitchen appliance,GOOD,cuisinart,20230901/000000000360.parquet
+35593509,2023-09-16T18:38:30+00:00,22.0,bedding & bath,blankets & comforters,GOOD,,20230901/000000000080.parquet
+146700874,2023-09-16T19:37:19+00:00,18.0,kitchen & dining,servingware,NEW,,20230901/000000000094.parquet
+207850883,2023-09-16T19:56:45+00:00,68.0,kitchen & dining,mugs & cups,NEW,artland,20230901/000000000343.parquet
+177908506,2023-09-16T20:24:25+00:00,58.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230901/000000000078.parquet
+66784554,2023-09-17T10:09:11+00:00,14.0,kitchen & dining,mugs & cups,NEW,boutique,20230901/000000000343.parquet
+40007309,2023-09-17T12:02:27+00:00,7.0,kitchen & dining,mugs & cups,NEW,rae dunn,20230901/000000000094.parquet
+50129773,2023-09-17T14:09:56+00:00,46.0,kitchen & dining,food storage,NEW,disney,20230901/000000000360.parquet
+67387665,2023-09-17T17:04:24+00:00,24.0,kitchen & dining,cookware,GOOD,unique vintage,20230901/000000000038.parquet
+39320197,2023-09-17T19:22:28+00:00,35.0,bedding & bath,blankets & comforters,NEW,t.j.maxx,20230901/000000000026.parquet
+66982267,2023-09-17T22:35:31+00:00,57.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230901/000000000019.parquet
+25166595,2023-09-18T02:32:45+00:00,38.0,kitchen & dining,food storage,NEW,disney,20230901/000000000094.parquet
+240659673,2023-09-18T04:32:35+00:00,8.0,kitchen & dining,bottles & tumblers,GOOD,,20230901/000000000343.parquet
+191182132,2023-09-18T12:32:26+00:00,7.0,bedding & bath,bathroom accessories,LIKE_NEW,,20230901/000000000019.parquet
+2064061,2023-09-18T13:05:30+00:00,6.0,home decor,candles,LIKE_NEW,handmade,20230901/000000000094.parquet
+35330134,2023-09-18T16:41:14+00:00,59.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230901/000000000080.parquet
+143368900,2023-09-18T18:39:16+00:00,29.0,kitchen & dining,bottles & tumblers,NEW,pioneer woman,20230901/000000000026.parquet
+109226352,2023-09-19T02:44:13+00:00,38.0,bedding & bath,sheets & pillowcases,NEW,,20230901/000000000038.parquet
+71177542,2023-09-19T09:52:14+00:00,35.0,home decor,candles,NEW,bath & body works,20230901/000000000019.parquet
+157199024,2023-09-19T14:54:21+00:00,9.0,kitchen & dining,mugs & cups,GOOD,,20230901/000000000094.parquet
+234932310,2023-09-19T15:26:07+00:00,23.0,home decor,candles,NEW,better homes & gardens,20230901/000000000360.parquet
+226547052,2023-09-19T20:55:31+00:00,16.0,kitchen & dining,mugs & cups,NEW,barbuzzo,20230901/000000000343.parquet
+71511907,2023-09-19T22:03:50+00:00,33.25,bedding & bath,blankets & comforters,GOOD,,20230901/000000000138.parquet
+84831469,2023-09-20T12:02:06+00:00,16.0,kitchen & dining,bottles & tumblers,LIKE_NEW,,20230901/000000000026.parquet
+166187803,2023-09-20T14:59:17+00:00,66.5,kitchen & dining,bottles & tumblers,NEW,starbucks,20230901/000000000038.parquet
+41676822,2023-09-20T16:18:01+00:00,9.0,kitchen & dining,kitchen utensils & tools,NEW,oxo,20230901/000000000078.parquet
+209506817,2023-09-20T18:41:59+00:00,30.0,home decor,clock,LIKE_NEW,,20230901/000000000273.parquet
+8221975,2023-09-20T18:44:55+00:00,20.0,home decor,lamp & lighting,NEW,,20230901/000000000080.parquet
+54152216,2023-09-20T21:24:55+00:00,6.0,home decor,candles,NEW,,20230901/000000000138.parquet
+216933856,2023-09-21T15:06:30+00:00,10.0,kitchen & dining,bakeware,GOOD,wilton,20230901/000000000026.parquet
+84757078,2023-09-21T15:26:33+00:00,65.0,home decor,candles,NEW,bath & body works,20230901/000000000273.parquet
+239971092,2023-09-21T15:36:50+00:00,18.0,home decor,wall art & frames,NEW,autograph,20230901/000000000343.parquet
+213379509,2023-09-21T16:34:10+00:00,10.0,home decor,seasonal decorations,GOOD,sanrio,20230901/000000000026.parquet
+170609049,2023-09-21T16:46:51+00:00,6.0,bedding & bath,blankets & comforters,NEW,,20230901/000000000094.parquet
+2668082,2023-09-21T18:54:51+00:00,60.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230901/000000000094.parquet
+83963723,2023-09-21T19:26:06+00:00,8.0,kitchen & dining,servingware,GOOD,tupperware,20230901/000000000343.parquet
+77168217,2023-09-21T19:50:59+00:00,75.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230901/000000000080.parquet
+2406326,2023-09-21T20:06:20+00:00,30.0,kitchen & dining,dinnerware,NEW,,20230901/000000000343.parquet
+8032769,2023-09-21T21:11:23+00:00,99.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230901/000000000080.parquet
+165741789,2023-09-21T22:17:15+00:00,3.0,kitchen & dining,kitchen utensils & tools,NEW,,20230901/000000000038.parquet
+207667491,2023-09-22T00:47:37+00:00,20.0,appliances,iron & steamer,GOOD,rowenta,20230901/000000000019.parquet
+59657515,2023-09-22T04:12:42+00:00,15.0,home decor,seasonal decorations,LIKE_NEW,disney,20230901/000000000026.parquet
+17279832,2023-09-22T06:05:36+00:00,8.0,kitchen & dining,dinnerware,NEW,zak designs,20230901/000000000078.parquet
+139464872,2023-09-22T11:48:16+00:00,25.0,kitchen & dining,food storage,FAIR,tupperware,20230901/000000000094.parquet
+150921467,2023-09-22T12:43:21+00:00,26.0,kitchen & dining,dinnerware,LIKE_NEW,fiesta,20230901/000000000273.parquet
+241313736,2023-09-22T21:58:46+00:00,15.0,kitchen & dining,kitchen utensils & tools,GOOD,pier one,20230901/000000000026.parquet
+131211582,2023-09-22T22:47:27+00:00,20.0,home decor,home fragrance,NEW,scentsy,20230901/000000000038.parquet
+227561398,2023-09-23T01:36:13+00:00,21.85,home decor,home fragrance,NEW,bath & body works,20230901/000000000026.parquet
+173184500,2023-09-23T03:34:28+00:00,14.0,bedding & bath,blankets & comforters,NEW,pokemon,20230901/000000000094.parquet
+55288754,2023-09-23T03:49:01+00:00,51.0,kitchen & dining,kitchen & table linens,NEW,,20230901/000000000343.parquet
+50898693,2023-09-23T19:44:44+00:00,46.0,kitchen & dining,bakeware,NEW,princess house,20230901/000000000080.parquet
+230861137,2023-09-23T22:59:05+00:00,36.0,appliances,coffee & espresso machine,LIKE_NEW,bella,20230901/000000000019.parquet
+201345697,2023-09-23T23:23:40+00:00,11.0,home decor,candles,LIKE_NEW,,20230901/000000000094.parquet
+161751435,2023-09-24T01:31:11+00:00,10.45,kitchen & dining,mugs & cups,LIKE_NEW,t.j.maxx,20230901/000000000019.parquet
+168787761,2023-09-24T03:24:33+00:00,50.0,bedding & bath,sheets & pillowcases,NEW,,20230901/000000000019.parquet
+62215862,2023-09-24T14:07:00+00:00,70.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230901/000000000019.parquet
+77150503,2023-09-24T16:06:23+00:00,11.4,kitchen & dining,food storage,NEW,,20230901/000000000026.parquet
+40309422,2023-09-24T16:50:34+00:00,9.0,kitchen & dining,servingware,LIKE_NEW,target,20230901/000000000038.parquet
+171608111,2023-09-24T16:53:48+00:00,90.0,bedding & bath,blankets & comforters,NEW,hello kitty,20230901/000000000019.parquet
+217831531,2023-09-24T22:02:57+00:00,49.4,home decor,candles,NEW,bath & body works,20230901/000000000026.parquet
+173858028,2023-09-24T22:08:08+00:00,69.0,home decor,decorative accessories,NEW,disney,20230901/000000000019.parquet
+76053698,2023-09-24T22:13:05+00:00,31.0,bedding & bath,blankets & comforters,NEW,disney,20230901/000000000273.parquet
+7239485,2023-09-24T22:42:00+00:00,22.0,kitchen & dining,servingware,LIKE_NEW,temptations,20230901/000000000038.parquet
+183931859,2023-09-24T22:56:26+00:00,20.0,bedding & bath,blankets & comforters,NEW,t.j.maxx,20230901/000000000080.parquet
+234032806,2023-09-24T23:45:18+00:00,15.0,kitchen & dining,servingware,GOOD,,20230901/000000000360.parquet
+96158072,2023-09-25T01:28:17+00:00,15.0,kitchen & dining,kitchen utensils & tools,NEW,isaac mizrahi,20230901/000000000019.parquet
+72102506,2023-09-25T11:21:31+00:00,22.0,home decor,seasonal decorations,NEW,dillard's,20230901/000000000360.parquet
+186578659,2023-09-25T17:16:55+00:00,92.15,home decor,seasonal decorations,NEW,scooby doo,20230901/000000000343.parquet
+159070592,2023-09-25T18:58:19+00:00,12.0,home decor,lamp & lighting,NEW,,20230901/000000000343.parquet
+102273265,2023-09-25T19:08:11+00:00,4.0,home decor,seasonal decorations,NEW,,20230901/000000000026.parquet
+144096116,2023-09-25T20:26:31+00:00,17.0,home decor,candles,NEW,yankee candle,20230901/000000000343.parquet
+17532218,2023-09-25T21:01:48+00:00,145.0,furniture,table,LIKE_NEW,,20230901/000000000019.parquet
+238453742,2023-09-25T21:28:26+00:00,12.0,kitchen & dining,bottles & tumblers,LIKE_NEW,pioneer woman,20230901/000000000094.parquet
+233719458,2023-09-25T22:16:52+00:00,50.0,home decor,lamp & lighting,NEW,,20230901/000000000094.parquet
+106088418,2023-09-25T22:37:51+00:00,14.0,home decor,decorative accessories,NEW,rae dunn,20230901/000000000138.parquet
+74116441,2023-09-26T06:15:58+00:00,17.0,home decor,seasonal decorations,NEW,heirloom,20230901/000000000019.parquet
+87496693,2023-09-26T19:21:19+00:00,38.0,kitchen & dining,kitchen utensils & tools,NEW,supreme,20230901/000000000094.parquet
+188069967,2023-09-27T00:13:33+00:00,15.34,kitchen & dining,bottles & tumblers,NEW,aladdin,20230901/000000000026.parquet
+156347971,2023-09-27T03:03:27+00:00,40.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20230901/000000000343.parquet
+66701187,2023-09-27T03:32:11+00:00,11.0,kitchen & dining,servingware,GOOD,mason's,20230901/000000000026.parquet
+116601700,2023-09-27T13:05:56+00:00,45.0,appliances,kitchen appliance,NEW,cuisinart,20230901/000000000080.parquet
+54949404,2023-09-27T14:32:07+00:00,10.0,bedding & bath,blankets & comforters,NEW,disney,20230901/000000000094.parquet
+32281530,2023-09-27T18:57:07+00:00,72.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230901/000000000094.parquet
+31101711,2023-09-27T21:46:54+00:00,15.0,kitchen & dining,dinnerware,LIKE_NEW,,20230901/000000000273.parquet
+45497885,2023-09-27T22:50:49+00:00,4.75,home decor,wall art & frames,LIKE_NEW,,20230901/000000000019.parquet
+134109593,2023-09-28T00:53:01+00:00,54.0,bedding & bath,blankets & comforters,NEW,hello kitty,20230901/000000000273.parquet
+16584420,2023-09-28T14:12:22+00:00,19.0,kitchen & dining,kitchen utensils & tools,GOOD,epicurean,20230901/000000000343.parquet
+96837668,2023-09-28T18:52:29+00:00,38.0,appliances,coffee & espresso machine,LIKE_NEW,nespresso,20230901/000000000094.parquet
+168697097,2023-09-28T19:57:27+00:00,5.0,kitchen & dining,kitchen & table linens,NEW,,20230901/000000000094.parquet
+226066580,2023-09-28T21:43:25+00:00,15.0,kitchen & dining,bottles & tumblers,NEW,brumate,20230901/000000000138.parquet
+91200387,2023-09-29T03:19:19+00:00,72.0,appliances,vacuum,NEW,shark,20230901/000000000019.parquet
+131773265,2023-09-29T11:22:19+00:00,6.0,storage & organization,jewelry storage,GOOD,,20230901/000000000343.parquet
+39428853,2023-09-29T13:56:18+00:00,20.0,home decor,wall art & frames,NEW,,20230901/000000000360.parquet
+39687175,2023-09-29T16:06:28+00:00,19.0,kitchen & dining,mugs & cups,NEW,johanna parker,20230901/000000000138.parquet
+10245300,2023-09-29T22:36:56+00:00,53.0,kitchen & dining,bottles & tumblers,NEW,stanley,20230901/000000000080.parquet
+113529866,2023-10-01T00:56:15+00:00,31.0,kitchen & dining,bottles & tumblers,NEW,,20231001/000000000087.parquet
+144212594,2023-10-01T01:00:47+00:00,31.0,kitchen & dining,bottles & tumblers,NEW,,20231001/000000000087.parquet
+44768212,2023-10-01T01:01:15+00:00,26.0,kitchen & dining,bottles & tumblers,NEW,,20231001/000000000087.parquet
+49664632,2023-10-01T01:01:45+00:00,22.0,kitchen & dining,bottles & tumblers,NEW,,20231001/000000000087.parquet
+91722422,2023-10-01T02:24:03+00:00,52.0,kitchen & dining,bottles & tumblers,NEW,stanley,20231001/000000000014.parquet
+64881002,2023-10-01T04:24:49+00:00,26.0,home decor,candles,NEW,bath & body works,20231001/000000000322.parquet
+93562455,2023-10-01T14:28:54+00:00,25.0,kitchen & dining,dinnerware,NEW,rae dunn,20231001/000000000084.parquet
+220261391,2023-10-01T17:42:59+00:00,12.0,kitchen & dining,mugs & cups,NEW,,20231001/000000000084.parquet
+138461498,2023-10-01T20:49:38+00:00,17.1,home decor,candles,LIKE_NEW,scentsational,20231001/000000000174.parquet
+150812487,2023-10-01T22:50:01+00:00,75.0,kitchen & dining,bottles & tumblers,NEW,stanley,20231001/000000000084.parquet
+4976530,2023-10-02T03:12:17+00:00,40.0,storage & organization,storage bins & baskets,NEW,,20231001/000000000322.parquet
+67112629,2023-10-02T13:17:31+00:00,27.0,home decor,seasonal decorations,NEW,rae dunn,20231001/000000000084.parquet
+32485769,2023-10-02T13:18:06+00:00,28.5,home decor,rug & mat,NEW,rae dunn,20231001/000000000084.parquet
+204239214,2023-10-02T13:53:16+00:00,35.0,kitchen & dining,mugs & cups,NEW,johanna parker,20231001/000000000329.parquet
+74425292,2023-10-02T14:46:50+00:00,30.0,kitchen & dining,mugs & cups,NEW,pottery barn,20231001/000000000084.parquet
+183613179,2023-10-02T15:00:13+00:00,49.0,bedding & bath,sheets & pillowcases,NEW,pendleton,20231001/000000000035.parquet
+92869323,2023-10-02T15:02:50+00:00,11.0,home decor,candles,GOOD,rae dunn,20231001/000000000372.parquet
+142408175,2023-10-02T17:34:25+00:00,6.0,kitchen & dining,mugs & cups,GOOD,,20231001/000000000084.parquet
+179485033,2023-10-02T19:13:39+00:00,216.6,kitchen & dining,mugs & cups,NEW,ralph lauren,20231001/000000000241.parquet
+7178540,2023-10-02T19:18:08+00:00,8.55,bedding & bath,sheets & pillowcases,NEW,charisma,20231001/000000000241.parquet
+115471444,2023-10-03T15:41:30+00:00,40.85,home decor,seasonal decorations,LIKE_NEW,,20231001/000000000372.parquet
+220337407,2023-10-03T16:25:16+00:00,75.0,kitchen & dining,bottles & tumblers,GOOD,stanley,20231001/000000000372.parquet
+55935234,2023-10-03T18:02:13+00:00,205.0,home decor,seasonal decorations,NEW,hallmark,20231001/000000000084.parquet
+63217405,2023-10-03T22:20:10+00:00,38.0,kitchen & dining,kitchen utensils & tools,NEW,rae dunn,20231001/000000000329.parquet
+190701349,2023-10-03T23:16:45+00:00,29.0,home decor,clock,NEW,,20231001/000000000035.parquet
+35370000,2023-10-04T00:51:57+00:00,47.0,storage & organization,storage bins & baskets,GOOD,unique vintage,20231001/000000000174.parquet
+238677070,2023-10-04T02:25:33+00:00,18.0,kitchen & dining,mugs & cups,LIKE_NEW,starbucks,20231001/000000000035.parquet
+201042132,2023-10-04T05:38:23+00:00,13.54,kitchen & dining,food storage,LIKE_NEW,pioneer woman,20231001/000000000322.parquet
+113420513,2023-10-04T15:44:48+00:00,90.0,kitchen & dining,bottles & tumblers,NEW,brumate,20231001/000000000241.parquet
+81910947,2023-10-04T17:59:11+00:00,10.0,bedding & bath,sheets & pillowcases,NEW,,20231001/000000000035.parquet
+79430170,2023-10-04T21:08:13+00:00,17.0,kitchen & dining,kitchen & table linens,NEW,isaac mizrahi,20231001/000000000322.parquet
+45105819,2023-10-04T21:12:26+00:00,20.0,bedding & bath,bath towels,NEW,isaac mizrahi,20231001/000000000322.parquet
+82325234,2023-10-04T22:03:22+00:00,14.0,kitchen & dining,bakeware,LIKE_NEW,wilton,20231001/000000000087.parquet
+125999266,2023-10-05T09:09:08+00:00,10.83,kitchen & dining,mugs & cups,NEW,10 strawberry street,20231001/000000000084.parquet
+55008556,2023-10-05T09:10:38+00:00,25.0,kitchen & dining,bottles & tumblers,NEW,,20231001/000000000084.parquet
+240112258,2023-10-05T09:21:10+00:00,23.0,kitchen & dining,bottles & tumblers,NEW,hydrapak,20231001/000000000084.parquet
+157386293,2023-10-05T12:57:23+00:00,26.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000087.parquet
+40736416,2023-10-05T14:50:50+00:00,17.1,kitchen & dining,food storage,GOOD,rubbermaid,20231001/000000000174.parquet
+186981472,2023-10-05T15:40:00+00:00,34.2,kitchen & dining,food storage,NEW,johanna parker,20231001/000000000241.parquet
+245454370,2023-10-05T16:20:01+00:00,20.0,home decor,wall art & frames,NEW,,20231001/000000000084.parquet
+58261981,2023-10-05T17:58:42+00:00,65.0,home decor,decorative accessories,NEW,,20231001/000000000322.parquet
+1915400,2023-10-05T18:03:47+00:00,13.0,kitchen & dining,servingware,LIKE_NEW,mud pie,20231001/000000000035.parquet
+43870528,2023-10-05T19:14:14+00:00,10.0,kitchen & dining,mugs & cups,GOOD,starbucks,20231001/000000000322.parquet
+38851027,2023-10-05T19:53:18+00:00,49.0,kitchen & dining,mugs & cups,LIKE_NEW,,20231001/000000000241.parquet
+35329720,2023-10-06T04:58:39+00:00,22.0,kitchen & dining,kitchen & table linens,LIKE_NEW,pimpernel,20231001/000000000351.parquet
+162210882,2023-10-06T16:51:59+00:00,80.0,home decor,candles,NEW,bath & body works,20231001/000000000174.parquet
+103797825,2023-10-06T18:10:17+00:00,39.0,kitchen & dining,bottles & tumblers,NEW,disney,20231001/000000000087.parquet
+208260,2023-10-06T18:55:14+00:00,33.25,bedding & bath,blankets & comforters,NEW,betsey johnson,20231001/000000000329.parquet
+98621053,2023-10-06T21:26:46+00:00,37.0,home decor,home fragrance,GOOD,molton brown london,20231001/000000000241.parquet
+213149683,2023-10-06T21:43:33+00:00,15.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000174.parquet
+2085617,2023-10-06T22:26:41+00:00,20.0,home decor,candles,LIKE_NEW,bath & body works,20231001/000000000372.parquet
+152371641,2023-10-07T00:03:35+00:00,23.0,home decor,seasonal decorations,GOOD,hallmark,20231001/000000000174.parquet
+65105012,2023-10-07T00:56:22+00:00,10.0,home decor,mirror,FAIR,ikea,20231001/000000000035.parquet
+40068858,2023-10-07T02:16:41+00:00,30.0,kitchen & dining,food storage,NEW,pioneer woman,20231001/000000000322.parquet
+36889925,2023-10-07T05:27:40+00:00,55.0,bedding & bath,blankets & comforters,NEW,handmade,20231001/000000000084.parquet
+12840351,2023-10-07T05:29:46+00:00,25.0,bedding & bath,blankets & comforters,NEW,,20231001/000000000084.parquet
+19184557,2023-10-07T05:40:10+00:00,17.0,bedding & bath,blankets & comforters,NEW,,20231001/000000000084.parquet
+171321223,2023-10-07T05:43:02+00:00,15.0,bedding & bath,blankets & comforters,NEW,,20231001/000000000084.parquet
+220862409,2023-10-07T06:27:05+00:00,45.0,bedding & bath,blankets & comforters,NEW,handmade,20231001/000000000084.parquet
+28393165,2023-10-07T18:04:54+00:00,65.0,home decor,candles,NEW,bath & body works,20231001/000000000035.parquet
+139893512,2023-10-07T18:57:56+00:00,40.0,kitchen & dining,mugs & cups,NEW,,20231001/000000000241.parquet
+27400221,2023-10-07T22:23:21+00:00,12.0,kitchen & dining,mugs & cups,NEW,target,20231001/000000000035.parquet
+34528361,2023-10-07T23:04:34+00:00,18.0,home decor,wall art & frames,NEW,autograph,20231001/000000000241.parquet
+156120346,2023-10-08T01:41:31+00:00,75.0,appliances,coffee & espresso machine,NEW,keurig,20231001/000000000084.parquet
+173682960,2023-10-08T02:29:25+00:00,45.0,kitchen & dining,mugs & cups,NEW,starbucks,20231001/000000000014.parquet
+71530954,2023-10-08T06:22:03+00:00,20.0,home decor,wall art & frames,NEW,handmade,20231001/000000000084.parquet
+90599501,2023-10-08T09:14:59+00:00,125.0,home decor,decorative accessories,NEW,,20231001/000000000014.parquet
+203457764,2023-10-08T17:03:40+00:00,14.25,storage & organization,jewelry storage,LIKE_NEW,zales,20231001/000000000084.parquet
+183889576,2023-10-08T18:18:11+00:00,70.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000087.parquet
+38260981,2023-10-08T18:22:58+00:00,12.35,home decor,candles,NEW,bath & body works,20231001/000000000084.parquet
+177805948,2023-10-08T20:25:05+00:00,3.0,home decor,lamp & lighting,NEW,,20231001/000000000087.parquet
+111834344,2023-10-08T22:48:49+00:00,22.0,appliances,air care & climate,NEW,,20231001/000000000372.parquet
+162684975,2023-10-08T22:48:59+00:00,8.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000084.parquet
+131359833,2023-10-09T01:18:00+00:00,30.0,home decor,lamp & lighting,NEW,,20231001/000000000084.parquet
+106711824,2023-10-09T12:53:15+00:00,450.0,appliances,kitchen appliance,NEW,vitamix,20231001/000000000087.parquet
+100931753,2023-10-09T16:47:28+00:00,11.0,bedding & bath,bath towels,GOOD,,20231001/000000000351.parquet
+8442344,2023-10-09T20:17:14+00:00,10.0,home decor,candles,NEW,bath & body works,20231001/000000000322.parquet
+16176964,2023-10-09T20:32:27+00:00,9.29,kitchen & dining,kitchen & table linens,LIKE_NEW,,20231001/000000000014.parquet
+170343163,2023-10-09T20:44:36+00:00,39.9,bedding & bath,blankets & comforters,NEW,marshalls,20231001/000000000087.parquet
+238004466,2023-10-09T21:37:28+00:00,10.29,kitchen & dining,servingware,GOOD,,20231001/000000000372.parquet
+204529121,2023-10-09T22:08:22+00:00,20.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000351.parquet
+209481285,2023-10-10T00:02:06+00:00,43.32,bedding & bath,sheets & pillowcases,NEW,london fog,20231001/000000000322.parquet
+39080651,2023-10-10T00:19:00+00:00,55.0,kitchen & dining,bottles & tumblers,NEW,stanley,20231001/000000000087.parquet
+228305517,2023-10-10T00:50:24+00:00,10.0,kitchen & dining,mugs & cups,NEW,rae dunn,20231001/000000000241.parquet
+100539830,2023-10-10T03:19:39+00:00,12.0,kitchen & dining,mugs & cups,NEW,crate & barrel,20231001/000000000174.parquet
+79055791,2023-10-10T15:17:13+00:00,14.44,kitchen & dining,servingware,LIKE_NEW,,20231001/000000000174.parquet
+78857359,2023-10-11T04:10:58+00:00,24.7,kitchen & dining,bottles & tumblers,NEW,,20231001/000000000241.parquet
+142443547,2023-10-11T10:47:26+00:00,81.0,bedding & bath,blankets & comforters,LIKE_NEW,marimekko,20231001/000000000322.parquet
+132045433,2023-10-11T13:43:52+00:00,15.0,kitchen & dining,dinnerware,LIKE_NEW,,20231001/000000000329.parquet
+3642465,2023-10-11T15:27:25+00:00,14.0,home decor,seasonal decorations,NEW,handmade,20231001/000000000014.parquet
+206452579,2023-10-11T15:33:45+00:00,23.75,bedding & bath,blankets & comforters,NEW,,20231001/000000000372.parquet
+36126098,2023-10-11T15:44:29+00:00,10.0,home decor,wall art & frames,NEW,universal studios,20231001/000000000372.parquet
+143314559,2023-10-11T16:22:54+00:00,68.0,kitchen & dining,mugs & cups,NEW,anthropologie,20231001/000000000035.parquet
+144792008,2023-10-11T16:28:17+00:00,42.0,bedding & bath,blankets & comforters,NEW,sanrio,20231001/000000000329.parquet
+130065057,2023-10-11T19:21:23+00:00,50.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000322.parquet
+35200543,2023-10-12T01:43:23+00:00,33.39,appliances,kitchen appliance,GOOD,nutribullet,20231001/000000000014.parquet
+88146597,2023-10-12T06:22:24+00:00,22.0,home decor,wall art & frames,NEW,,20231001/000000000014.parquet
+136380578,2023-10-12T09:16:55+00:00,21.0,home decor,wall art & frames,NEW,shabby chic,20231001/000000000084.parquet
+199961042,2023-10-12T12:01:59+00:00,22.0,home decor,candles,NEW,bath & body works,20231001/000000000322.parquet
+182541945,2023-10-12T13:10:50+00:00,12.0,home decor,seasonal decorations,NEW,,20231001/000000000087.parquet
+20643365,2023-10-12T14:23:56+00:00,22.0,home decor,wall art & frames,NEW,,20231001/000000000322.parquet
+23766559,2023-10-12T15:17:36+00:00,41.8,appliances,vacuum,GOOD,lg,20231001/000000000084.parquet
+58220557,2023-10-12T16:12:00+00:00,23.75,bedding & bath,sheets & pillowcases,NEW,peanuts,20231001/000000000035.parquet
+188310862,2023-10-12T17:11:50+00:00,17.0,kitchen & dining,food storage,GOOD,pfaltzgraff,20231001/000000000084.parquet
+211368001,2023-10-12T17:28:33+00:00,45.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000084.parquet
+247035994,2023-10-12T20:32:17+00:00,35.0,home decor,seasonal decorations,NEW,hallmark,20231001/000000000351.parquet
+26566316,2023-10-12T20:59:43+00:00,159.0,bedding & bath,sheets & pillowcases,NEW,,20231001/000000000241.parquet
+63299234,2023-10-12T21:22:06+00:00,30.0,home decor,seasonal decorations,NEW,hallmark,20231001/000000000174.parquet
+241014666,2023-10-12T21:46:03+00:00,16.0,kitchen & dining,bottles & tumblers,NEW,handmade,20231001/000000000087.parquet
+245359122,2023-10-12T23:19:25+00:00,22.0,kitchen & dining,mugs & cups,NEW,tupperware,20231001/000000000329.parquet
+39134755,2023-10-13T00:25:08+00:00,33.25,kitchen & dining,bottles & tumblers,NEW,the grinch,20231001/000000000351.parquet
+85337265,2023-10-13T00:54:28+00:00,22.0,home decor,decorative accessories,LIKE_NEW,lenox,20231001/000000000241.parquet
+9432396,2023-10-13T02:48:50+00:00,17.0,home decor,seasonal decorations,NEW,target,20231001/000000000087.parquet
+146707431,2023-10-13T02:52:18+00:00,40.0,kitchen & dining,cookware,GOOD,,20231001/000000000084.parquet
+204874730,2023-10-13T05:10:36+00:00,20.0,kitchen & dining,bottles & tumblers,NEW,handmade,20231001/000000000322.parquet
+48336542,2023-10-13T05:26:26+00:00,20.0,home decor,lamp & lighting,NEW,,20231001/000000000084.parquet
+141343629,2023-10-13T05:45:29+00:00,200.0,appliances,vacuum,NEW,lg,20231001/000000000241.parquet
+219053285,2023-10-13T10:25:57+00:00,37.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000087.parquet
+154512329,2023-10-13T19:10:09+00:00,7.0,home decor,wall art & frames,NEW,,20231001/000000000014.parquet
+61834412,2023-10-13T19:20:35+00:00,7.0,appliances,microwave,LIKE_NEW,dash,20231001/000000000322.parquet
+36914402,2023-10-13T21:55:01+00:00,8.0,kitchen & dining,mugs & cups,LIKE_NEW,t.j.maxx,20231001/000000000241.parquet
+129888596,2023-10-14T00:53:55+00:00,30.0,kitchen & dining,bottles & tumblers,NEW,hobby lobby,20231001/000000000241.parquet
+183773603,2023-10-14T06:28:12+00:00,10.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000351.parquet
+105600485,2023-10-14T06:32:04+00:00,10.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000351.parquet
+1475335,2023-10-14T18:42:41+00:00,6.65,kitchen & dining,mugs & cups,LIKE_NEW,,20231001/000000000035.parquet
+200393314,2023-10-14T19:56:23+00:00,15.34,bedding & bath,sheets & pillowcases,NEW,disney,20231001/000000000372.parquet
+2880800,2023-10-14T23:07:02+00:00,36.1,bedding & bath,blankets & comforters,NEW,,20231001/000000000084.parquet
+162097090,2023-10-14T23:16:28+00:00,18.0,kitchen & dining,mugs & cups,NEW,peppermint,20231001/000000000351.parquet
+26225447,2023-10-14T23:35:08+00:00,35.0,kitchen & dining,bottles & tumblers,NEW,the grinch,20231001/000000000087.parquet
+93948811,2023-10-15T01:10:22+00:00,18.0,home decor,wall art & frames,NEW,autograph,20231001/000000000322.parquet
+28627138,2023-10-15T01:51:45+00:00,90.0,kitchen & dining,bottles & tumblers,NEW,hydrojug,20231001/000000000351.parquet
+147710476,2023-10-15T02:36:53+00:00,40.0,kitchen & dining,servingware,NEW,,20231001/000000000087.parquet
+110530971,2023-10-15T02:53:47+00:00,61.0,kitchen & dining,dinnerware,NEW,corelle,20231001/000000000035.parquet
+72825970,2023-10-15T04:25:49+00:00,18.0,kitchen & dining,food storage,LIKE_NEW,,20231001/000000000035.parquet
+147951315,2023-10-15T07:01:00+00:00,53.0,home decor,decorative accessories,NEW,hobby lobby,20231001/000000000174.parquet
+1894393,2023-10-15T07:36:12+00:00,6.0,kitchen & dining,bakeware,NEW,,20231001/000000000035.parquet
+191299919,2023-10-15T08:03:21+00:00,12.0,kitchen & dining,food storage,NEW,tupperware,20231001/000000000084.parquet
+80718577,2023-10-15T10:37:57+00:00,200.0,home decor,lamp & lighting,GOOD,west elm,20231001/000000000372.parquet
+166017611,2023-10-15T13:23:17+00:00,18.05,kitchen & dining,kitchen utensils & tools,NEW,tupperware,20231001/000000000241.parquet
+35927877,2023-10-15T15:02:21+00:00,20.0,home decor,curtains & window treatments,GOOD,,20231001/000000000174.parquet
+47437447,2023-10-15T17:56:48+00:00,25.0,home decor,wall art & frames,NEW,threshold,20231001/000000000174.parquet
+58206823,2023-10-15T18:41:06+00:00,20.0,home decor,decorative accessories,NEW,jim shore,20231001/000000000329.parquet
+102977005,2023-10-15T19:18:31+00:00,36.0,home decor,candles,NEW,bath & body works,20231001/000000000087.parquet
+25854688,2023-10-15T22:56:24+00:00,10.0,home decor,home fragrance,LIKE_NEW,bath & body works,20231001/000000000174.parquet
+47755054,2023-10-15T23:51:48+00:00,19.0,kitchen & dining,kitchen & table linens,NEW,martha stewart,20231001/000000000174.parquet
+246751697,2023-10-16T01:24:44+00:00,4.0,kitchen & dining,mugs & cups,GOOD,anthropologie,20231001/000000000087.parquet
+22477445,2023-10-16T05:25:36+00:00,48.0,bedding & bath,pillow & bedding accessories,NEW,serta,20231001/000000000035.parquet
+163410884,2023-10-16T13:31:57+00:00,18.0,kitchen & dining,servingware,NEW,,20231001/000000000084.parquet
+63255468,2023-10-16T16:15:50+00:00,12.0,kitchen & dining,mugs & cups,NEW,starbucks,20231001/000000000241.parquet
+86870416,2023-10-16T17:05:59+00:00,39.0,kitchen & dining,dinnerware,NEW,anthropologie,20231001/000000000084.parquet
+161595698,2023-10-17T00:34:34+00:00,25.0,kitchen & dining,mugs & cups,NEW,t.j.maxx,20231001/000000000087.parquet
+244979859,2023-10-17T00:57:52+00:00,80.0,bedding & bath,blankets & comforters,NEW,threshold,20231001/000000000372.parquet
+183938232,2023-10-17T03:54:56+00:00,9.0,home decor,wall art & frames,LIKE_NEW,,20231001/000000000087.parquet
+236720078,2023-10-17T04:10:15+00:00,26.6,bedding & bath,sheets & pillowcases,GOOD,pottery barn kids,20231001/000000000014.parquet
+46053593,2023-10-17T04:47:51+00:00,60.0,bedding & bath,blankets & comforters,NEW,hello kitty,20231001/000000000084.parquet
+209239366,2023-10-17T15:17:08+00:00,99.99,appliances,coffee & espresso machine,GOOD,keurig,20231001/000000000329.parquet
+78763122,2023-10-17T15:25:37+00:00,50.0,kitchen & dining,bottles & tumblers,NEW,gatorade,20231001/000000000174.parquet
+104306012,2023-10-17T18:14:39+00:00,10.0,kitchen & dining,kitchen utensils & tools,NEW,,20231001/000000000241.parquet
+161162810,2023-10-17T18:41:43+00:00,46.64,kitchen & dining,food storage,LIKE_NEW,rae dunn,20231001/000000000372.parquet
+133293782,2023-10-17T22:53:18+00:00,42.0,kitchen & dining,mugs & cups,GOOD,williams sonoma,20231001/000000000014.parquet
+186508051,2023-10-18T00:50:30+00:00,19.0,kitchen & dining,mugs & cups,GOOD,,20231001/000000000084.parquet
+223044730,2023-10-18T01:39:34+00:00,10.0,home decor,decorative accessories,GOOD,mary engelbreit,20231001/000000000329.parquet
+163628222,2023-10-18T16:23:41+00:00,15.34,kitchen & dining,mugs & cups,NEW,starbucks,20231001/000000000351.parquet
+231203149,2023-10-18T16:57:43+00:00,36.0,home decor,candles,NEW,bath & body works,20231001/000000000084.parquet
+53174585,2023-10-18T17:50:46+00:00,99.0,kitchen & dining,bottles & tumblers,NEW,hydro flask,20231001/000000000035.parquet
+133473839,2023-10-18T19:43:02+00:00,18.0,kitchen & dining,mugs & cups,NEW,,20231001/000000000372.parquet
+193285128,2023-10-18T22:49:24+00:00,12.22,kitchen & dining,bakeware,NEW,rae dunn,20231001/000000000241.parquet
+19335128,2023-10-19T01:37:07+00:00,18.0,kitchen & dining,kitchen & table linens,NEW,cupcakes and cashmere,20231001/000000000174.parquet
+194879008,2023-10-19T01:48:07+00:00,6.0,kitchen & dining,kitchen utensils & tools,LIKE_NEW,,20231001/000000000174.parquet
+33485428,2023-10-19T01:52:59+00:00,48.0,home decor,candles,NEW,department 56,20231001/000000000035.parquet
+153268957,2023-10-19T03:46:53+00:00,12.0,home decor,decorative pillow,NEW,,20231001/000000000087.parquet
+78645758,2023-10-19T06:44:16+00:00,61.37,bedding & bath,blankets & comforters,NEW,hello kitty,20231001/000000000084.parquet
+179780716,2023-10-19T13:49:37+00:00,42.0,kitchen & dining,bottles & tumblers,NEW,stanley,20231001/000000000087.parquet
+170081906,2023-10-19T18:24:06+00:00,15.0,home decor,candles,NEW,bath & body works,20231001/000000000035.parquet
+159643926,2023-10-19T18:52:40+00:00,20.0,home decor,candles,NEW,bath & body works,20231001/000000000035.parquet
+94482204,2023-10-19T19:26:43+00:00,16.24,kitchen & dining,mugs & cups,NEW,rae dunn,20231001/000000000084.parquet
+134776829,2023-10-19T20:06:59+00:00,20.0,home decor,lamp & lighting,NEW,loot crate,20231001/000000000087.parquet
+210948948,2023-10-19T21:33:02+00:00,7.0,kitchen & dining,kitchen utensils & tools,NEW,,20231001/000000000084.parquet
+207525481,2023-10-19T21:51:03+00:00,65.0,kitchen & dining,cookware,NEW,pioneer woman,20231001/000000000014.parquet
+121924574,2023-10-19T21:58:18+00:00,28.0,kitchen & dining,dinnerware,NEW,gibson,20231001/000000000084.parquet
+137596748,2023-10-20T01:06:51+00:00,49.0,kitchen & dining,bottles & tumblers,NEW,stanley,20231001/000000000174.parquet
+26645052,2023-10-20T02:48:33+00:00,14.0,kitchen & dining,bakeware,NEW,,20231001/000000000087.parquet
+206910952,2023-10-20T12:48:37+00:00,13.0,home decor,home fragrance,NEW,bath & body works,20231001/000000000372.parquet
+13019036,2023-10-20T14:10:33+00:00,13.0,home decor,wall art & frames,NEW,target,20231001/000000000087.parquet
+222450098,2023-10-20T16:14:18+00:00,59.16,kitchen & dining,bottles & tumblers,NEW,stanley,20231001/000000000087.parquet
+98029594,2023-10-20T17:17:13+00:00,35.0,kitchen & dining,kitchen utensils & tools,NEW,master class,20231001/000000000087.parquet
+208626133,2023-10-20T18:02:53+00:00,700.0,home decor,lamp & lighting,NEW,helix,20231001/000000000241.parquet
+234162114,2023-10-20T19:11:09+00:00,52.25,appliances,kitchen appliance,NEW,,20231001/000000000351.parquet
+172328272,2023-10-20T20:22:14+00:00,30.0,bedding & bath,blankets & comforters,NEW,dr. seuss,20231001/000000000174.parquet
+244558181,2023-10-20T23:37:58+00:00,48.0,home decor,decorative pillow,NEW,john derian,20231001/000000000014.parquet
+106010169,2023-10-20T23:41:37+00:00,17.0,home decor,home fragrance,NEW,,20231001/000000000174.parquet
+120237981,2023-10-21T01:27:01+00:00,75.0,bedding & bath,blankets & comforters,NEW,hello kitty,20231001/000000000014.parquet
+162562882,2023-10-21T01:42:12+00:00,46.0,home decor,seasonal decorations,NEW,hello kitty,20231001/000000000035.parquet
+63230791,2023-10-21T02:33:50+00:00,14.99,kitchen & dining,dinnerware,NEW,rae dunn,20231001/000000000372.parquet
+175606436,2023-10-21T06:10:15+00:00,18.0,home decor,wall art & frames,NEW,autograph,20231001/000000000322.parquet
+53604527,2023-10-21T09:02:47+00:00,64.0,bedding & bath,blankets & comforters,NEW,vera bradley,20231001/000000000087.parquet
+48292980,2023-10-21T17:05:20+00:00,9.0,home decor,decorative accessories,GOOD,,20231001/000000000087.parquet
+130958240,2023-10-21T18:03:43+00:00,36.0,kitchen & dining,food storage,NEW,10 strawberry street,20231001/000000000035.parquet
+112889249,2023-10-21T19:39:34+00:00,19.0,kitchen & dining,mugs & cups,NEW,t.j.maxx,20231001/000000000351.parquet
+23008892,2023-10-21T21:11:08+00:00,13.54,storage & organization,storage bins & baskets,GOOD,unique vintage,20231001/000000000087.parquet
+158044784,2023-10-21T21:15:49+00:00,22.0,kitchen & dining,mugs & cups,NEW,,20231001/000000000322.parquet
+13508015,2023-10-21T21:20:19+00:00,15.0,kitchen & dining,servingware,GOOD,crate & barrel,20231001/000000000014.parquet
+149789462,2023-10-21T21:31:28+00:00,12.0,home decor,seasonal decorations,NEW,hallmark,20231001/000000000241.parquet
+79632788,2023-10-22T00:10:05+00:00,100.0,home decor,decorative accessories,NEW,disney,20231001/000000000174.parquet
+141923025,2023-10-22T00:52:05+00:00,18.0,kitchen & dining,kitchen & table linens,GOOD,jonathan adler,20231001/000000000035.parquet
+244921125,2023-10-22T02:28:09+00:00,20.0,kitchen & dining,mugs & cups,NEW,johanna parker,20231001/000000000329.parquet
+6096888,2023-10-22T03:56:01+00:00,85.0,home decor,candles,NEW,bath & body works,20231001/000000000322.parquet
+120711950,2023-10-22T04:29:39+00:00,42.75,kitchen & dining,kitchen utensils & tools,NEW,wusthof,20231001/000000000241.parquet
+122682454,2023-10-22T11:36:27+00:00,25.0,bedding & bath,blankets & comforters,LIKE_NEW,,20231001/000000000084.parquet
+133525205,2023-10-22T13:01:47+00:00,10.0,kitchen & dining,mugs & cups,LIKE_NEW,clay art,20231001/000000000241.parquet
+114244944,2023-10-22T16:54:05+00:00,14.0,home decor,decorative accessories,GOOD,unique vintage,20231001/000000000372.parquet
+216754256,2023-10-22T17:37:40+00:00,12.0,kitchen & dining,bakeware,NEW,,20231001/000000000084.parquet
+112600737,2023-10-22T21:35:29+00:00,22.0,home decor,seasonal decorations,NEW,rae dunn,20231001/000000000084.parquet
+214417412,2023-10-22T22:56:33+00:00,13.0,home decor,decorative pillow,LIKE_NEW,la-z-boy,20231001/000000000014.parquet
+202677266,2023-10-22T23:54:49+00:00,8.0,home decor,home fragrance,LIKE_NEW,bath & body works,20231001/000000000084.parquet
+68061139,2023-10-22T23:57:18+00:00,19.0,kitchen & dining,mugs & cups,NEW,peppermint,20231001/000000000035.parquet
+225605434,2023-10-23T00:54:06+00:00,8.0,home decor,lamp & lighting,LIKE_NEW,,20231001/000000000351.parquet
+83016761,2023-10-23T01:11:00+00:00,34.0,kitchen & dining,mugs & cups,NEW,argington,20231001/000000000174.parquet
+180228147,2023-10-23T14:04:28+00:00,35.0,kitchen & dining,cookware,GOOD,paula deen,20231001/000000000174.parquet
+131461459,2023-10-23T14:57:50+00:00,54.0,home decor,decorative accessories,LIKE_NEW,pottery barn,20231001/000000000035.parquet
+195877955,2023-10-23T15:07:50+00:00,25.0,home decor,decorative accessories,LIKE_NEW,pottery barn,20231001/000000000035.parquet
+162875565,2023-10-23T15:13:52+00:00,15.67,home decor,decorative accessories,LIKE_NEW,pottery barn,20231001/000000000035.parquet
+187788396,2023-10-23T16:26:40+00:00,22.0,home decor,wall art & frames,NEW,,20231001/000000000014.parquet
+244143501,2023-10-23T16:49:45+00:00,59.0,kitchen & dining,mugs & cups,GOOD,embr,20231001/000000000084.parquet
+16039122,2023-10-23T16:53:40+00:00,45.0,home decor,seasonal decorations,NEW,cupcakes and cashmere,20231001/000000000084.parquet
+236472948,2023-10-23T16:54:16+00:00,38.0,home decor,decorative pillow,NEW,marshalls,20231001/000000000084.parquet
+102984284,2023-10-23T17:10:40+00:00,14.0,kitchen & dining,kitchen utensils & tools,GOOD,oneida,20231001/000000000014.parquet
+28627131,2023-10-23T18:47:34+00:00,32.0,bedding & bath,blankets & comforters,NEW,the grinch,20231001/000000000174.parquet
+68240598,2023-10-23T19:58:12+00:00,49.0,home decor,decorative pillow,NEW,t.j.maxx,20231001/000000000084.parquet
+147052029,2023-10-23T21:19:27+00:00,55.0,kitchen & dining,mugs & cups,NEW,princess house,20231001/000000000174.parquet
+111239217,2023-10-23T21:20:03+00:00,16.9,home decor,candles,NEW,bath & body works,20231001/000000000322.parquet
+116517317,2023-10-23T23:17:37+00:00,18.0,home decor,wall art & frames,NEW,autograph,20231001/000000000322.parquet
+226937670,2023-10-23T23:36:43+00:00,20.0,home decor,candles,NEW,bath & body works,20231001/000000000035.parquet
+201973019,2023-10-24T00:23:05+00:00,15.0,kitchen & dining,kitchen utensils & tools,GOOD,,20231001/000000000322.parquet
+217874952,2023-10-24T11:49:43+00:00,30.0,home decor,decorative accessories,LIKE_NEW,partylite,20231001/000000000035.parquet
+4030955,2023-10-24T13:10:38+00:00,15.0,storage & organization,storage bins & baskets,NEW,project 62,20231001/000000000322.parquet
+189378570,2023-10-24T14:06:46+00:00,14.0,home decor,lamp & lighting,LIKE_NEW,,20231001/000000000372.parquet
+231571115,2023-10-24T15:52:14+00:00,19.0,kitchen & dining,mugs & cups,NEW,starbucks,20231001/000000000322.parquet
+112587795,2023-10-24T16:13:55+00:00,52.25,home decor,candles,GOOD,t.j.maxx,20231001/000000000329.parquet
+201255795,2023-10-24T19:57:20+00:00,25.0,kitchen & dining,cookware,GOOD,corningware,20231001/000000000014.parquet
+212350621,2023-10-24T22:07:59+00:00,67.0,home decor,seasonal decorations,NEW,hallmark,20231001/000000000087.parquet
+100296179,2023-10-25T22:16:48+00:00,85.74,kitchen & dining,bottles & tumblers,NEW,,20231001/000000000351.parquet
+71236668,2023-10-25T23:58:51+00:00,10.0,kitchen & dining,bottles & tumblers,NEW,rae dunn,20231001/000000000174.parquet
+26011053,2023-10-26T02:19:06+00:00,22.0,home decor,seasonal decorations,LIKE_NEW,,20231001/000000000087.parquet
+139760625,2023-10-26T02:36:24+00:00,12.0,kitchen & dining,dinnerware,GOOD,222 fifth,20231001/000000000084.parquet
+33234398,2023-10-26T06:17:53+00:00,18.0,home decor,wall art & frames,GOOD,,20231001/000000000322.parquet
+243824684,2023-10-26T13:43:22+00:00,36.1,bedding & bath,blankets & comforters,GOOD,matilda jane,20231001/000000000084.parquet
+140443777,2023-10-26T13:55:34+00:00,14.25,kitchen & dining,dinnerware,GOOD,american atelier,20231001/000000000322.parquet
+222340366,2023-10-26T15:15:01+00:00,75.0,kitchen & dining,bottles & tumblers,NEW,,20231001/000000000329.parquet
+103055384,2023-10-26T16:09:49+00:00,13.0,home decor,home fragrance,NEW,scentsational,20231001/000000000087.parquet
+206713873,2023-10-26T17:03:06+00:00,9.02,kitchen & dining,mugs & cups,NEW,opalhouse,20231001/000000000329.parquet
+234245016,2023-10-26T20:42:41+00:00,15.0,kitchen & dining,kitchen utensils & tools,NEW,handmade,20231001/000000000014.parquet
+72481494,2023-10-26T22:16:51+00:00,20.0,bedding & bath,blankets & comforters,LIKE_NEW,nick jr.,20231001/000000000241.parquet
+148144549,2023-10-26T23:53:33+00:00,33.25,bedding & bath,sheets & pillowcases,NEW,betsey johnson,20231001/000000000329.parquet
+138231353,2023-10-27T00:04:17+00:00,35.15,kitchen & dining,bottles & tumblers,NEW,the grinch,20231001/000000000241.parquet
+82871561,2023-10-27T02:57:30+00:00,85.0,home decor,wall art & frames,NEW,threshold,20231001/000000000084.parquet
+34397790,2023-10-27T15:11:01+00:00,18.0,kitchen & dining,mugs & cups,GOOD,mikasa,20231001/000000000035.parquet
+206811102,2023-10-27T18:37:44+00:00,18.0,bedding & bath,blankets & comforters,NEW,pink,20231001/000000000329.parquet
+71289780,2023-10-27T20:24:17+00:00,40.0,bedding & bath,blankets & comforters,NEW,hello kitty,20231001/000000000087.parquet
+46519887,2023-10-27T21:20:33+00:00,35.0,bedding & bath,blankets & comforters,NEW,rae dunn,20231001/000000000329.parquet
+48902591,2023-10-27T21:44:55+00:00,10.0,home decor,seasonal decorations,NEW,,20231001/000000000174.parquet
+124475833,2023-10-28T00:17:46+00:00,20.0,kitchen & dining,dinnerware,NEW,,20231001/000000000035.parquet
+149284505,2023-10-28T03:37:54+00:00,24.0,kitchen & dining,servingware,GOOD,,20231001/000000000035.parquet
+93072276,2023-10-28T13:57:14+00:00,45.0,home decor,seasonal decorations,NEW,rae dunn,20231001/000000000084.parquet
+4702970,2023-10-28T16:17:45+00:00,35.0,kitchen & dining,food storage,NEW,tupperware,20231001/000000000014.parquet
+75501419,2023-10-28T16:32:13+00:00,55.0,kitchen & dining,bottles & tumblers,NEW,glossier,20231001/000000000035.parquet
+153298504,2023-10-28T21:03:05+00:00,25.0,kitchen & dining,bottles & tumblers,NEW,tupperware,20231001/000000000014.parquet
+235892829,2023-10-28T23:29:39+00:00,33.0,kitchen & dining,bottles & tumblers,GOOD,starbucks,20231001/000000000322.parquet
+95899742,2023-10-28T23:30:45+00:00,14.0,kitchen & dining,bottles & tumblers,GOOD,starbucks,20231001/000000000322.parquet
+32655512,2023-10-29T11:38:57+00:00,22.0,home decor,wall art & frames,NEW,hello kitty,20231001/000000000322.parquet
+100351747,2023-10-29T14:15:17+00:00,28.0,kitchen & dining,bottles & tumblers,LIKE_NEW,stanley,20231001/000000000372.parquet
+242148003,2023-10-29T15:28:14+00:00,24.0,kitchen & dining,mugs & cups,GOOD,starbucks,20231001/000000000087.parquet
+4336563,2023-10-29T15:38:11+00:00,48.0,home decor,seasonal decorations,NEW,t.j.maxx,20231001/000000000087.parquet
+78026792,2023-10-29T16:00:01+00:00,50.29,home decor,seasonal decorations,GOOD,disney,20231001/000000000084.parquet
+87191150,2023-10-29T16:40:40+00:00,38.0,appliances,kitchen appliance,GOOD,hamilton beach,20231001/000000000174.parquet
+241847614,2023-10-29T17:09:48+00:00,17.0,home decor,seasonal decorations,GOOD,partylite,20231001/000000000035.parquet
+173866079,2023-10-29T19:25:17+00:00,8.57,home decor,candles,GOOD,,20231001/000000000035.parquet
+224113517,2023-10-29T19:50:12+00:00,60.0,home decor,seasonal decorations,NEW,isaac mizrahi,20231001/000000000087.parquet
+111552359,2023-10-29T23:09:07+00:00,8.12,kitchen & dining,bottles & tumblers,LIKE_NEW,,20231001/000000000241.parquet
+82839670,2023-10-30T00:35:16+00:00,118.0,home decor,lamp & lighting,NEW,disney,20231001/000000000087.parquet
+8611109,2023-10-30T00:39:53+00:00,24.0,home decor,curtains & window treatments,NEW,,20231001/000000000035.parquet
+154307105,2023-10-30T01:51:21+00:00,128.25,kitchen & dining,cookware,NEW,amway,20231001/000000000372.parquet
+118264556,2023-10-30T03:37:45+00:00,66.87,bedding & bath,blankets & comforters,NEW,dr. seuss,20231001/000000000329.parquet
+40883769,2023-10-30T14:05:56+00:00,20.0,kitchen & dining,bottles & tumblers,NEW,sanrio,20231001/000000000035.parquet
+227392585,2023-10-30T14:37:12+00:00,50.0,home decor,candles,NEW,,20231001/000000000087.parquet
+247223083,2023-10-30T16:25:51+00:00,20.0,bedding & bath,blankets & comforters,GOOD,jcpenney,20231001/000000000322.parquet
+13600757,2023-10-30T16:27:21+00:00,57.0,kitchen & dining,bottles & tumblers,NEW,stanley,20231001/000000000084.parquet
+169008248,2023-10-30T20:46:40+00:00,25.0,kitchen & dining,bottles & tumblers,NEW,starbucks,20231001/000000000014.parquet
