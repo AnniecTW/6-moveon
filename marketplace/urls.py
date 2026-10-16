@@ -1,6 +1,7 @@
 from django.urls import path
 
 from marketplace import views
+from marketplace import charts
 from marketplace.views import (
     ListingCreateView,
     ListingDetailView,
@@ -12,6 +13,17 @@ from marketplace.views import (
 )
 
 urlpatterns = [
+    path("charts/", charts.personal_charts, name="a4-charts"),
+    path("api/profile/charts/earned-spent/", charts.earned_spent_data, name="profile-earned-spent-data"),
+    path("api/profile/charts/earned-spent-timeline/", charts.earned_spent_timeline_data, name="profile-earned-spent-timeline-data"),
+    path("api/profile/charts/listing-inquiries/", charts.listing_inquiry_chart_data, name="profile-listing-inquiry-data"),
+    path("vega-lite/earned-spent.json", charts.earned_spent_spec, name="vega-earned-spent-spec"),
+    path("vega-lite/earned-spent-timeline.json", charts.earned_spent_timeline_spec, name="vega-earned-spent-timeline-spec"),
+    path("vega-lite/listing-inquiries.json", charts.listing_inquiry_spec, name="vega-listing-inquiries-spec"),
+    path("vega-lite/earned-spent.png", charts.earned_spent_png, name="vega-earned-spent-png"),
+    path("vega-lite/earned-spent-timeline.png", charts.earned_spent_timeline_png, name="vega-earned-spent-timeline-png"),
+    path("vega-lite/listing-inquiries.png", charts.listing_inquiry_png, name="vega-listing-inquiries-png"),
+    path("profile/inquiries.png", charts.listing_inquiry_png, name="listing-inquiry-chart"),
     path("profile/listings/", views.seller_listings_view, name="seller-listings"),
     path("profile/listings/<int:primary_key>/markdown-suggestion/", views.request_deadline_suggestion, name="request-deadline-suggestion"),
     path("profile/listings/notifications/<int:notification_id>/open/", views.open_deadline_notification, name="deadline-notification-open"),

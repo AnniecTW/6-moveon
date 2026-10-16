@@ -190,31 +190,6 @@ class AccountTests(TestCase):
         wrong_link = link[:-3] + "00%3D/"
         self.assertFalse(self.client.get(wrong_link).context["validlink"])
 
-    def test_google_token_requires_local_verification_and_subject_match(self):
-        claims = {"sub": "google-sub-1", "email": "newstudent@illinois.edu", "email_verified": True, "hd": "illinois.edu"}
-        with override_settings(GOOGLE_CLIENT_ID="test-client"), patch("marketplace.google_auth.verify_google_token", return_value=claims):
-            self.assertRedirects(self.client.post(reverse("account_google"), {"credential": "mock-token"}), reverse("account_verify"))
-            user = get_user_model().objects.get(email=claims["email"])
-            self.assertFalse(user.email_verified)
-            self.assertNotIn("_auth_user_id", self.client.session)
-            code = re.search(r"\b\d{6}\b", mail.outbox[-1].body).group()
-            self.client.post(reverse("account_verify"), {"code": code})
-            self.assertRedirects(self.client.post(reverse("account_google"), {"credential": "mock-token"}), reverse("home"))
-            self.client.post(reverse("account_logout"))
-            claims["sub"] = "different-sub"
-            self.assertEqual(self.client.post(reverse("account_google"), {"credential": "mock-token"}).status_code, 200)
-            self.assertNotIn("_auth_user_id", self.client.session)
-
-    def test_google_button_page_allows_popup_without_changing_other_pages(self):
-        with override_settings(GOOGLE_CLIENT_ID="test-client"):
-            for url in (reverse("account"), reverse("account") + "?mode=signup"):
-                with self.subTest(url=url):
-                    response = self.client.get(url)
-                    self.assertEqual(response.headers.get("Cross-Origin-Opener-Policy"), "same-origin-allow-popups")
-            self.assertEqual(self.client.get(reverse("home")).headers.get("Cross-Origin-Opener-Policy"), "same-origin")
-        with override_settings(GOOGLE_CLIENT_ID=""):
-            self.assertEqual(self.client.get(reverse("account")).headers.get("Cross-Origin-Opener-Policy"), "same-origin")
-
     def test_email_change_revokes_access_and_old_code(self):
         user, code = self.signup()
         self.client.post(reverse("account_verify"), {"code": code})
@@ -255,24 +230,14 @@ class AccountTests(TestCase):
         self.assertRedirects(self.client.post(reverse("account"), self.login_data()), target)
 
     def test_google_rejects_unconfigured_invalid_and_existing_email(self):
-        with override_settings(GOOGLE_CLIENT_ID=""):
-            self.assertContains(self.client.post(reverse("account_google"), {"credential": "token"}), "not configured")
-        with override_settings(GOOGLE_CLIENT_ID="test-client"):
-            with patch("marketplace.google_auth.verify_google_token", side_effect=ValueError):
-                response = self.client.post(reverse("account_google"), {"credential": "bad"})
-                self.assertContains(response, "@illinois.edu")
-            get_user_model().objects.create_user(
-                username="newstudent", email="newstudent@illinois.edu",
-                password="A-strong-password-2026",
-            )
-            with patch("marketplace.google_auth.verify_google_token", return_value={
-                "sub": "sub-2", "email": "newstudent@illinois.edu", "email_verified": True,
-            }):
-                self.assertContains(self.client.post(reverse("account_google"), {"credential": "mock"}), "already exists")
-                self.assertIsNone(get_user_model().objects.get(username="newstudent").google_subject)
+        with override_settings(GOOGLE_CLIENT_ID="", GOOGLE_CLIENT_SECRET=""):
+            response = self.client.post(reverse("account_google"))
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.url, reverse("account"))
+            self.assertContains(self.client.get(reverse("account")), "not configured")
         csrf_client = Client(enforce_csrf_checks=True)
-        with override_settings(GOOGLE_CLIENT_ID="test-client"):
-            self.assertEqual(csrf_client.post(reverse("account_google"), {"credential": "mock"}).status_code, 403)
+        with override_settings(GOOGLE_CLIENT_ID="test-client", GOOGLE_CLIENT_SECRET="test-secret"):
+            self.assertEqual(csrf_client.post(reverse("account_google")).status_code, 403)
 
     def test_mail_failure_does_not_claim_delivery(self):
         with patch("marketplace.email_verification.send_mail", side_effect=OSError("SMTP down")):
@@ -281,14 +246,6 @@ class AccountTests(TestCase):
         self.assertContains(self.client.get(reverse("account_verify")), "could not accept")
         from marketplace.models import EmailVerification
         self.assertFalse(EmailVerification.objects.exists())
-
-    def test_google_verifier_passes_configured_audience_to_library(self):
-        from marketplace.google_auth import verify_google_token
-        with patch("marketplace.google_auth.id_token.verify_oauth2_token", return_value={"sub": "abc"}) as verify:
-            self.assertEqual(verify_google_token("signed-token", "client-id"), {"sub": "abc"})
-            self.assertEqual(verify.call_args.args[0], "signed-token")
-            self.assertEqual(verify.call_args.args[2], "client-id")
-
 
 class AdminAccessTests(TestCase):
     def make_admin(self, *, email="developer@example.invalid"):

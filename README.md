@@ -113,6 +113,20 @@ Run checks with `python manage.py check` and `python manage.py test`.
 
 ## Account access and email
 
+Google sign-in uses the `week5-public-api-demos` OAuth flow through
+`django-allauth`. To enable it, create a Google OAuth **web application** client,
+set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`, and register
+`http://127.0.0.1:8000/accounts/google/login/callback/` as an authorized
+redirect URI (use the matching host and HTTPS URI when deployed). Run
+`python manage.py migrate` after installing requirements. A Google identity
+must use a verified `@illinois.edu` email, and MoveOn's own six-digit campus
+email check still applies. Existing users can connect the same Google identity
+from Profile → Settings. Google is optional; password sign-in remains available.
+
+The profile summary uses Vega-Lite charts. It loads `vega-embed` in the browser
+from `esm.sh`; PNG chart endpoints also need `vl-convert-python` from
+`requirements.txt`.
+
 For a local check, register with an `@illinois.edu` address, copy the six-digit
 code from the `runserver` terminal, verify, log in, and log out. Then use
 **Forgot password?** and open its reset link from that terminal. The local

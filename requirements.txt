@@ -1,6 +1,8 @@
 asgiref==3.12.1
 Django==6.1.1
-google-auth[requests]>=2.38,<3
+django-allauth[socialaccount]==65.19.7
+requests>=2.32,<3
+vl-convert-python==1.9.0.post1
 google-generativeai==0.8.3
 django-environ==0.14.0
 packaging==26.3

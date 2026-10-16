@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.crypto import salted_hmac
 
 from .models import EmailVerification, User
+from .email_state import sync_campus_email
 
 CODE_LIFETIME = timedelta(minutes=10)
 RESEND_COOLDOWN = timedelta(seconds=60)
@@ -77,5 +78,6 @@ def consume_code(user, code):
         user.email_verified = True
         user.email_verified_at = timezone.now()
         user.save(update_fields=["email_verified", "email_verified_at"])
+        sync_campus_email(user)
         challenge.delete()
         return None

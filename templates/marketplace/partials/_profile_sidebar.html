@@ -4,5 +4,5 @@
   <ul class="profile-facts">
     <li><span aria-hidden="true">&#10003;</span> {% if profile.verified %}Verified email{% else %}Verification pending{% endif %}</li>
   </ul>
-  <a class="button profile-button" href="#profile-settings">Edit Profile</a>
+  <a class="button profile-button" href="{% url 'seller-settings' %}" data-dashboard-route>Edit Profile</a>
 </aside>

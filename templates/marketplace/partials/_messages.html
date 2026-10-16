@@ -1,0 +1,9 @@
+{% if messages %}
+<div{% if messages_container_class %} class="{{ messages_container_class }}"{% endif %}>
+  <ul class="wizard-messages" aria-label="Notifications">
+    {% for message in messages %}
+      <li class="wizard-message wizard-message--{{ message.level_tag }}" role="{% if message.level_tag == 'error' %}alert{% else %}status{% endif %}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}

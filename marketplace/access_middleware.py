@@ -16,7 +16,22 @@ PUBLIC_ROUTES = frozenset({
     "account", "account_logout", "account_verify", "account_verify_resend",
     "listing_image_upload",
     "password_reset", "password_reset_done", "password_reset_confirm", "account_google",
+    "google_login", "google_callback",
 })
+
+
+def access_denied_response(request, *, json_response=False):
+    authenticated = request.user.is_authenticated
+    if json_response:
+        return JsonResponse(
+            {"error": "Campus access required." if authenticated else "Sign in required.",
+             "code": "campus_access_required" if authenticated else "login_required"},
+            status=403 if authenticated else 401,
+        )
+    if request.method in ("GET", "HEAD"):
+        target = reverse("account") + "?" + urlencode({"next": request.get_full_path()})
+        return redirect(target)
+    return HttpResponseForbidden("Campus access required.")
 
 
 class CampusAccessMiddleware:
@@ -32,14 +47,7 @@ class CampusAccessMiddleware:
             return None
         if request.user.is_authenticated and has_campus_access(request.user):
             return None
-        if request.path.startswith("/api/messaging/"):
-            authenticated = request.user.is_authenticated
-            return JsonResponse(
-                {"error": "Campus access required." if authenticated else "Sign in required.",
-                 "code": "campus_access_required" if authenticated else "login_required"},
-                status=403 if authenticated else 401,
-            )
-        if request.method in ("GET", "HEAD"):
-            target = reverse("account") + "?" + urlencode({"next": request.get_full_path()})
-            return redirect(target)
-        return HttpResponseForbidden("Campus access required.")
+        return access_denied_response(
+            request,
+            json_response=request.path.startswith("/api/") or request.path.endswith(".json"),
+        )

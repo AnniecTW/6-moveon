@@ -1,9 +1,11 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
+from allauth.account.adapter import get_adapter
 
 from .auth_backend import has_campus_access
 from .models import User
+from .email_state import sync_campus_email
 
 
 class CampusAuthenticationForm(AuthenticationForm):
@@ -62,9 +64,7 @@ class ListingSignupForm(UserCreationForm):
         return username
 
     def clean_email(self):
-        email = self.cleaned_data["email"].strip().lower()
-        if not email.endswith("@illinois.edu"):
-            raise forms.ValidationError("Use an @illinois.edu email address.")
+        email = get_adapter().clean_email(self.cleaned_data["email"])
         if User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError("An account with this email already exists.")
         if User.objects.filter(username__iexact=email).exists():
@@ -76,4 +76,5 @@ class ListingSignupForm(UserCreationForm):
         user.display_name = user.username
         if commit:
             user.save()
+            sync_campus_email(user)
         return user
