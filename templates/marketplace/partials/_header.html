@@ -4,8 +4,8 @@
     <a class="logo" href="{% url 'home' %}" aria-label="MoveOn home"
       ><img src="{% static 'img/logo.png' %}" alt="MoveOn" width="150" height="52"
     /></a>
-    <form class="search" method="get" action="{% url 'home' %}" role="search" data-search-form>
-      {% if request.resolver_match.url_name == 'home' %}{% for key, values in request.GET.lists %}{% if key != 'q' %}{% for value in values %}<input
+    <form class="search" method="get" action="{% if local_llm_search_enabled %}{{ request.path }}{% else %}{% url 'home' %}{% endif %}" role="search" data-search-form>
+      {% if local_llm_search_enabled %}{% for key, values in request.GET.lists %}{% if key != 'q' and key != 'search_mode' %}{% for value in values %}<input
         type="hidden"
         name="{{ key }}"
         value="{{ value }}"
@@ -19,12 +19,49 @@
         placeholder="Find your next favorite thing…"
         maxlength="200"
       />
+      {% if local_llm_search_enabled %}<input
+        type="hidden"
+        id="search-mode"
+        name="search_mode"
+        value="{{ search_mode|default:'keyword' }}"
+        data-search-mode
+      />
+      <label class="search-mode-control">
+        <span class="sr-only">AI natural-language search</span>
+        <input
+          type="checkbox"
+          role="switch"
+          aria-label="AI natural-language search"
+          data-search-mode-toggle
+          {% if search_mode == 'ai' %}checked{% endif %}
+        />
+        <span class="search-mode-track" aria-hidden="true"><span></span></span>
+      </label>
+      <span class="search-mode-info-wrap">
+        <button
+          class="search-mode-info-button"
+          type="button"
+          aria-label="AI natural-language search information"
+          aria-describedby="search-mode-help"
+          aria-controls="search-mode-help"
+          aria-expanded="false"
+          data-search-mode-info
+        ><svg class="search-mode-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063L2 12l6.5-2.063A2 2 0 0 0 9.937 8.5L12 2l2.063 6.5A2 2 0 0 0 15.5 9.937L22 12l-6.5 2.063a2 2 0 0 0-1.437 1.437L12 22z" />
+          <path d="M20 3v4" />
+          <path d="M22 5h-4" />
+          <path d="M4 17v2" />
+          <path d="M5 18H3" />
+        </svg></button>
+        <span class="search-tooltip" id="search-mode-help" role="tooltip">Turn on the switch for natural-language search, such as “I want to decorate my room.” Use the filters below for exact price or category limits.</span>
+      </span>{% endif %}
       <button type="submit" aria-label="Search">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="10.5" cy="10.5" r="6.5" />
           <path d="m16 16 5 5" />
         </svg>
       </button>
+      {% if local_llm_search_enabled %}<p class="ai-search-status" data-ai-search-status role="status" aria-live="polite" hidden></p>{% endif %}
     </form>
     <nav class="header-actions" aria-label="Marketplace actions">
       {% if campus_access %}

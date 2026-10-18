@@ -1,4 +1,10 @@
 <div class="results-meta">
+  {% if ai_search_error %}<p class="muted ai-search-error" role="alert">{{ ai_search_error }}</p>{% endif %}
+  {% if ai_search_fallback %}<dialog class="ai-search-toast" data-ai-search-toast aria-labelledby="ai-search-toast-title" aria-describedby="ai-search-toast-message">
+    <h2 id="ai-search-toast-title">{{ ai_search_fallback_title }}</h2>
+    <p id="ai-search-toast-message">{{ ai_search_fallback_message }}</p>
+    <button class="button primary" type="button" data-ai-search-toast-close>Got it</button>
+  </dialog>{% endif %}
   <p class="muted" data-result-count role="status">
     {{ listings|length }} listing{{ listings|length|pluralize }}
   </p>
@@ -24,7 +30,7 @@
       filters.{% else %}There are no listings available right
       now.{% endif %}
     </p>
-    {% if filter_chips or filter_form.errors %}<a class="button" href="{{ request.path }}" data-reset
+    {% if filter_chips or filter_form.errors %}<a class="button" href="{{ request.path }}?q={{ request.GET.q|urlencode }}&amp;search_mode={{ search_mode|urlencode }}" data-reset
       >Clear filters</a
     >{% endif %}
   </div>

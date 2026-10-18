@@ -284,6 +284,43 @@
   color: var(--muted);
   margin: 12px 0 20px;
 }
+.ai-search-toast {
+  width: min(520px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--canvas);
+  color: var(--ink);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 28%);
+  line-height: 1.5;
+}
+.ai-search-toast[open] {
+  display: grid;
+  gap: 14px;
+}
+.ai-search-toast::backdrop {
+  background: rgb(25 30 34 / 62%);
+  backdrop-filter: blur(2px);
+}
+.ai-search-toast h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 500;
+}
+.ai-search-toast p {
+  margin: 0 0 4px;
+  color: var(--muted);
+}
+.ai-search-toast button {
+  justify-self: end;
+}
+@media (max-width: 520px) {
+  .ai-search-toast {
+    padding: 24px;
+  }
+}
 .filter-chips {
   display: flex;
   flex-wrap: wrap;

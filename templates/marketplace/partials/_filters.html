@@ -16,6 +16,7 @@
   </div>
   <form method="get" data-filter-form id="filter-form">
     <input type="hidden" name="q" value="{{ request.GET.q }}" />
+    <input type="hidden" name="search_mode" value="{{ search_mode }}" />
     <div data-form-errors role="alert">{{ filter_form.errors }}</div>
     <details open>
       <summary>Category</summary>
@@ -52,7 +53,7 @@
       {{ filter_form.fulfillment }}
     </details>
     <div class="filter-actions">
-      <a class="button" href="{{ request.path }}" data-reset>Clear all</a
+      <a class="button" href="{{ request.path }}?q={{ request.GET.q|urlencode }}&amp;search_mode={{ search_mode|urlencode }}" data-reset>Clear all</a
       ><button class="button primary" type="submit">View listings</button>
     </div>
   </form>

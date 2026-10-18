@@ -3,6 +3,10 @@ export function setupBrowse({ drawer, favorites }) {
   const form = document.querySelector("[data-filter-form]");
   const searchForm = document.querySelector("[data-search-form]");
   const search = document.querySelector("#search");
+  const searchMode = searchForm.elements.search_mode || null;
+  const searchModeToggle = searchForm.querySelector("[data-search-mode-toggle]");
+  const searchModeInfo = searchForm.querySelector("[data-search-mode-info]");
+  const aiSearchStatus = document.querySelector("[data-ai-search-status]");
   const sort = document.querySelector("#id_sort");
   const currency = document.querySelector("[data-currency-select]");
   const currencyStatus = document.querySelector("[data-currency-status]");
@@ -12,7 +16,9 @@ export function setupBrowse({ drawer, favorites }) {
   let controller,
     currencyController,
     timer,
-    view = "grid";
+    toastTimer,
+    view = "grid",
+    aiSearchPending = false;
   const mapping = JSON.parse(
     document.querySelector("#item-type-categories").textContent,
   );
@@ -35,6 +41,11 @@ export function setupBrowse({ drawer, favorites }) {
       else input.value = params.get(input.name) || "";
     }
     search.value = params.get("q") || "";
+    const selectedMode = params.get("search_mode") || "keyword";
+    if (searchMode) searchMode.value = selectedMode;
+    if (searchModeToggle) searchModeToggle.checked = selectedMode === "ai";
+    if (form.elements.search_mode)
+      form.elements.search_mode.value = selectedMode;
     sort.value = params.get("sort") || "newest";
     if (currency) currency.value = params.get("currency") || "USD";
     syncTypes();
@@ -94,12 +105,45 @@ export function setupBrowse({ drawer, favorites }) {
         );
     });
   }
+  function showAiFallbackToast(root = results) {
+    const toast = root.querySelector("[data-ai-search-toast]");
+    if (!toast) return;
+    if (!toast.open) toast.showModal();
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      if (toast.open) toast.close();
+    }, 7000);
+    toast.addEventListener("close", () => clearTimeout(toastTimer), { once: true });
+    toast.querySelector("[data-ai-search-toast-close]").addEventListener(
+      "click",
+      () => toast.close(),
+      { once: true },
+    );
+  }
   async function load(url, history = true, close = false) {
+    if (aiSearchPending) return;
     clearTimeout(timer);
     controller?.abort();
     const current = new AbortController();
     controller = current;
-    status.textContent = "Updating listings…";
+    const requestUrl = new URL(url, location.href);
+    const aiRequest =
+      requestUrl.searchParams.get("search_mode") === "ai" &&
+      !!requestUrl.searchParams.get("q")?.trim();
+    if (aiRequest) {
+      aiSearchPending = true;
+      searchForm.classList.add("is-loading");
+      searchModeInfo?.setAttribute("aria-expanded", "false");
+      aiSearchStatus.hidden = true;
+      aiSearchStatus.textContent = "";
+      [...searchForm.elements, ...form.elements].forEach((element) => {
+        element.disabled = true;
+      });
+    } else {
+      aiSearchStatus.hidden = true;
+      aiSearchStatus.textContent = "";
+    }
+    status.textContent = aiRequest ? "" : "Updating listings…";
     results.setAttribute("aria-busy", "true");
     try {
       const response = await fetch(url, {
@@ -115,6 +159,7 @@ export function setupBrowse({ drawer, favorites }) {
       const updated = page.querySelector("[data-results]");
       if (!updated) throw new Error("Missing results");
       results.replaceChildren(...updated.childNodes);
+      showAiFallbackToast();
       document
         .querySelector("[data-form-errors]")
         .replaceChildren(
@@ -132,16 +177,42 @@ export function setupBrowse({ drawer, favorites }) {
         status.textContent = "Check the filter values and try again.";
       if (close && !hasErrors) drawer.close();
     } catch (error) {
-      if (error.name !== "AbortError")
+      if (error.name !== "AbortError") {
         status.textContent =
           "Could not update listings. Submit search or filters to try again.";
+        if (aiRequest) {
+          aiSearchStatus.textContent =
+            "AI search could not be completed. Check the server and try again.";
+          aiSearchStatus.hidden = false;
+        }
+      }
     } finally {
       if (controller === current) results.removeAttribute("aria-busy");
+      if (aiRequest) {
+        aiSearchPending = false;
+        searchForm.classList.remove("is-loading");
+        [...searchForm.elements, ...form.elements].forEach((element) => {
+          element.disabled = false;
+        });
+        if (!aiSearchStatus.textContent.startsWith("AI search could not"))
+          aiSearchStatus.hidden = true;
+      }
     }
   }
   function submit(close = false) {
+    if (aiSearchPending) return;
     form.elements.q.value = search.value;
-    const params = new URLSearchParams(new FormData(form));
+    const selectedMode = searchModeToggle
+      ? searchModeToggle.checked ? "ai" : "keyword"
+      : searchMode?.value || "keyword";
+    if (searchMode) searchMode.value = selectedMode;
+    if (form.elements.search_mode)
+      form.elements.search_mode.value = selectedMode;
+    const params = new URLSearchParams(location.search);
+    const formParams = new URLSearchParams(new FormData(form));
+    for (const key of new Set(formParams.keys())) params.delete(key);
+    for (const [key, value] of formParams) params.append(key, value);
+    if (sort) params.set("sort", sort.value);
     if (currency) params.set("currency", currency.value);
     for (const [key, value] of [...params]) if (!value) params.delete(key);
     load(location.pathname + (params.size ? "?" + params : ""), true, close);
@@ -158,7 +229,28 @@ export function setupBrowse({ drawer, favorites }) {
     event.preventDefault();
     submit();
   });
+  searchModeToggle?.addEventListener("change", () => submit());
+  if (searchModeInfo) {
+    searchModeInfo.addEventListener("click", () => {
+      if (!window.matchMedia("(hover: none)").matches) return;
+      searchModeInfo.setAttribute(
+        "aria-expanded",
+        String(searchModeInfo.getAttribute("aria-expanded") !== "true"),
+      );
+    });
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".search-mode-info-wrap"))
+        searchModeInfo.setAttribute("aria-expanded", "false");
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && searchModeInfo.getAttribute("aria-expanded") === "true") {
+        searchModeInfo.setAttribute("aria-expanded", "false");
+        searchModeInfo.blur();
+      }
+    });
+  }
   search.addEventListener("input", () => {
+    if (searchModeToggle?.checked || searchMode?.value === "ai") return;
     clearTimeout(timer);
     controller?.abort();
     timer = setTimeout(submit, 250);
@@ -197,5 +289,6 @@ export function setupBrowse({ drawer, favorites }) {
   );
   syncTypes();
   paintView();
+  showAiFallbackToast();
   updateCurrencyPrices();
 }
