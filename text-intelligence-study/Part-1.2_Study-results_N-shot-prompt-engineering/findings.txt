@@ -1,0 +1,16 @@
+MoveOn n-shot development comparison — run 01fee8f4d131
+8 queries; 1 greedy run(s); 0 missing responses.
+Decision rule: strict structure rate first, then usable nDCG@5, then median latency.
+Demonstrations: synthetic catalogue, fixed nested examples, counts 0/1/3/8.
+Existing screening queries are reused; this is not an independent final test.
+
+Qwen/Qwen3-1.7B: many_shot (8 examples); strict structure 100.0%, usable nDCG@5 0.458, median generation latency 5.24s.
+meta-llama/Llama-3.2-3B-Instruct: zero_shot (0 examples); strict structure 100.0%, usable nDCG@5 0.483, median generation latency 3.33s.
+microsoft/Phi-4-mini-instruct: one_shot (1 examples); strict structure 75.0%, usable nDCG@5 0.433, median generation latency 6.26s.
+
+Interpretation notes:
+- Ties in structure reliability are resolved by relevance, then speed; retain tied rates in the report.
+- A small development set cannot establish general reliability or statistical superiority.
+- Review failure outputs and consider query types, budget/color adherence, and distractors.
+- Do not infer internal reasoning quality from a JSON-only response.
+- Repeated greedy outputs are timing replicates, not independent semantic samples.
