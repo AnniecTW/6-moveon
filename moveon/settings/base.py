@@ -32,6 +32,10 @@ ALLOWED_HOSTS = []
 # Left blank, that feature falls back to a plain price-based heuristic
 # instead of failing.
 GEMINI_API_KEY = "" if is_a5_preview_settings() else env("GEMINI_API_KEY", default="")
+LOCAL_LLM_MODEL_ID = env(
+    "LOCAL_LLM_MODEL_ID", default="meta-llama/Llama-3.2-3B-Instruct"
+)
+HF_TOKEN = env("HF_TOKEN", default="")
 
 
 # Application definition

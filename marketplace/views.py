@@ -229,18 +229,28 @@ def account_logout_view(request):
 # 1. FBV (Manual HttpResponse)
 def listing_manual_view(request):
     template = loader.get_template("marketplace/listing_list.html")
-    return HttpResponse(template.render(browse_context(request), request))
+    return HttpResponse(
+        template.render(browse_context(request, use_local_llm=True), request)
+    )
 
 
 # 2. FBV (render shortcut)
 def listing_render_view(request):
-    return render(request, "marketplace/listing_list.html", browse_context(request))
+    return render(
+        request,
+        "marketplace/listing_list.html",
+        browse_context(request, use_local_llm=True),
+    )
 
 
 # 3. Base CBV
 class ListingBaseView(View):
     def get(self, request):
-        return render(request, "marketplace/listing_list.html", browse_context(request))
+        return render(
+            request,
+            "marketplace/listing_list.html",
+            browse_context(request, use_local_llm=True),
+        )
 
 
 # 4. Generic CBV
@@ -250,7 +260,7 @@ class ListingListView(ListView):  # Naming Pattern: <Model><Purpose>View
     context_object_name = "listings"
 
     def get_queryset(self):
-        self.browse = browse_context(self.request)
+        self.browse = browse_context(self.request, use_local_llm=True)
         return self.browse["listings"]
 
     def get_context_data(self, **kwargs):

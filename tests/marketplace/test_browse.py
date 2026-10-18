@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.core.management import call_command
+from unittest.mock import patch
 from io import StringIO
 from marketplace.models import User, ItemCategory, ItemType, Listing
 
@@ -64,6 +65,18 @@ class BrowseTests(TestCase):
         )
         self.assertEqual([x.title for x in response.context["listings"]], ["Oak desk"])
         self.assertEqual(len(response.context["filter_chips"]), 5)
+
+    @patch("marketplace.local_llm._generate_response")
+    def test_keyword_mode_remains_the_default_and_does_not_load_ai(self, generate_response):
+        for params in ({"q": "oak"}, {"q": "oak", "search_mode": "keyword"}):
+            with self.subTest(params=params):
+                response = self.client.get(reverse("home"), params)
+                self.assertEqual(
+                    [listing.title for listing in response.context["listings"]],
+                    ["Oak desk"],
+                )
+                self.assertEqual(response.context["search_mode"], "keyword")
+        generate_response.assert_not_called()
 
     def test_pickup_filter(self):
         response = self.client.get(
