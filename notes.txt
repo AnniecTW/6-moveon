@@ -1,0 +1,173 @@
+A6 Part 3: Production Reflection
+
+Q1. Size versus quality
+
+The 3-5B group gave us the best balance of search quality and speed under our scoring
+rule. We tested 15 models on eight queries and 40 listings. Models needed usable JSON
+and complete five-ID lists on at least 80% of queries. We then weighted retrieval
+quality at 70% and speed at 30%. Llama-3.2-3B, Phi-4-mini and Qwen3-1.7B ranked
+highest.[1]
+
+Phi-4 found more relevant listings than Llama-3.2-3B: Recall@5 was 0.850 versus 0.508,
+but median generation time was 9.320 versus 2.797 seconds. We would consider Phi-4 when
+finding more relevant products matters more than the wait. Size alone was not enough:
+Qwen2.5-14B scored 0.535, below Mistral-7B's 0.719. Eight queries and different loading
+precisions limit how widely we can apply these results.[1]
+
+The prompt study selected Llama-3.2-3B with zero-shot prompting. All eight responses
+passed the strict format check, with usable nDCG@5 of 0.483 and median generation time
+of 3.33 seconds. Qwen3-1.7B with eight examples had higher recall (0.556 versus 0.483),
+but lower nDCG (0.458) and took 5.24 seconds. More examples did not consistently
+help.[2]
+
+Appendix A lists all 15 models. Each was tested separately on a T4. Our rental estimate
+uses one T4-medium at $0.60/hour or $432/30 days, with the study's loading settings and
+sufficient host RAM. Renting the same hardware costs the same even when a model uses
+less memory; this is not the cheapest possible setup for every model.[1,5]
+
+Q2. Cost and scaling to 10,000 daily users
+
+We would initially choose API search if traffic suddenly reached 10,000 daily users,
+provided quality and quotas met our needs. This avoids choosing GPU capacity before we
+know peak demand. Django would still serve the website, and the existing bundle API
+would remain.
+
+Users may make no AI searches or several, so we compare three possible daily workloads
+below. Our eight Gemini input-count samples averaged 2,838.625 tokens. With an assumed
+512 output tokens, including applicable thinking, Gemini 3.6 Flash costs about
+$0.00405/search at $0.75/million input and $3.75/million output.[3,6]
+
+Daily AI searches | Gemini search/day | One T4-medium/day
+------------------+-------------------+------------------
+1,000             | $4.05             | $14.40
+5,000             | $20.24            | $14.40
+10,000            | $40.49            | $14.40
+
+One server is cheaper in some rows, but we have not measured its concurrent capacity.
+Two servers cost $28.80/day. At 5,000 searches, reducing assumed output to 128 tokens
+lowers the API cost to $13.04/day. The choice therefore depends on output usage and
+server count, not user count alone. We would reconsider local hosting once measured
+demand and capacity supported it; Q4 also compares a cheaper API. Actual API output
+usage is still unmeasured. Shared website, database and existing bundle costs are
+excluded.
+
+Q3. Hybrid potential
+
+Llama currently ranks listings, while Gemini creates Budget, Best Value and Premium
+bundles with explanations. Bundle results are cached in the session, with labelled
+price-based choices if the API fails.[4]
+
+We propose connecting them: Django retrieves eligible listings, Llama shortlists
+candidates for each requested item type, and Gemini builds bundles from that smaller
+set. Keeping prices, descriptions and category coverage could cut input tokens while
+preserving useful choices. We would compare bundle quality and total cost, including
+local computation and missed relevant products. Database checks should enforce
+availability and price limits, and cached results should refresh when these change.
+
+Another option is local search from 09:00 to 23:00 and API search overnight, with Django
+always online. Using Q2's assumptions, daily cost is about $8.40 + nighttime requests x
+$0.00405. It beats both all-day local hosting and all-API search when daytime requests
+are at least 2,075 and nighttime requests are at most 1,481, provided one server is
+sufficient and startup costs are excluded. This schedule is illustrative; actual traffic
+should guide it, and another API would change the thresholds. Both options are
+proposals.
+
+Q4. A specified server versus a similar-size paid API
+
+Our hypothetical host is a T4-medium. We also compare a cheaper T4-small; both have one
+T4 GPU with 16 GB VRAM.[5]
+
+Host      | vCPUs | RAM   | Disk   | Per hour | Per day | Per 30 days
+----------+-------+-------+--------+----------+---------+------------
+T4-medium | 8     | 30 GB | 100 GB | $0.60    | $14.40  | $432
+T4-small  | 4     | 15 GB | 50 GB  | $0.40    | $9.60   | $288
+
+For an API close to our Llama model's size, we use Ministral 3 3B (ministral-3b-2512),
+at $0.10/million input and output tokens. We have not tested its listing-search
+quality.[7]
+
+Assuming 2,500 input and 100 output tokens gives $0.00026/search, or $0.26, $1.30 and
+$2.60/day for 1,000, 5,000 and 10,000 searches. These are workload assumptions based on
+the Llama study, not Ministral measurements.
+
+Dividing daily rent by API cost per search gives cost thresholds of about 55,385
+searches/day for medium and 36,924 for small. Local hosting can become cheaper at those
+volumes only if one server can handle them with acceptable response times. More servers
+raise the threshold. Doubling both input and output tokens lowers the medium threshold
+to about 27,693. The smaller host still needs capacity testing and costs more than this
+API in all three workloads above.
+
+We would use the API for low or variable demand if quality, quotas and data-handling
+terms were suitable. Local hosting is worth considering for steady demand that uses the
+server well, or when model-version control and offline operation justify its cost. Extra
+storage, taxes, maintenance work and migration costs are excluded.
+
+Appendix A. Fifteen-model results and rental estimates
+
+Each row represents one model deployed separately. The estimate is $0.60/hour or $432/30
+days for every row, assuming T4-medium can accommodate the study's loading settings.
+Larger models used NF4 quantization.[1,5]
+
+Category | Model                      | Precision | Recall@5 | MRR   | Median generation (s) | Peak allocated GPU GB | Host $/hour
+---------+----------------------------+-----------+----------+-------+-----------------------+-----------------------+------------
+<1B      | Qwen3-0.6B                 | FP16      | 0.165    | 0.292 | 2.048                 | 2.497                 | 0.60
+<1B      | SmolLM2-360M-Instruct      | FP16      | 0.000    | 0.000 | 4.352                 | 1.885                 | 0.60
+<1B      | gemma-3-270m-it            | FP32*     | 0.000    | 0.000 | 2.779                 | 1.491                 | 0.60
+1-3B     | Qwen3-1.7B                 | FP16      | 0.408    | 0.562 | 2.285                 | 4.762                 | 0.60
+1-3B     | Llama-3.2-1B-Instruct      | FP16      | 0.300    | 0.500 | 1.511                 | 4.252                 | 0.60
+1-3B     | SmolLM2-1.7B-Instruct      | FP16      | 0.000    | 0.000 | 2.678                 | 4.134                 | 0.60
+3-5B     | Qwen3-4B                   | FP16      | 0.658    | 0.688 | 5.025                 | 10.448                | 0.60
+3-5B     | Phi-4-mini-instruct        | FP16      | 0.519    | 0.781 | 3.651                 | 9.307                 | 0.60
+3-5B     | Llama-3.2-3B-Instruct      | FP16      | 0.508    | 0.775 | 2.797                 | 8.081                 | 0.60
+6-9B     | Llama-3.1-8B-Instruct      | NF4       | 0.719    | 0.812 | 4.796                 | 7.840                 | 0.60
+6-9B     | Mistral-7B-Instruct-v0.3   | NF4       | 0.719    | 0.698 | 6.243                 | 7.093                 | 0.60
+6-9B     | Qwen2.5-7B-Instruct        | NF4       | 0.512    | 0.792 | 4.596                 | 7.478                 | 0.60
+10-15B   | phi-4                      | NF4       | 0.850    | 0.812 | 9.320                 | 11.831                | 0.60
+10-15B   | Mistral-Nemo-Instruct-2407 | NF4       | 0.800    | 0.875 | 8.142                 | 11.003                | 0.60
+10-15B   | Qwen2.5-14B-Instruct       | NF4       | 0.535    | 0.646 | 10.255                | 12.941                | 0.60
+
+*Gemma's loader uses FP32 despite the summary's FP16 label. Times cover generation, not
+website response or concurrent throughput. Peak allocated GPU memory is not a minimum
+VRAM requirement. Initial screening used lenient parsing; the prompt study scored raw
+outputs strictly, so their scores are not directly comparable. The studies targeted five
+IDs; the app allows zero to five with extra filtering.[1,2,4]
+
+Sources and calculation notes
+
+Totals and thresholds use unrounded values. Displayed decimals use at most five places;
+daily API estimates use two. Token costs assume standard paid rates without caching,
+Batch discounts or free allowances.
+
+[1] Part 1.1: model registry, Results and Top-3 selection.
+File: llm-test/Part-1.1_top-model-selection.ipynb
+Retrieval quality combines Recall@5 and MRR.
+
+[2] Part 1.2: introduction, Cell 4 and Cell 8.
+File: llm-test/Part_1_2_n_shot_prompt_engineering.ipynb
+Results: llm-test/Part-1.2_Study-results_N-shot-prompt-engineering/
+Selection prioritizes strict format, then usable nDCG, then speed. Invalid formats
+receive zero usable relevance scores.
+
+[3] Q2 counting notebook and saved evidence.
+Folder: llm-test/Part-3.2_Cost-and-Scaling_Validation/
+Input counts use all 40 listings, category names only, and application instructions.
+They exclude gold answers and Django candidate retrieval. No output or thinking
+tokens were measured.
+Google token-count documentation: https://ai.google.dev/gemini-api/docs/tokens
+
+[4] Project implementation.
+Local search: marketplace/local_llm.py
+Candidate retrieval: marketplace/browse.py
+Bundle service: bundles/services.py
+Session handling: bundles/views.py
+
+[5] Hugging Face hardware specifications and billing.
+https://huggingface.co/docs/hub/spaces-gpus
+
+[6] Gemini 3.6 Flash pricing, Standard tier.
+https://ai.google.dev/gemini-api/docs/pricing#gemini-3.6-flash
+The quoted rates apply through December 31, 2026.
+
+[7] Ministral 3 3B model and Standard API pricing.
+https://docs.mistral.ai/models/ministral-3-3b-25-12
+https://docs.mistral.ai/inference/pricing

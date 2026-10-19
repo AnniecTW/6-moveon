@@ -96,6 +96,11 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# A6: keep downloaded model weights out of Git.
+*.bin
+*.safetensors
+*.pt
+
 # IPython
 profile_default/
 ipython_config.py

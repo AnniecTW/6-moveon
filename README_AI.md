@@ -1,3 +1,12 @@
+# A6 AI Workflow
+
+This guide documents **Part 2: Django integration**. For the complete assignment
+file map and reading order, see the [A6 navigation in README](README.md#a6-ai-assignment).
+
+- [Local LLM: listing search](#1-local-llm-natural-language-listing-search)
+- [External API: AI Bundle Builder](#2-external-api-ai-bundle-builder)
+- [Study references and supporting evidence](#study-references)
+
 ## 1. Local LLM: Natural-Language Listing Search
 
 ### Data Input
@@ -61,3 +70,32 @@ If the API key is missing, Gemini is skipped. API errors or unusable responses a
 ### Configuration / API Key Setup
 
 Set `GEMINI_API_KEY` in the project-root `.env` file or deployment environment. The variable is listed in `.env.example`. Keep the key private and out of source control. If it is unset, the app skips Gemini and uses the price-based heuristic.
+
+## Study References
+
+### Part 1: Experiments and Evaluation Data
+
+Part 1 is organized into two notebooks to make the model-screening and
+prompt-engineering studies easier to follow and review. Read Part 1.1 first,
+followed by Part 1.2.
+
+| File | Contents |
+|---|---|
+| [Part-1.1_top-model-selection.ipynb](llm-test/Part-1.1_top-model-selection.ipynb) | Fifteen-model benchmark across five size categories, saved results, and top-three selection. |
+| [Part_1_2_n_shot_prompt_engineering.ipynb](llm-test/Part_1_2_n_shot_prompt_engineering.ipynb) | Zero-, one-, few-, and many-shot study of the selected three models. The first Markdown cell summarizes the findings; Cell 4 explains evaluation and scoring. |
+| [N-shot study results](llm-test/Part-1.2_Study-results_N-shot-prompt-engineering/) | Summary and per-query CSVs, raw outputs, run configuration, and findings. |
+| [listings.json](llm-test/listings.json) and [gold_labels.json](llm-test/gold_labels.json) | The 40-listing evaluation catalogue and eight labelled shopper queries. |
+
+The team used Route A (Prompt Engineering), not fine-tuning. The standalone
+download cell in Part 1.2 retrieves the selected pretrained Llama-3.2-3B-Instruct
+checkpoint; it does not download newly fine-tuned weights. The study selected
+zero-shot prompting. The Django implementation uses the same model name and
+zero-shot approach, with application-specific prompts, validation, and generation
+settings; notebook timings are not end-to-end website measurements.
+
+### Part 3: Reflection and Q2 Evidence
+
+See [notes.txt](notes.txt) for the Q1–Q4 production reflection, model comparison
+table, calculations, and sources. The Q2 evidence is available below.
+
+See [llm-test/Part-3.2_Cost-and-Scaling_Validation/](llm-test/Part-3.2_Cost-and-Scaling_Validation/) for the English counting notebook, original input files, recorded request bodies, CSV, and summary. The October 18 run measured eight fixed-catalogue input counts (mean 2,838.625 tokens); it did not measure generated output, inference latency, or production traffic.

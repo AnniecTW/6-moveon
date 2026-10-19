@@ -1,0 +1,9 @@
+﻿query_id,query,model,candidate_count,text_characters,input_tokens,counted_at_utc
+1,I want to buy some decoratives for the living room,gemini-3.6-flash,40,11462,2841,2026-10-18T21:22:24.423105+00:00
+2,need something blue to complement my bedside table,gemini-3.6-flash,40,11462,2838,2026-10-18T21:22:24.491074+00:00
+3,"setting up a study corner in my dorm, budget under $50",gemini-3.6-flash,40,11466,2844,2026-10-18T21:22:24.588873+00:00
+4,something to watch movies on in my apartment,gemini-3.6-flash,40,11456,2838,2026-10-18T21:22:24.705544+00:00
+5,I need to heat up food quickly,gemini-3.6-flash,40,11442,2837,2026-10-18T21:22:24.811128+00:00
+6,make my bedroom darker so I can sleep in,gemini-3.6-flash,40,11452,2839,2026-10-18T21:22:24.919860+00:00
+7,storage for my books and stuff,gemini-3.6-flash,40,11442,2836,2026-10-18T21:22:24.989799+00:00
+8,comfortable seating for when friends visit,gemini-3.6-flash,40,11454,2836,2026-10-18T21:22:25.105609+00:00

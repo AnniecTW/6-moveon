@@ -1,0 +1,18 @@
+{
+  "model": "gemini-3.6-flash",
+  "measurement": "official countTokens preflight input count; no generation",
+  "samples": 8,
+  "candidate_count_per_sample": 40,
+  "input_tokens_min": 2836,
+  "input_tokens_mean": 2838.625,
+  "input_tokens_max": 2844,
+  "input_tokens_sum_for_all_samples": 22709,
+  "source_commit": "89a0cfd14d7cb076be3f2170cb62c875c31c78ff",
+  "category_mapping": "Part 1 category name only; item-type unavailable",
+  "candidate_selection": "fixed full 40-listing catalogue; no Django retrieval",
+  "listings_sha256": "110bb57f2a1b0134a13258e50434ea0862ea0deb956d9b14e2ea88536ba0f2a3",
+  "gold_labels_sha256": "a9f834ae50c533ea229e008d2bdc2d568f9de198016c16276a658f7a1d118182",
+  "output_tokens_measured": false,
+  "thinking_tokens_measured": false,
+  "inference_latency_measured": false
+}

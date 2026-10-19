@@ -10,6 +10,32 @@ CSV/JSON downloads. The application uses Django templates, plain CSS and
 JavaScript modules. See [Frontend architecture](docs/frontend-architecture.md)
 for implementation details.
 
+## A6 AI Assignment
+
+We followed **Route A: Prompt Engineering**. Review the assignment materials in
+the order below.
+
+| Part | File | What to review |
+|---|---|---|
+| 1.1 — Model screening | [Model-selection notebook](llm-test/Part-1.1_top-model-selection.ipynb) | Fifteen models across five size categories, benchmark results, and top-three selection. |
+| 1.2 — Prompt engineering | [N-shot study notebook](llm-test/Part_1_2_n_shot_prompt_engineering.ipynb) | Zero-, one-, few-, and many-shot comparisons, evaluation criteria, and the selected model. |
+| 2 — Django integration | [README_AI.md](README_AI.md) | Local listing search and the external bundle API: inputs, preprocessing, output handling, guardrails, and setup. |
+| 3 — Production reflection | [notes.txt](notes.txt) | Q1–Q4, the fifteen-model comparison table, calculations, and sources. |
+
+Part 1 is organized into two notebooks to make the model-screening and
+prompt-engineering studies easier to follow and review. Read Part 1.1 first,
+followed by Part 1.2. Their code and saved outputs are kept in those two files.
+
+Supporting evidence:
+
+- [N-shot study results](llm-test/Part-1.2_Study-results_N-shot-prompt-engineering/): summary, per-query records, raw outputs, and experiment settings.
+- [Evaluation listings](llm-test/listings.json) and [labelled queries](llm-test/gold_labels.json): the shared Part 1 dataset.
+- [Part 3 Q2 validation](llm-test/Part-3.2_Cost-and-Scaling_Validation/): English counting notebook, exact inputs, request bodies, and saved token counts.
+
+For local installation, follow [Setup](#setup), then the AI-specific settings in
+[README_AI.md](README_AI.md). See [Current access rules](#current-access-rules)
+for authentication and permissions.
+
 ---
 
 ## Setup
@@ -85,7 +111,7 @@ Existing users should keep their original database path; do not move or replace
 the database to match this example. When `DATABASE_PATH` is unset, the current
 default remains `data/db.sqlite3`. Creating a directory or selecting a path does
 not back up a database. Keep `.env` private and untracked; see the
-[Week 5 setup guide](docs/notes/week5_setup.md) for key generation and environment details.
+[Environment and database setup guide](docs/notes/week5_setup.md) for key generation and environment details.
 
 #### 5. Frontend Assets
 No frontend installation or build step is required. The browse page uses the
@@ -111,77 +137,15 @@ python manage.py runserver 127.0.0.1:8000 --settings=moveon.settings.development
 `migrate` initializes or updates the selected database; it does not automatically
 back it up or populate demonstration data. For an initialized, up-to-date database,
 run only `runserver`. Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
-See the [Week 5 setup guide](docs/notes/week5_setup.md) for existing databases,
+See the [Environment and database setup guide](docs/notes/week5_setup.md) for existing databases,
 mock preview, backups, production configuration and optional manual checks.
 
-## Assignment 5: Django Authentication, Google OAuth
-
-This update covers A5 Part 1 and Part 2 on the existing MoveOn project.
-For A5.1 deliverable file locations, see [docs/notes/notes.txt](docs/notes/notes.txt).
-
-### Part 1: Internal Django Authentication
-
-- Custom pages provide signup and password login. Login accepts a username or
-  campus email; signup checks duplicate usernames/emails and enforces the
-  project's `@illinois.edu` email rule.
-- A six-digit email challenge establishes campus access. Password reset is
-  retained, and POST-only logout invalidates the current session.
-- Password login uses django-allauth with the existing `marketplace.User` and
-  Django session. Successful login returns to `/` or a validated same-host
-  `next` address; verification is followed by a separate login.
-- Fixed permissions protect private pages and APIs. Seller/buyer ownership and
-  conversation-participant checks continue to apply after authentication.
-- The common header shows protected navigation only with campus access and
-  refreshes the Messages unread badge across pages. Listing details expose
-  Message Seller to visitors and retain the intended conversation through login.
-- Shared page notifications consume login feedback once rather than accumulating
-  historical sign-in notices until Settings or Bundle is opened.
-
-### Part 2: Google OAuth
-
-- Login and signup provide Continue with Google through django-allauth's Google
-  authorization-code flow, using CSRF-protected initiation, session-bound state
-  and PKCE.
-- Google and password login share the same User, session and access rules.
-  Google's verified email claim does not replace MoveOn's campus email challenge.
-  New Google accounts complete that challenge and then sign in with Google.
-- A linked Google identity reuses its existing account. Existing password
-  accounts connect Google explicitly from Settings using the same campus email;
-  matching email alone does not merge accounts.
-- Cancellation, provider failures and account conflicts return readable feedback.
-  Google client credentials are read from environment settings; social access
-  and refresh tokens are not stored in the database.
+### Optional Google Sign-In
 
 Configure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the target environment,
 and register callback URLs matching the actual host and port. The local setup
 above uses `http://127.0.0.1:8000/accounts/google/login/callback/`; the production
 callback is `https://moveonbochen.pythonanywhere.com/accounts/google/login/callback/`.
-
-### Retained features and data boundaries
-
-Searchable listings, messages, bundles, currency conversion, reports, exports and
-the existing charts remain available under the current access rules. The A4
-global mode has been removed, and charts read the current authenticated user's
-activity rather than a fixed demonstration user.
-
-Private PNG requests authorize and query the current user before passing a
-snapshot through stdin to a standalone renderer. Its temporary local relay and
-rendering descendant preserve URL-backed chart data without requesting the
-website again. The renderer retains the virtual-environment interpreter choice,
-30-second worker timeout and process cleanup.
-
-Local real-account, mock preview and production databases are independent.
-Runtime databases, backups, credentials and uploads are ignored by Git; schema,
-migrations and data-generation commands are maintained as source code. The
-`a5_preview` settings and `seed_a5_preview` command provide fictional local data
-without loading real Google credentials or changing business permissions.
-
-The historical A4 database snapshot remains in commit `2fbfe4f`. Its
-[integration note](docs/notes/weekly_progress_updates/wk4_A4_integration.md),
-[chart specifications](docs/notes/week4_specs/) and
-[screenshots](docs/notes/week4_screenshots/) remain as historical materials.
-See the [A5 key change log](docs/notes/weekly_progress_updates/wk5_A5_phase1&phase2.md)
-for implementation details.
 
 ## Current access rules
 
@@ -208,11 +172,8 @@ controls are hidden without campus access; anonymous browsing/search/filtering
 continues with USD prices. The public Message Seller entry still passes through
 the protected messaging flow.
 
-## Current progress
+## Project History
 
-A5 Part 1 and Part 2 now provide custom signup, campus email verification,
-password login, POST-only logout, fixed permissions and private charts. Google
-login uses allauth's OAuth callback with the same campus challenge and shared
-account/session rules. Existing local accounts connect Google explicitly from
-Settings, and isolated mock data supports local demonstrations. Existing
-marketplace functions and historical A4 materials are retained.
+Earlier assignment records are retained in the [Weeks 1–5 notes](docs/notes/notes.txt)
+and [A5 authentication change log](docs/notes/weekly_progress_updates/wk5_A5_phase1&phase2.md).
+These historical notes are separate from the A6 production reflection.

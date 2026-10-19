@@ -1,0 +1,2 @@
+# Preserve the exact Q2 input bytes recorded by the SHA-256 evidence.
+llm-test/Part-3.2_Cost-and-Scaling_Validation/inputs/*.json -text
