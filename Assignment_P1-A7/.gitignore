@@ -1,0 +1,16 @@
+# Environment files containing secrets
+.env
+.env.*
+!.env.example
+
+# Model weights
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+
+# Checkpoint directories
+checkpoint/
+checkpoints/
+checkpoint-*/
