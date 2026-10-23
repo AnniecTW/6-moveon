@@ -1,0 +1,288 @@
+{
+  "document_id": "04",
+  "document_title": "Best Romance of 2025",
+  "year": 2025,
+  "source_url": "https://www.kirkusreviews.com/book-lists/best-romance-2025/",
+  "collection_type": "Kirkus editorial best-of selection; not a sales ranking",
+  "coverage": "All books listed on the supplied collection page at retrieval",
+  "retrieved_on": "2026-10-23",
+  "content_note": "Original paraphrases. Reviews are attributed syntheses, not full original reviews or firsthand reading assessments. Lengths vary with available evidence and are below the previously requested 300 words per field. Reader-suitability conclusions are identified as inferences.",
+  "books": [
+    {
+      "book_id": "04_01",
+      "category": "fiction",
+      "genre": "new-adult college sports romance",
+      "book_title": "Unloved",
+      "author": "Peyton Corinne",
+      "synopsis": "Matt Freddy Fredderic appears to have an enviable university life as a popular hockey player, but academic difficulties threaten his graduation and professional future. Dyslexia, dyscalculia, and ADHD complicate coursework he has learned to hide behind an outgoing persona. His assigned tutor, Rosalie Ro Shariff, carries different insecurities, including loneliness and an unhealthy relationship with her boyfriend Tyler. Tutoring develops into friendship as each begins to recognize the other's concealed pain. An incident involving Tyler brings their feelings into clearer focus. Their movement toward romance requires them to confront earlier relationships, grief, and the belief that they are not worthy of the care they want to receive.",
+      "review_synthesis": "Kirkus strongly praises the emotional force of the friends-to-lovers progression and the characters' willingness to share fears and painful histories. Publishers Weekly similarly welcomes the gradual healing, mutual support, and romantic tension, finding the sequel well constructed and satisfying. Both assessments locate the appeal in what lies beneath the familiar athlete-and-tutor premise. Their enthusiasm does not mean the novel is free of distressing material: the described relationships involve manipulation, loss, and family harm. An inference for prospective readers is that it may particularly suit those seeking a college romance with substantial vulnerability and recovery alongside attraction. This is an account of the reviewers' response, not a clinical assessment of the learning differences portrayed.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/peyton-corinne/unloved-2/"
+        },
+        {
+          "publication": "Publishers Weekly",
+          "source_type": "professional review",
+          "url": "https://www.publishersweekly.com/9781668068489"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 107,
+        "review_synthesis": 113
+      }
+    },
+    {
+      "book_id": "04_02",
+      "category": "fiction",
+      "genre": "science-fiction romance",
+      "book_title": "Chaos",
+      "author": "Constance Fay",
+      "synopsis": "Caro Ogunyemi, an engineer aboard the Calamity, accepts a mission to investigate a luxury prison planet controlled by the Pierce family. She suspects technology from her own past may be contributing to experiments that turn unwilling people into enhanced soldiers. An encounter with Leviathan, a successful test subject, changes the nature of the mission. Her touch can temporarily interrupt the control imposed on him, revealing a person capable of independent thought and affection. Caro's attempt to help Levi becomes both a rescue operation and a confrontation with her earlier choices. Allies, failed plans, and dangerous improvisations complicate their escape as the growing relationship depends on restoring autonomy rather than accepting the identity his captors created.",
+      "review_synthesis": "Kirkus responds enthusiastically to the combination of action, humor, and romance, highlighting Caro's technical competence and the tenderness that develops behind Levi's programmed violence. It praises the pace and choreography of the adventure as well as the way affection helps Caro reconsider her own guilt. The publisher identifies this as the third Uncharted Hearts book, situating it within an existing science-fiction romance series. Only one complete critical review is synthesized here, so the entry does not imply a consensus among independent critics. A reader-suitability inference is that the novel may appeal to those who enjoy rescue plots and speculative technology alongside romance. The autonomy issues described belong to the fictional premise and are not claims about actual biotechnology.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/constance-fay/chaos-2/"
+        },
+        {
+          "publication": "Publisher or author / credited source",
+          "source_type": "supporting source",
+          "url": "https://us.macmillan.com/books/9781250330444/chaos/"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 115,
+        "review_synthesis": 118
+      }
+    },
+    {
+      "book_id": "04_03",
+      "category": "fiction",
+      "genre": "romantic comedy with a romantasy story-within-a-story",
+      "book_title": "Female Fantasy",
+      "author": "Iman Hariri-Kia",
+      "synopsis": "Joonie Saboonchi works as a copywriter in Mystic, Connecticut, while maintaining a more exuberant online identity as a fanfiction writer. A favorite romantasy novel has sustained her hopes for love, but it has also given her an idealized standard against which real dates disappoint. When she learns that its merman hero was inspired by an actual person in New York, she decides to find him. Her brother's friend Nico accompanies her, bringing a shared history that includes an old crush and hurt feelings. The journey challenges the distinction between a perfect imagined partner and an imperfect person already in her life. Chapters from the fictional romantasy develop alongside Joonie's own romantic adventure.",
+      "review_synthesis": "Kirkus praises the affectionate satire of romance conventions, the comic voice, and the interplay between the contemporary story and its deliberately extravagant fantasy counterpart. Publishers Weekly is similarly enthusiastic, emphasizing the combination of humor, self-acceptance, and respect for readers who want emotionally satisfying love stories. Both assessments see the book as celebrating the genre while making fun of some of its familiar devices. An inference is that readers comfortable with a playful, self-aware tone may enjoy the two-story structure more than readers seeking understated realism. The critical synthesis distinguishes the novel's position on romantic expectations from the claim that every idealized expectation is endorsed without examination.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/iman-hariri-kia/female-fantasy/"
+        },
+        {
+          "publication": "Publishers Weekly",
+          "source_type": "professional review",
+          "url": "https://www.publishersweekly.com/9781728270647"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 112,
+        "review_synthesis": 106
+      }
+    },
+    {
+      "book_id": "04_04",
+      "category": "fiction",
+      "genre": "Victorian historical romance",
+      "book_title": "A Tropical Rebel Gets The Duke",
+      "author": "Adriana Herrera",
+      "synopsis": "Dr. Aurora Montalban Wright operates a discreet women's clinic in Paris, using resources that her estranged brothers can restrict. When they cut off her access to funding, the clinic's future becomes uncertain. A casual relationship with Apollo Cesar Sinclair Robles, the newly established Duke of Annan, offers pleasure without the dependency she fears. Apollo, however, wants more than an arrangement and supports the work she is determined to protect. Both contend with prejudice as Afro-Latine people exercising authority within restrictive social structures. Their growing attachment forces Aurora to weigh independence against trust, while Apollo must navigate aristocratic expectations and the responsibilities attached to his position.",
+      "review_synthesis": "Kirkus strongly praises the balance of historical detail, believable emotional conflict, and passionate romance. It particularly values the connection between the love story and women's reproductive healthcare, and considers the novel an exceptional series finale. Publishers Weekly is also favorable, emphasizing sensuality and the treatment of racism, sexism, and access to care. The shared assessment is that political and personal stakes reinforce one another rather than competing for attention. A reader-suitability inference is that this may appeal to readers wanting social conflict integrated into a historical romance. It is the final Las Leonas book; Kirkus says it can stand alone but gains force from the earlier volumes, so standalone accessibility should not be confused with complete independence from the series.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/adriana-herrera/a-tropical-rebel-gets-the-duke/"
+        },
+        {
+          "publication": "Publishers Weekly",
+          "source_type": "professional review",
+          "url": "https://www.publishersweekly.com/9781335476968"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 105,
+        "review_synthesis": 120
+      }
+    },
+    {
+      "book_id": "04_05",
+      "category": "fiction",
+      "genre": "contemporary queer vacation romance",
+      "book_title": "It Had To Be Him",
+      "author": "Adib Khorram",
+      "synopsis": "After a rejected marriage proposal leaves Ramin Yazdani feeling dull and undesirable, he travels impulsively to Italy with the intention of becoming a more adventurous version of himself. An unexpected reunion with Noah Bartlett, a former school crush, redirects the trip. Noah is traveling with his ex-wife and son while negotiating changes in his own family life. Shared meals, excursions, and repeated encounters revive a connection that neither fully explored as a teenager. Their attraction develops alongside Ramin's body-image concerns and Noah's tendency to prioritize others. The vacation becomes an opportunity to question whether reinvention requires performing a different personality or allowing a trusted person to value the one already there.",
+      "review_synthesis": "Kirkus praises the warmth, sincerity, and believable conflict, particularly the way the characters' insecurities persist without overwhelming the developing relationship. Publishers Weekly also finds the romance appealing, highlighting the Italian food, scenery, and intimate encounters as well as the mutual support. Their agreement suggests a favorable response to the combination of sensuality and ordinary emotional work. An inference for readers is that this may suit those seeking an adult queer romance about second chances rather than a purely escapist travel fantasy. Noah and Ramin's shared history is important, but the sources describe renewed possibilities in adulthood rather than the simple resumption of an established teenage relationship.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/adib-khorram/it-had-to-be-him/"
+        },
+        {
+          "publication": "Publishers Weekly",
+          "source_type": "professional review",
+          "url": "https://www.publishersweekly.com/9781538739556"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 111,
+        "review_synthesis": 106
+      }
+    },
+    {
+      "book_id": "04_06",
+      "category": "fiction",
+      "genre": "Victorian historical romance and political intrigue",
+      "book_title": "Rules For Ruin",
+      "author": "Mimi Matthews",
+      "synopsis": "Effie Flite enters elite London society under an assumed social identity, carrying a mission from the formidable woman who trained her. She aims to undermine Viscount Compton, an opponent of reform that would improve married women's property rights. Gabriel Royce, who has also risen from poverty, has his own reason to keep Compton influential: he needs the politician's support for changes benefiting the Rookery. Attraction develops between two people whose broader ideals overlap but whose immediate objectives conflict. Each uses information and social leverage to pursue reform, making intimacy both tempting and strategically dangerous. Their relationship exposes the difficulty of deciding which compromises genuinely help vulnerable people and which merely reproduce existing power.",
+      "review_synthesis": "Kirkus praises the combination of political danger and romance, and the reworking of a Dickensian mentor figure into an organizer of women's resistance. Publishers Weekly also values the working-class protagonists and the exploration of inequality, though it wishes the relationship had more space to develop outside emergencies. The Historical Novel Society is strongly enthusiastic about the prose, plotting, and equality between the determined leads. Together these responses support a positive synthesis with a specific reservation: urgency strengthens the attraction but may limit quieter intimacy. A reader-suitability inference is that the novel will particularly interest those who want social reform to shape the romantic conflict rather than remain period background.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/mimi-matthews/rules-for-ruin/"
+        },
+        {
+          "publication": "Publishers Weekly",
+          "source_type": "professional review",
+          "url": "https://www.publishersweekly.com/9780593639290"
+        },
+        {
+          "publication": "Publisher or author / credited source",
+          "source_type": "supporting source",
+          "url": "https://historicalnovelsociety.org/reviews/rules-for-ruin-the-crinoline-academy/"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 113,
+        "review_synthesis": 109
+      }
+    },
+    {
+      "book_id": "04_07",
+      "category": "fiction",
+      "genre": "Victorian second-chance historical romance",
+      "book_title": "The Earl That Got Away",
+      "author": "Diana Quincy",
+      "synopsis": "Naila Darwish once rejected Basil Trevelyn because marriage would have threatened her relationship with her traditional family. Eight years later, she encounters him again while attending her sister's wedding in England. He is now the Earl of Hawksworth, and neither has succeeded in forgetting their earlier attachment. The change in status creates a new obstacle: Basil fears that renewed interest may reflect his title rather than love. Naila must reckon with the earlier decision and her continuing wish to belong to her family. Alternating attention to their first romance and present reunion reveals why their attraction remains strong and why recovering trust requires more than admitting that desire has survived.",
+      "review_synthesis": "Kirkus praises the dual romantic timelines, historical texture, and respectful treatment of Palestinian family life alongside Naila's resistance to expectations. Publishers Weekly likewise enjoys the emotional tension, momentum, and sensuality, drawing attention to the Persuasion-like second-chance structure. Both sources are favorable, although Kirkus recommends reading the Sirens in Silk books in sequence for the fullest effect. The combined assessment suggests that family belonging and class mobility give the reunion weight beyond nostalgia. A reader-suitability inference is that those interested in a historically situated Arab American heroine may find distinctive material here. The entry does not treat every detail of the fictional family as representative of all Palestinian experiences.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/diana-quincy/the-earl-that-got-away/"
+        },
+        {
+          "publication": "Publishers Weekly",
+          "source_type": "professional review",
+          "url": "https://www.publishersweekly.com/9780063247567"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 110,
+        "review_synthesis": 108
+      }
+    },
+    {
+      "book_id": "04_08",
+      "category": "fiction",
+      "genre": "contemporary romantic comedy",
+      "book_title": "Unlikely Story",
+      "author": "Ali Rosen",
+      "synopsis": "New York therapist Eleanora Nora Fischer has spent years exchanging edits and increasingly personal jokes with J.W., the London-based editor of her advice column. Their relationship exists inside a shared online document, giving Nora an intimate connection without the risks of an ordinary meeting. A planned visit to London may finally bring them together. Meanwhile, her new upstairs neighbor Eli Whitman disrupts the peace of her building and challenges her patience. He is also a former therapy client whose earlier encounter with Nora ended badly. As irritation turns into attraction, Nora must reconsider the contrast between the ideal companion she knows through writing and the difficult person she encounters in daily life.",
+      "review_synthesis": "Kirkus enthusiastically frames the novel as a contemporary variation on the pleasures of You've Got Mail, combining witty exchanges, antagonistic attraction, and uncertainty about an apparently perfect correspondent. It praises the vulnerabilities beneath Nora's professional identity and Eli's difficult manner. The author's book page is included as a supporting source, but this entry synthesizes only the complete Kirkus review rather than implying agreement among several critics. An inference is that readers who enjoy mediated intimacy and romantic-comedy misunderstandings may find the setup appealing. The discussion of Nora's profession describes fictional circumstances, not an endorsement of the ethical choices involved in relationships with former clients.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/ali-rosen/unlikely-story/"
+        },
+        {
+          "publication": "Publisher or author / credited source",
+          "source_type": "supporting source",
+          "url": "https://ali-rosen.com/unlikely-story"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 112,
+        "review_synthesis": 104
+      }
+    },
+    {
+      "book_id": "04_09",
+      "category": "fiction",
+      "genre": "contemporary adult romance",
+      "book_title": "Can'T Get Enough",
+      "author": "Kennedy Ryan",
+      "synopsis": "Talent manager Hendrix Barry is building several ambitious professional projects while caring for a mother with Alzheimer's disease. Her connection with tech billionaire Maverick Bell offers recognition and support that she has little time to seek elsewhere. Their attraction is complicated by his connection to a woman involved in Hendrix's business plans, making romance a potential threat to hard-earned opportunities. Maverick's interest in a fund supporting Black women entrepreneurs brings them into closer contact, blurring personal and professional boundaries. Hendrix must consider whether accepting care necessarily compromises independence, while both confront the pressures of family illness, wealth, and unequal treatment in business.",
+      "review_synthesis": "Kirkus strongly praises the mature characterization and the balance between sensuality, caregiving, racism, and supportive friendship. Publishers Weekly is similarly enthusiastic, emphasizing Ryan's integration of complicated family dynamics and misogynoir with a forbidden-romance premise. The sources differ in how they describe Maverick's relationship status at the beginning, so this synopsis uses the broader, supported description of a complicating connection rather than resolving that detail without the text. Their shared assessment is that emotional and social responsibilities deepen the attraction. A reader-suitability inference is that the novel may particularly suit readers seeking established adult protagonists whose romantic lives coexist with demanding careers and care work.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/kennedy-ryan/cant-get-enough/"
+        },
+        {
+          "publication": "Publishers Weekly",
+          "source_type": "professional review",
+          "url": "https://www.publishersweekly.com/9781538706855"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 102,
+        "review_synthesis": 104
+      }
+    },
+    {
+      "book_id": "04_10",
+      "category": "fiction",
+      "genre": "queer Regency romance and Gothic mystery",
+      "book_title": "Ladies In Hating",
+      "author": "Alexandra Vasti",
+      "synopsis": "Lady Georgiana Cleeve supports herself and her mother by writing Gothic romances, making apparent plagiarism by the pseudonymous Lady Darling a serious threat. Her investigation reveals that the rival is Cat, the daughter of her family's former butler and an object of adolescent affection. Cat also depends on her writing income, and their shared past complicates the accusation. Further encounters bring them to a supposedly haunted house while researching their next books. Old hostility gives way to renewed desire, but a body and threatening events force cooperation for more than creative reasons. Their chance at a future depends on confronting both the dangers around them and the pain embedded in their earlier separation.",
+      "review_synthesis": "Kirkus enthusiastically praises the blend of eerie setting, intense romantic chemistry, and emotional connection, also valuing the historical context supplied by the author's note. Publishers Weekly agrees that the character-grounded intimacy and engagement with Gothic tradition are effective, while finding the mystery somewhat wandering. These assessments suggest that the strongest appeal lies in how the genre the women write becomes part of the world they inhabit. A reader-suitability inference is that those seeking a queer historical romance with a playful suspense component may respond especially well. This is the third Belvoir's Library novel; its place in a series is recorded without claiming that the entry covers the earlier books.",
+      "contains_plot_spoilers": true,
+      "text_type": "original synopsis and attributed review synthesis",
+      "sources": [
+        {
+          "publication": "Kirkus Reviews",
+          "source_type": "professional review",
+          "url": "https://www.kirkusreviews.com/book-reviews/alexandra-vasti/ladies-in-hating/"
+        },
+        {
+          "publication": "Publishers Weekly",
+          "source_type": "professional review",
+          "url": "https://www.publishersweekly.com/978-1-250-91098-1"
+        }
+      ],
+      "word_counts": {
+        "synopsis": 113,
+        "review_synthesis": 109
+      }
+    }
+  ],
+  "book_count": 10
+}
