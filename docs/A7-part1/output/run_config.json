@@ -1,0 +1,214 @@
+{
+  "run_id": "028bbb3b77f37984",
+  "input_signature": "72634f54a0f6d3525cc0b83c2af2c44b1170e2928604d9a4dfec6eeff4ce21d5",
+  "runtime": {
+    "packages": {
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.6",
+      "huggingface-hub": "0.36.2",
+      "accelerate": "1.15.0",
+      "bitsandbytes": "0.50.2"
+    },
+    "gpu_name": "Tesla T4",
+    "gpu_memory_bytes": 15637086208,
+    "cuda_version": "13.0",
+    "attention": "sdpa",
+    "device": "cuda:0"
+  },
+  "config": {
+    "protocol_version": 2,
+    "experiment_name": "a7-part1-merged-en-v1",
+    "configuration_status": "Prepared defaults; hardware fit and output limits not verified by inference.",
+    "prompt_file": "a7_prompts.json",
+    "output_root": "results",
+    "cache_dir": ".a7_model_cache",
+    "keep_model_cache": false,
+    "decoding": "greedy",
+    "seed": 42,
+    "repeats": 1,
+    "max_input_tokens": 4096,
+    "warmup_tokens": 4,
+    "max_new_tokens": {
+      "classification": 64,
+      "price_prediction": 128,
+      "text_generation": 256,
+      "structured_information_extraction": 384,
+      "purchase_considerations": 512
+    },
+    "models": [
+      {
+        "id": "Qwen/Qwen3-0.6B",
+        "category": "Ultra-Light (<1B)",
+        "params_b": 0.6,
+        "quant": "none",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {
+          "enable_thinking": false
+        },
+        "revision": null
+      },
+      {
+        "id": "HuggingFaceTB/SmolLM2-360M-Instruct",
+        "category": "Ultra-Light (<1B)",
+        "params_b": 0.36,
+        "quant": "none",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {},
+        "revision": null
+      },
+      {
+        "id": "google/gemma-3-270m-it",
+        "category": "Ultra-Light (<1B)",
+        "params_b": 0.27,
+        "quant": "none",
+        "dtype": "float32",
+        "gated": true,
+        "template_kwargs": {},
+        "revision": null
+      },
+      {
+        "id": "meta-llama/Llama-3.2-1B-Instruct",
+        "category": "Small (1-3B)",
+        "params_b": 1.24,
+        "quant": "none",
+        "dtype": "float16",
+        "gated": true,
+        "template_kwargs": {},
+        "revision": null
+      },
+      {
+        "id": "Qwen/Qwen3-1.7B",
+        "category": "Small (1-3B)",
+        "params_b": 1.7,
+        "quant": "none",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {
+          "enable_thinking": false
+        },
+        "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e"
+      },
+      {
+        "id": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+        "category": "Small (1-3B)",
+        "params_b": 1.71,
+        "quant": "none",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {},
+        "revision": null
+      },
+      {
+        "id": "meta-llama/Llama-3.2-3B-Instruct",
+        "category": "Medium (3-5B)",
+        "params_b": 3.21,
+        "quant": "none",
+        "dtype": "float16",
+        "gated": true,
+        "template_kwargs": {},
+        "revision": "0cb88a4f764b7a12671c53f0838cd831a0843b95"
+      },
+      {
+        "id": "microsoft/Phi-4-mini-instruct",
+        "category": "Medium (3-5B)",
+        "params_b": 3.84,
+        "quant": "none",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {},
+        "revision": "cfbefacb99257ffa30c83adab238a50856ac3083"
+      },
+      {
+        "id": "Qwen/Qwen3-4B",
+        "category": "Medium (3-5B)",
+        "params_b": 4.02,
+        "quant": "none",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {
+          "enable_thinking": false
+        },
+        "revision": null
+      },
+      {
+        "id": "Qwen/Qwen2.5-7B-Instruct",
+        "category": "Large (6-9B)",
+        "params_b": 7.62,
+        "quant": "nf4",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {},
+        "revision": null
+      },
+      {
+        "id": "meta-llama/Llama-3.1-8B-Instruct",
+        "category": "Large (6-9B)",
+        "params_b": 8.03,
+        "quant": "nf4",
+        "dtype": "float16",
+        "gated": true,
+        "template_kwargs": {},
+        "revision": null
+      },
+      {
+        "id": "mistralai/Mistral-7B-Instruct-v0.3",
+        "category": "Large (6-9B)",
+        "params_b": 7.25,
+        "quant": "nf4",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {},
+        "revision": null
+      },
+      {
+        "id": "Qwen/Qwen2.5-14B-Instruct",
+        "category": "X-Large (10-15B)",
+        "params_b": 14.77,
+        "quant": "nf4",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {},
+        "revision": null
+      },
+      {
+        "id": "microsoft/phi-4",
+        "category": "X-Large (10-15B)",
+        "params_b": 14.66,
+        "quant": "nf4",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {},
+        "revision": null
+      },
+      {
+        "id": "mistralai/Mistral-Nemo-Instruct-2407",
+        "category": "X-Large (10-15B)",
+        "params_b": 12.25,
+        "quant": "nf4",
+        "dtype": "float16",
+        "gated": false,
+        "template_kwargs": {},
+        "revision": null
+      }
+    ]
+  },
+  "resolved_revisions": {
+    "Qwen/Qwen3-0.6B": "c1899de289a04d12100db370d81485cdf75e47ca",
+    "HuggingFaceTB/SmolLM2-360M-Instruct": "a10cc1512eabd3dde888204e902eca88bddb4951",
+    "google/gemma-3-270m-it": "ac82b4e820549b854eebf28ce6dedaf9fdfa17b3",
+    "meta-llama/Llama-3.2-1B-Instruct": "9213176726f574b556790deb65791e0c5aa438b6",
+    "Qwen/Qwen3-1.7B": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+    "HuggingFaceTB/SmolLM2-1.7B-Instruct": "31b70e2e869a7173562077fd711b654946d38674",
+    "meta-llama/Llama-3.2-3B-Instruct": "0cb88a4f764b7a12671c53f0838cd831a0843b95",
+    "microsoft/Phi-4-mini-instruct": "cfbefacb99257ffa30c83adab238a50856ac3083",
+    "Qwen/Qwen3-4B": "1cfa9a7208912126459214e8b04321603b3df60c",
+    "Qwen/Qwen2.5-7B-Instruct": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "meta-llama/Llama-3.1-8B-Instruct": "0e9e39f249a16976918f6564b8830bc894c89659",
+    "mistralai/Mistral-7B-Instruct-v0.3": "c170c708c41dac9275d15a8fff4eca08d52bab71",
+    "Qwen/Qwen2.5-14B-Instruct": "cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8",
+    "microsoft/phi-4": "2db69c1c3e91a05d2c64a3185acfbaf36f744e25",
+    "mistralai/Mistral-Nemo-Instruct-2407": "04d8a90549d23fc6bd7f642064003592df51e9b3"
+  }
+}
