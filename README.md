@@ -36,6 +36,42 @@ For local installation, follow [Setup](#setup), then the AI-specific settings in
 [README_AI.md](README_AI.md). See [Current access rules](#current-access-rules)
 for authentication and permissions.
 
+## A7 Multi-Model AI Systems
+
+Use these files to review the A7 submission. The notebook covers Part 1 and the
+Part 2 cost simulation; Part 3 routing scenarios are in `system_design.md`.
+
+### Deliverables
+
+| Part | Deliverable | Reviewer reference |
+|---|---|---|
+| Part 1: Model benchmark | [Notebook](docs/A7-part1/input/multi_model_system.ipynb) | Contains the 15-model benchmark workflow, scoring guidance, benchmark results, and analysis. The completed run has 375 responses (15 models × 25 prompts). |
+| Part 2: Cost and scaling | [Notebook](docs/A7-part1/input/multi_model_system.ipynb) | Uses the Part 1 benchmark to estimate token load, AWS replicas and cost, and Hugging Face API cost for six DAU levels. It maps 15 local LLMs to seven paid HF API models. Each DAU assumes 5 requests per person per day; the AWS capacity estimate uses 70% utilization. These are benchmark-based estimates, not production load-test results. |
+| Part 3: Routing design | [System design](docs/A7-part1/system_design.md) | Describes five routing scenarios, the selected local and hosted models, and latency, cost, and quality trade-offs. |
+
+### Supporting files
+
+| File | Purpose |
+|---|---|
+| [A7 input README](docs/A7-part1/input/README.md) | Notebook setup, run/resume instructions, and verification limits. |
+| [Chinese input README](docs/A7-part1/input/README_zh.md) | Chinese version of the notebook instructions. |
+| [Prompt bank](docs/A7-part1/input/a7_prompts.json) | The 25 prompts and evaluation references used by the benchmark. |
+| [Benchmark records and reviewed scores](docs/A7-part1/input/benchmark_results.json) | Completed per-answer data used by the Part 2 simulation; no model rerun is needed for the cost estimates. |
+| [Per-answer benchmark CSV](docs/A7-part1/input/A7_Step1_5_Benchmark_375.csv) | Readable 375-row benchmark export. |
+| [Part 2 output files](docs/A7-part1/output/) | `results.csv`, `scores.csv`, and `summary.csv` provide per-answer results, reviewed scores, and grouped summaries. `run_config.json` records the run setup; JSONL files contain raw outputs and any errors. |
+
+The notebook now includes saved outputs for the 375-response benchmark table,
+model/category summaries, both 90-row cost tables, and the six-scenario cost
+summary. Its defaults leave dependency installation, Drive mounting, model
+generation, and score re-export disabled. To regenerate the analysis outputs,
+provide [a7_prompts.json](docs/A7-part1/input/a7_prompts.json) and
+[benchmark_results.json](docs/A7-part1/input/benchmark_results.json); the
+notebook searches beside itself, in `input/`, and under `docs/A7-part1/input/`.
+Those files are external inputs, so rebuilding the analyses requires them even
+though the saved notebook can be reviewed without rerunning models. A fresh
+model run is a separate opt-in action and gated models may require an HF token
+and repository access approval.
+
 ---
 
 ## Setup
