@@ -30,7 +30,7 @@ Part 2 cost simulation; Part 3 routing scenarios are in `system_design.md`.
 | [Prompt bank](docs/A7-part1/input/a7_prompts.json) | The 25 prompts and evaluation references used by the benchmark. |
 | [Benchmark records and reviewed scores](docs/A7-part1/input/benchmark_results.json) | Completed per-answer data used by the Part 2 simulation; no model rerun is needed for the cost estimates. |
 | [Per-answer benchmark CSV](docs/A7-part1/input/A7_Step1_5_Benchmark_375.csv) | Readable 375-row benchmark export. |
-| [Part 2 output files](docs/A7-part1/output/) | `results.csv`, `scores.csv`, and `summary.csv` provide per-answer results, reviewed scores, and grouped summaries. `run_config.json` records the run setup; JSONL files contain raw outputs and any errors. |
+| [Part 2 output files](docs/A7-part1/output/) | `results.csv`, `scores.csv`, and `summary.csv` provide per-answer results, reviewed scores, and grouped summaries. `run_config.json` records the run setup. |
 
 The notebook now includes saved outputs for the 375-response benchmark table,
 model/category summaries, both 90-row cost tables, and the six-scenario cost
