@@ -10,32 +10,6 @@ CSV/JSON downloads. The application uses Django templates, plain CSS and
 JavaScript modules. See [Frontend architecture](docs/frontend-architecture.md)
 for implementation details.
 
-## A6 AI Assignment
-
-We followed **Route A: Prompt Engineering**. Review the assignment materials in
-the order below.
-
-| Part | File | What to review |
-|---|---|---|
-| 1.1 — Model screening | [Model-selection notebook](llm-test/Part-1.1_top-model-selection.ipynb) | Fifteen models across five size categories, benchmark results, and top-three selection. |
-| 1.2 — Prompt engineering | [N-shot study notebook](llm-test/Part_1_2_n_shot_prompt_engineering.ipynb) | Zero-, one-, few-, and many-shot comparisons, evaluation criteria, and the selected model. |
-| 2 — Django integration | [README_AI.md](README_AI.md) | Local listing search and the external bundle API: inputs, preprocessing, output handling, guardrails, and setup. |
-| 3 — Production reflection | [notes.txt](notes.txt) | Q1–Q4, the fifteen-model comparison table, calculations, and sources. |
-
-Part 1 is organized into two notebooks to make the model-screening and
-prompt-engineering studies easier to follow and review. Read Part 1.1 first,
-followed by Part 1.2. Their code and saved outputs are kept in those two files.
-
-Supporting evidence:
-
-- [N-shot study results](llm-test/Part-1.2_Study-results_N-shot-prompt-engineering/): summary, per-query records, raw outputs, and experiment settings.
-- [Evaluation listings](llm-test/listings.json) and [labelled queries](llm-test/gold_labels.json): the shared Part 1 dataset.
-- [Part 3 Q2 validation](llm-test/Part-3.2_Cost-and-Scaling_Validation/): English counting notebook, exact inputs, request bodies, and saved token counts.
-
-For local installation, follow [Setup](#setup), then the AI-specific settings in
-[README_AI.md](README_AI.md). See [Current access rules](#current-access-rules)
-for authentication and permissions.
-
 ## A7 Multi-Model AI Systems
 
 Use these files to review the A7 submission. The notebook covers Part 1 and the
@@ -53,8 +27,6 @@ Part 2 cost simulation; Part 3 routing scenarios are in `system_design.md`.
 
 | File | Purpose |
 |---|---|
-| [A7 input README](docs/A7-part1/input/README.md) | Notebook setup, run/resume instructions, and verification limits. |
-| [Chinese input README](docs/A7-part1/input/README_zh.md) | Chinese version of the notebook instructions. |
 | [Prompt bank](docs/A7-part1/input/a7_prompts.json) | The 25 prompts and evaluation references used by the benchmark. |
 | [Benchmark records and reviewed scores](docs/A7-part1/input/benchmark_results.json) | Completed per-answer data used by the Part 2 simulation; no model rerun is needed for the cost estimates. |
 | [Per-answer benchmark CSV](docs/A7-part1/input/A7_Step1_5_Benchmark_375.csv) | Readable 375-row benchmark export. |
