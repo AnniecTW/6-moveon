@@ -82,15 +82,20 @@ Ranges show the lowest and highest daily cost among the 15 alternatives; they ar
 | Mass Consumer App (10,000,000) | $41,812.51–$249,430.27 | $240.46–$2,250.50 |
 | Global Platform (100,000,000) | $417,922.85–$2,494,100.45 | $2,404.60–$22,505.00 |
 
-1. **When is local hosting cheaper?** At none; the highest HF estimate is below the lowest AWS estimate in every tier.
-2. **When is API cheaper?** At all six DAU levels.
-3. **When should the architecture change?** Reconsider self-hosting if measured steady traffic lowers full cost and the team can operate it. Use APIs for low or bursty traffic; consider hybrid if cost, reliability, or privacy warrants it.
+1. **When is local hosting cheaper?** Based on our estimates, local hosting is not cheaper at any of the six DAU levels. Even the most expensive HF API option costs less than the cheapest AWS setup in our comparison.
+2. **When is API cheaper?** HF API is cheaper at all six DAU levels. With HF's token-based pricing, we only pay for the tokens used instead of running our own GPU instances.
+3. **When should the architecture change?** We should start with APIs because they are cheaper and easier to manage based on our estimates. If traffic becomes more stable and self-hosting turns out to be more cost-effective, we could reconsider. A hybrid approach might also make sense if we need more control over performance or reliability.
+
+**Notes:**
+AWS costs are based on continuously running GPU instances, while HF API costs are calculated from estimated input and output token usage. These are simplified cost estimates based on single-request benchmarks and average traffic. The API alternatives are not always identical to the local models, and actual deployment costs may differ due to traffic patterns, batching, hardware utilization, and token usage.
 
 ## Part 3 — Multi-Model Routing Strategy
 
-Route routine requests to task-specific local models; escalate complex or incomplete answers, peak overflow, or local failures to one of seven priced HF models. This compares local quality and latency with hosted flexibility and fallback coverage. Part 2 estimates lower API cost at all six scales. Use comparable listings for price recommendations and code for arithmetic.
+Our routing strategy selects different models based on the task. For simple requests, we use smaller local models to reduce response time. For complex requests, incomplete answers, or high traffic, we can use HF APIs as a fallback when local models cannot handle the requests effectively.
 
-Examples: `microsoft/Phi-4-mini-instruct` scored 10.00 on classification (0.35 s); `Qwen/Qwen3-0.6B` scored 10.00 on text generation (0.42 s). `Qwen/Qwen2.5-7B-Instruct` and `Qwen/Qwen2.5-14B-Instruct` scored 8.61 and 9.91 on extraction. For purchase advice, `Qwen/Qwen3-4B` scored 8.60 (10.21 s) and `mistralai/Mistral-Nemo-Instruct-2407` scored 8.65 (25.28 s). Each pair has five responses in [summary.csv](output/summary.csv).
+Although Part 2 shows that HF APIs are cheaper under our assumptions, we still consider a hybrid approach to explore how local models and hosted APIs can work together. This allows us to consider factors beyond cost, such as response time, output quality, and system reliability.
+
+We selected the local models based on our Part 1 benchmark results. For example, Phi-4-mini performed well on classification, while Qwen3-0.6B was fast and accurate for text generation. For structured extraction, Qwen2.5-14B scored higher than Qwen2.5-7B (9.91 vs. 8.61). For purchase advice, Qwen3-4B and Mistral-Nemo had similar scores (8.60 vs. 8.65), but Qwen3-4B was much faster (10.21 s vs. 25.28 s). These results help us choose models based on both quality and speed.
 
 | Scenario | Routing strategy | Local model | HF hosted model | Expected benefit |
 |---|---|---|---|---|
@@ -102,9 +107,9 @@ Examples: `microsoft/Phi-4-mini-instruct` scored 10.00 on classification (0.35 s
 
 ### Routing Trade-offs
 
-- **Latency:** Small local models were fast on some tasks; API network and queue time were not measured.
-- **Cost:** Part 2 favors API at all six scales. Limit calls and tokens; compare with real traffic.
-- **Quality:** Check outputs and listing facts; escalate incomplete answers.
+- **Latency:** Smaller local models can handle simple tasks faster without network overhead. However, they may struggle with more complex requests, while larger models take longer to generate responses. Routing difficult requests to HF APIs could reduce local queue times during peak hours, but network latency and API response times may also increase the overall delay.
+- **Cost:** Using smaller models for routine tasks can reduce GPU usage and avoid unnecessary calls to larger models. However, our Part 2 estimates show that HF APIs are cheaper than AWS self-hosting at all six DAU levels. Therefore, a local-first strategy may not be the most cost-effective choice unless we already have GPU resources or can improve utilization.
+- **Quality:** Different models perform better on different tasks, so routing based on task type can help maintain output quality without always using the largest model. We can also validate structured outputs and send incomplete or incorrect responses to stronger models. However, additional retries may increase both cost and response time.
 
 ## Limitations
 
