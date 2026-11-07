@@ -4,10 +4,12 @@ import json
 import logging
 import re
 from threading import Lock
+from time import monotonic
 
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+LOCAL_LLM_GENERATION_TIMEOUT_SECONDS = 30
 _model_load_lock = Lock()
 _loaded_model = None
 _RELEVANCE_STOP_WORDS = frozenset(
@@ -227,12 +229,19 @@ def _generate_response(messages):
         add_generation_prompt=True,
         return_tensors="pt",
     ).to(model.device)
+    generation_started_at = monotonic()
     with torch.inference_mode():
         output_ids = model.generate(
             input_ids,
             max_new_tokens=128,
+            max_time=LOCAL_LLM_GENERATION_TIMEOUT_SECONDS,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
+        )
+    if monotonic() - generation_started_at >= LOCAL_LLM_GENERATION_TIMEOUT_SECONDS:
+        raise TimeoutError(
+            f"Local listing model generation exceeded "
+            f"{LOCAL_LLM_GENERATION_TIMEOUT_SECONDS} seconds."
         )
     return tokenizer.decode(output_ids[0, input_ids.shape[-1]:], skip_special_tokens=True)
 
