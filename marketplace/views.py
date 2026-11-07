@@ -27,11 +27,9 @@ from django.template import loader
 from django.views import View
 from django.views.generic import ListView, UpdateView
 from PIL import Image, UnidentifiedImageError
-from google.auth.exceptions import GoogleAuthError
 from .auth_forms import CampusAuthenticationForm, ListingSignupForm
 from .auth_backend import credential_user, has_campus_access
 from .email_verification import EmailDeliveryError, consume_code, issue_code
-from . import google_auth
 from .oauth import google_configured
 from .models import ItemCategory, ItemType, Listing, ListingImage, Transaction, User, WatchlistItem
 from django.views.generic import CreateView, DetailView
