@@ -1,101 +1,106 @@
-# A6 AI Workflow
+# AI System Design Documentation
 
-This guide documents **Part 2: Django integration**. For the complete assignment
-file map and reading order, see the [A6 navigation in README](README.md#a6-ai-assignment).
+## AI Workflow Explanation
 
-- [Local LLM: listing search](#1-local-llm-natural-language-listing-search)
-- [External API: AI Bundle Builder](#2-external-api-ai-bundle-builder)
-- [Study references and supporting evidence](#study-references)
+The main AI feature is natural-language listing search on the home page and
+`/listings/`. Keyword search remains available and is the default. AI search runs
+locally with the Hugging Face model `meta-llama/Llama-3.2-3B-Instruct`.
 
-## 1. Local LLM: Natural-Language Listing Search
+For an AI search, Django validates the query and filters, selects up to 40 active
+listings, and sends the query plus limited listing details to the local model.
+The candidate pool favors lexical matches and fills remaining slots with recent
+eligible listings. The model returns up to five listing IDs as JSON. Django
+checks the IDs against the candidate set, rechecks listing status and filters,
+and applies a lexical relevance gate before showing results. Users can use the
+existing filters for exact price and category constraints.
 
-### Data Input
+The query is limited to 200 characters. The prompt contains at most 40 listings;
+titles and categories are limited to 200 characters and descriptions to 1,000.
+Seller details, contact information, and images are not sent to the search
+model. Generation is capped at 128 new tokens.
 
-The shared search bar is available on the home page (`/`) and `/listings/`. It sends the search text as `q` and the selected mode as `search_mode=keyword` or `search_mode=ai`. Keyword search is the default when the mode is missing or invalid.
+### Other AI Features
 
-### Keyword Search
+- **AI Bundle Builder:** Gemini 3.6 Flash optionally ranks eligible listings
+  into Budget, Best Value, and Premium tiers. If the API is unavailable, the
+  builder uses a price-based heuristic.
+- **Listing photo autofill:** An optional Gemini 3.5 Flash Lite call suggests a
+  title, description, category, and condition from up to three uploaded photos.
+  Images are checked and resized to at most 1,024 pixels before analysis. The
+  seller reviews and edits suggestions; manual entry remains available.
+- **Pricing suggestions:** `all-MiniLM-L6-v2` suggests similar item types. The
+  price guide then uses historical observed-price data and
+  shows when the evidence is limited. Sellers choose whether to use it.
 
-Keyword search keeps the existing browse behavior. It does not load the local model.
+The homepage search is the primary local-model feature. Photo autofill and
+bundling are optional API-backed additions.
 
-### AI Search
+## Model Selection Rationale
 
-AI search does not use the full query as a keyword filter. Django retrieves active listings from the `Listing` ORM and applies the selected non-text filters. To limit the prompt size, it **selects up to 40 listings** that match at least one meaningful query term in their title, description, item type, or category, then fills any remaining slots with the most recent eligible listings. These recent listings are only candidates for the model to evaluate.
+We chose Llama 3.2 3B primarily from the A6 search experiment, which used a
+40-listing catalogue and eight labeled queries. The decision rule prioritized
+valid structured output, then usable nDCG@5, then median latency. The selected
+zero-shot setup reached 100% strict structure compliance, 0.483 usable nDCG@5,
+and 3.33-second median generation latency (4.04 seconds at p95). Zero-shot also avoids
+the extra prompt examples. These results favored Llama for this search flow's
+combination of ranking quality, reliable ID output, and latency.
 
-The model can return zero to five listing IDs. It does not extract exact price or category filters from the query; users can set those in the existing filter controls.
+A7 gives a broader performance check: across its five task types, Llama 3.2 3B
+had a 7.43/10 mean assisted score, 3.44-second median generation latency, and
+22.55 output tokens per second. A7's structured extraction score was 6.41/10,
+so it does not show Llama as the best model for extraction; Qwen3 4B scored
+7.68/10 and Phi-4 mini 7.35/10 on that task. We rely more on A6 for the search
+choice because it directly tested listing retrieval and ranking. Both studies
+are small development evaluations, not proof of performance on all users or
+queries.
 
-### Preprocessing
+The model has downloadable Hugging Face weights and runs locally after its
+license is accepted. The model page is access-controlled, so the first download
+requires a Hugging Face token with access.
 
-Django sends the trimmed query and each candidate’s ID, title, combined category/item-type label, price, condition, and description. It collapses whitespace, limits field lengths, and serializes the catalog as compact JSON. The existing browse form limits the query to 200 characters. Seller details, contact information, images, and unrelated fields are not sent to the model.
+## Architecture Diagram
 
-### Output Handling
+```mermaid
+flowchart LR
+    U[Shopper enters query] --> F[Django BrowseForm<br/>validate query and filters]
+    F -->|keyword mode| K[Existing keyword ORM search]
+    F -->|AI mode| C[ORM retrieves active listings<br/>up to 40 candidates]
+    C --> P[Build bounded JSON prompt<br/>query and listing fields]
+    P --> M[Local Llama 3.2 3B<br/>rank candidate IDs]
+    M --> V[Parse JSON and validate IDs<br/>status, filters, relevance gate]
+    V -->|valid results| R[Show ranked listings]
+    V -->|invalid, empty, or unavailable| B[Show labeled fallback<br/>or an error if none are available]
+    K --> R
+```
 
-Django keeps unique IDs from the candidate set, rechecks active status and selected filters, and preserves the model’s ranking order. A lexical relevance gate checks listing text against the query using maintained synonym groups rather than embeddings, so it may exclude relevant listings with unfamiliar wording.
+## Failure Cases
 
-If no valid, relevant IDs remain, the page shows a message and up to five random active listings matching the selected filters. These are fallback listings, not AI recommendations, and may not match the query. If candidate retrieval, result lookup, or model loading/inference fails, the app logs the error and may show similar fallback listings with a separate message that AI search could not be completed. If the fallback lookup fails or returns no listings, the page shows an error and no results; it does not silently switch to keyword search.
+- **Empty query:** AI inference is skipped and the normal browse page is shown.
+- **Malformed model output or unknown IDs:** The response is rejected. Django
+  shows a clearly labeled fallback when possible; otherwise it shows an error.
+- **No relevant results:** The page may show up to five random listings matching
+  the selected filters, clearly labeled as fallback rather than AI results. If
+  there are no eligible listings, it shows an explanatory empty-state message.
+- **Model loading/inference or database failure:** Errors are logged and the
+  same fallback path is used; results are not silently switched to keyword
+  matches.
+- **Large query or prompt:** Queries over 200 characters fail form validation;
+  candidate count, listing text, and generated output are bounded as described
+  above.
+- **Invalid photo upload:** Empty, oversized, unreadable, and unsupported image
+  files are rejected with a message. If photo analysis is unavailable or cannot
+  read the photo, the seller can continue with manual entry. The Gemini request
+  has a 15-second timeout.
+- **Local inference timeout:** Token generation has a 30-second limit. If it
+  exceeds the limit or returns incomplete JSON, search uses its normal labeled
+  fallback. Transformers may finish its current generation pass after the
+  limit; loading or downloading the model on the first request is outside it.
 
-### Safety Guardrails
+## Setup and References
 
-The query is limited to 200 characters, and listing fields are cleaned and length-limited before inference. The prompt treats the query and listing text as untrusted data, and the model receives only the fields needed for ranking. Search controls are disabled while an AI request is running.
+For setup instructions, see [AI Feature setup in README](README.md#5-ai-feature).
 
-### Setup
-
-Install dependencies with `pip install -r requirements.txt`, set your own `HF_TOKEN` in the local environment or `.env`, and start Django with `python manage.py runserver`. Before downloading the gated model, accept its license and confirm that your Hugging Face account has access to `meta-llama/Llama-3.2-3B-Instruct`. The first AI search downloads the tokenizer and model weights to the Hugging Face cache, so allow several gigabytes of disk space and enough RAM or accelerator memory. Keep tokens and other secrets out of source control, and do not commit model weights.
-
-## 2. External API: AI Bundle Builder
-
-### Data Input
-
-Buyers choose a home space and available item types from predefined options; they do not enter a free-form prompt. The service uses those selections to find eligible listings, which the builder displays in Budget, Best Value, and Premium tiers.
-
-### Preprocessing
-
-Candidates are grouped by item type and must be active, bundle-eligible, and not owned by the buyer. The request includes the selected space, item type IDs and names, listing IDs, titles, prices, conditions, and descriptions, along with available move-out and pricing context. Buyer and seller identity fields are omitted.
-
-### External API Request
-
-`bundles.services` calls Google’s Gemini API using the model ID `gemini-3.6-flash`. The prompt asks Gemini to select candidate listings for the `BUDGET`, `BEST_VALUE`, and `PREMIUM` tiers and provide a short rationale. The request asks for JSON, uses a 10-second timeout, and disables SDK retries.
-
-### Response Handling
-
-The service parses the JSON and accepts only IDs that belong to the submitted item type’s candidate set. Each tier must contain at least one valid item. The validator does not require exact keys or every item type in every tier, and it does not enforce the prompt’s rationale word limit. Rationales are limited to 280 characters.
-
-The builder uses accepted IDs to display the selected tier and calculate its total price. Buyers can switch tiers or swap in another eligible listing.
-
-### Safety Guardrails and Error Handling
-
-Space and item type selections are checked against configured options, and bundle routes require an authenticated campus-access-eligible user. Candidate retrieval excludes inactive, ineligible, and buyer-owned listings.
-
-If the API key is missing, Gemini is skipped. API errors or unusable responses are logged and handled with a price-based heuristic. The builder labels those results `Price-based pick — AI suggestions unavailable right now`. If none of the selected item types has eligible listings, the UI returns to category selection with an explanatory message. A failed browser request displays `Something went wrong generating your bundle` and a link to try again.
-
-### Configuration / API Key Setup
-
-Set `GEMINI_API_KEY` in the project-root `.env` file or deployment environment. The variable is listed in `.env.example`. Keep the key private and out of source control. If it is unset, the app skips Gemini and uses the price-based heuristic.
-
-## Study References
-
-### Part 1: Experiments and Evaluation Data
-
-Part 1 is organized into two notebooks to make the model-screening and
-prompt-engineering studies easier to follow and review. Read Part 1.1 first,
-followed by Part 1.2.
-
-| File | Contents |
-|---|---|
-| [Part-1.1_top-model-selection.ipynb](llm-test/Part-1.1_top-model-selection.ipynb) | Fifteen-model benchmark across five size categories, saved results, and top-three selection. |
-| [Part_1_2_n_shot_prompt_engineering.ipynb](llm-test/Part_1_2_n_shot_prompt_engineering.ipynb) | Zero-, one-, few-, and many-shot study of the selected three models. The first Markdown cell summarizes the findings; Cell 4 explains evaluation and scoring. |
-| [N-shot study results](llm-test/Part-1.2_Study-results_N-shot-prompt-engineering/) | Summary and per-query CSVs, raw outputs, run configuration, and findings. |
-| [listings.json](llm-test/listings.json) and [gold_labels.json](llm-test/gold_labels.json) | The 40-listing evaluation catalogue and eight labelled shopper queries. |
-
-The team used Route A (Prompt Engineering), not fine-tuning. The standalone
-download cell in Part 1.2 retrieves the selected pretrained Llama-3.2-3B-Instruct
-checkpoint; it does not download newly fine-tuned weights. The study selected
-zero-shot prompting. The Django implementation uses the same model name and
-zero-shot approach, with application-specific prompts, validation, and generation
-settings; notebook timings are not end-to-end website measurements.
-
-### Part 3: Reflection and Q2 Evidence
-
-See [notes.txt](notes.txt) for the Q1–Q4 production reflection, model comparison
-table, calculations, and sources. The Q2 evidence is available below.
-
-See [llm-test/Part-3.2_Cost-and-Scaling_Validation/](llm-test/Part-3.2_Cost-and-Scaling_Validation/) for the English counting notebook, original input files, recorded request bodies, CSV, and summary. The October 18 run measured eight fixed-catalogue input counts (mean 2,838.625 tokens); it did not measure generated output, inference latency, or production traffic.
+The model decision and prompt settings are recorded in the [A6 search findings](llm-test/Part-1.2_Study-results_N-shot-prompt-engineering/findings.txt)
+and [A6 n-shot results](llm-test/Part-1.2_Study-results_N-shot-prompt-engineering/summary.csv).
+The broader latency table is in the [A7 system design](docs/A7-part1/system_design.md),
+with task-level scores in [A7 summary data](docs/A7-part1/output/summary.csv).
