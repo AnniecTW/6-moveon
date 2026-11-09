@@ -88,6 +88,8 @@ not back up a database. Keep `.env` private and untracked; see the
 #### 5. AI Feature
 To use AI search, accept the Llama model license and set `HF_TOKEN` in the local environment or project `.env`, then run `python manage.py runserver`. The first search downloads the model weights to the Hugging Face cache and may require several gigabytes of disk space and enough RAM or accelerator memory. Do not commit tokens or model weights.
 
+To reproduce the A9 Part 3 evaluation of AI search and pricing suggestions, use a throwaway database: `DATABASE_PATH=data/eval.sqlite3 python manage.py migrate`, then `python manage.py sync_pricing_taxonomy`, then `python manage.py evaluate_ai --seed` (all with the same `DATABASE_PATH`). Results are written to `docs/A9-part3/`; see [README_AI.md](README_AI.md#part-3-evaluation-of-the-integrated-features).
+
 #### 6. Frontend Assets
 No frontend installation or build step is required. The browse page uses the
 CSS and JavaScript files under `static/css/marketplace/` and `static/js/`.

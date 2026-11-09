@@ -1,0 +1,655 @@
+{
+  "label": "before",
+  "model": "meta-llama/Llama-3.2-3B-Instruct",
+  "search": {
+    "summary": {
+      "model_load_s": 245.8,
+      "gold_queries": 8,
+      "mean_ndcg5_shown": 0.0,
+      "mean_ndcg5_model_before_gate": 0.283,
+      "mean_recall5_shown": 0.0,
+      "fallback_count": 10,
+      "median_generation_s": 7.52,
+      "median_request_s": 7.55
+    },
+    "cases": [
+      {
+        "case": "S1",
+        "query": "I want to buy some decoratives for the living room",
+        "filters": {},
+        "relevant": [
+          13,
+          19,
+          31,
+          37,
+          15
+        ],
+        "acceptable": [
+          16,
+          3,
+          40,
+          6,
+          20
+        ],
+        "distractors": [
+          11,
+          23,
+          35,
+          39
+        ],
+        "note": "A6 gold query",
+        "model_raw": "{\"ids\":[19,13,31,36,34]}",
+        "model_ids": [
+          19,
+          13,
+          31,
+          36,
+          34
+        ],
+        "model_titles": [
+          "Wall Art Set",
+          "Decorative Vase Set",
+          "Framed Prints Bundle",
+          "Coffee Table",
+          "Dresser"
+        ],
+        "shown_ids": [
+          23,
+          5,
+          4,
+          31,
+          24
+        ],
+        "shown_titles": [
+          "Microwave",
+          "32-inch TV",
+          "Blackout Curtains",
+          "Framed Prints Bundle",
+          "Tall Shelving Unit"
+        ],
+        "fallback": true,
+        "fallback_title": "No relevant listings found for this search.",
+        "ndcg5_shown": 0.0,
+        "ndcg5_model": 0.7227265726449519,
+        "recall5_shown": 0.0,
+        "distractors_shown": [],
+        "generation_s": 9.29,
+        "request_s": 9.45
+      },
+      {
+        "case": "S2",
+        "query": "need something blue to complement my bedside table",
+        "filters": {},
+        "relevant": [
+          32,
+          25,
+          13,
+          15,
+          2
+        ],
+        "acceptable": [
+          21
+        ],
+        "distractors": [
+          10,
+          11
+        ],
+        "note": "A6 gold query",
+        "model_raw": "{\"ids\":[19,13,32,25]}",
+        "model_ids": [
+          19,
+          13,
+          32,
+          25
+        ],
+        "model_titles": [
+          "Wall Art Set",
+          "Decorative Vase Set",
+          "Navy Table Lamp",
+          "Blue Throw Blanket"
+        ],
+        "shown_ids": [
+          16,
+          23,
+          5,
+          32,
+          14
+        ],
+        "shown_titles": [
+          "Patterned Wool Rug",
+          "Microwave",
+          "32-inch TV",
+          "Navy Table Lamp",
+          "Sectional Sofa"
+        ],
+        "fallback": true,
+        "fallback_title": "No relevant listings found for this search.",
+        "ndcg5_shown": 0.0,
+        "ndcg5_model": 0.5296347172140421,
+        "recall5_shown": 0.0,
+        "distractors_shown": [],
+        "generation_s": 7.69,
+        "request_s": 7.75
+      },
+      {
+        "case": "S3",
+        "query": "setting up a study corner in my dorm, budget under $50",
+        "filters": {},
+        "relevant": [
+          39,
+          28,
+          38,
+          7,
+          12
+        ],
+        "acceptable": [
+          24
+        ],
+        "distractors": [
+          27,
+          14,
+          30
+        ],
+        "note": "A6 gold query",
+        "model_raw": "{\"ids",
+        "model_ids": null,
+        "model_titles": [],
+        "shown_ids": [
+          34,
+          25,
+          10,
+          1,
+          5
+        ],
+        "shown_titles": [
+          "Dresser",
+          "Blue Throw Blanket",
+          "Blue Sofa",
+          "Rocking Chair",
+          "32-inch TV"
+        ],
+        "fallback": true,
+        "fallback_title": "AI search couldn't be completed.",
+        "ndcg5_shown": 0.0,
+        "ndcg5_model": 0.0,
+        "recall5_shown": 0.0,
+        "distractors_shown": [],
+        "generation_s": 9.88,
+        "request_s": 9.96
+      },
+      {
+        "case": "S4",
+        "query": "something to watch movies on in my apartment",
+        "filters": {},
+        "relevant": [
+          9,
+          5,
+          30,
+          18,
+          22
+        ],
+        "acceptable": [
+          14,
+          26,
+          10
+        ],
+        "distractors": [
+          23,
+          28
+        ],
+        "note": "A6 gold query",
+        "model_raw": "{\"ids",
+        "model_ids": null,
+        "model_titles": [],
+        "shown_ids": [
+          36,
+          7,
+          39,
+          21,
+          23
+        ],
+        "shown_titles": [
+          "Coffee Table",
+          "Compact Monitor",
+          "Desk",
+          "Small Area Rug",
+          "Microwave"
+        ],
+        "fallback": true,
+        "fallback_title": "AI search couldn't be completed.",
+        "ndcg5_shown": 0.0,
+        "ndcg5_model": 0.0,
+        "recall5_shown": 0.0,
+        "distractors_shown": [],
+        "generation_s": 15.7,
+        "request_s": 15.76
+      },
+      {
+        "case": "S5",
+        "query": "I need to heat up food quickly",
+        "filters": {},
+        "relevant": [
+          23,
+          35
+        ],
+        "acceptable": [
+          11
+        ],
+        "distractors": [
+          9,
+          39
+        ],
+        "note": "A6 gold query",
+        "model_raw": "{\"ids\":[35,13,12,11,19]}",
+        "model_ids": [
+          35,
+          13,
+          12,
+          11,
+          19
+        ],
+        "model_titles": [
+          "Countertop Microwave",
+          "Decorative Vase Set",
+          "Bookshelf",
+          "Blue Silicone Kitchen Utensil Set",
+          "Wall Art Set"
+        ],
+        "shown_ids": [
+          10,
+          23,
+          8,
+          24,
+          31
+        ],
+        "shown_titles": [
+          "Blue Sofa",
+          "Microwave",
+          "Sheer Window Curtains",
+          "Tall Shelving Unit",
+          "Framed Prints Bundle"
+        ],
+        "fallback": true,
+        "fallback_title": "No relevant listings found for this search.",
+        "ndcg5_shown": 0.0,
+        "ndcg5_model": 0.6461369845040973,
+        "recall5_shown": 0.0,
+        "distractors_shown": [],
+        "generation_s": 7.7,
+        "request_s": 7.73
+      },
+      {
+        "case": "S6",
+        "query": "make my bedroom darker so I can sleep in",
+        "filters": {},
+        "relevant": [
+          4
+        ],
+        "acceptable": [
+          40
+        ],
+        "distractors": [
+          8,
+          32,
+          6
+        ],
+        "note": "A6 gold query",
+        "model_raw": "{\"ids\":[19,13]}",
+        "model_ids": [
+          19,
+          13
+        ],
+        "model_titles": [
+          "Wall Art Set",
+          "Decorative Vase Set"
+        ],
+        "shown_ids": [
+          9,
+          4,
+          6,
+          21,
+          5
+        ],
+        "shown_titles": [
+          "Television",
+          "Blackout Curtains",
+          "Floor Lamp",
+          "Small Area Rug",
+          "32-inch TV"
+        ],
+        "fallback": true,
+        "fallback_title": "No relevant listings found for this search.",
+        "ndcg5_shown": 0.0,
+        "ndcg5_model": 0.0,
+        "recall5_shown": 0.0,
+        "distractors_shown": [],
+        "generation_s": 7.14,
+        "request_s": 7.15
+      },
+      {
+        "case": "S7",
+        "query": "storage for my books and stuff",
+        "filters": {},
+        "relevant": [
+          12,
+          38,
+          24
+        ],
+        "acceptable": [
+          34,
+          29,
+          2
+        ],
+        "distractors": [
+          19,
+          31
+        ],
+        "note": "A6 gold query",
+        "model_raw": "{\"ids\":[19,13]}",
+        "model_ids": [
+          19,
+          13
+        ],
+        "model_titles": [
+          "Wall Art Set",
+          "Decorative Vase Set"
+        ],
+        "shown_ids": [
+          26,
+          36,
+          6,
+          20,
+          5
+        ],
+        "shown_titles": [
+          "Compact Loveseat",
+          "Coffee Table",
+          "Floor Lamp",
+          "Modern Floor Lamp",
+          "32-inch TV"
+        ],
+        "fallback": true,
+        "fallback_title": "No relevant listings found for this search.",
+        "ndcg5_shown": 0.0,
+        "ndcg5_model": 0.0,
+        "recall5_shown": 0.0,
+        "distractors_shown": [],
+        "generation_s": 7.02,
+        "request_s": 7.03
+      },
+      {
+        "case": "S8",
+        "query": "comfortable seating for when friends visit",
+        "filters": {},
+        "relevant": [
+          10,
+          14,
+          26,
+          1
+        ],
+        "acceptable": [],
+        "distractors": [
+          39,
+          17,
+          27
+        ],
+        "note": "A6 gold query",
+        "model_raw": "{\"ids\":[19,13,10,26,40]}",
+        "model_ids": [
+          19,
+          13,
+          10,
+          26,
+          40
+        ],
+        "model_titles": [
+          "Wall Art Set",
+          "Decorative Vase Set",
+          "Blue Sofa",
+          "Compact Loveseat",
+          "Linen Curtain Panels"
+        ],
+        "shown_ids": [
+          36,
+          24,
+          30,
+          21,
+          13
+        ],
+        "shown_titles": [
+          "Coffee Table",
+          "Tall Shelving Unit",
+          "55-inch Smart TV",
+          "Small Area Rug",
+          "Decorative Vase Set"
+        ],
+        "fallback": true,
+        "fallback_title": "No relevant listings found for this search.",
+        "ndcg5_shown": 0.0,
+        "ndcg5_model": 0.36331756126716835,
+        "recall5_shown": 0.0,
+        "distractors_shown": [],
+        "generation_s": 7.35,
+        "request_s": 7.37
+      },
+      {
+        "distractors": [],
+        "case": "S9",
+        "query": "comfy couch for my apartment",
+        "filters": {
+          "max_price": "60"
+        },
+        "relevant": [
+          10,
+          26
+        ],
+        "acceptable": [],
+        "note": "Price filter: only sofas at or under $60 are eligible (Blue Sofa $65 is excluded).",
+        "model_raw": "{\"ids\":[19,13]}",
+        "model_ids": [
+          19,
+          13
+        ],
+        "model_titles": [
+          "Wall Art Set",
+          "Decorative Vase Set"
+        ],
+        "shown_ids": [
+          19,
+          7,
+          29,
+          33,
+          3
+        ],
+        "shown_titles": [
+          "Wall Art Set",
+          "Compact Monitor",
+          "3-Drawer Dresser",
+          "Rustic Wood Coffee Table",
+          "Gray Rug"
+        ],
+        "fallback": true,
+        "fallback_title": "No relevant listings found for this search.",
+        "ndcg5_shown": 0.0,
+        "ndcg5_model": 0.0,
+        "recall5_shown": 0.0,
+        "distractors_shown": [],
+        "generation_s": 6.29,
+        "request_s": 6.32
+      },
+      {
+        "distractors": [],
+        "case": "S10",
+        "query": "snowboard for winter break",
+        "filters": {},
+        "relevant": [],
+        "acceptable": [],
+        "note": "Nothing in the catalogue matches; expect an empty AI result and a labelled fallback.",
+        "model_raw": "{\"ids\":[19,13]}",
+        "model_ids": [
+          19,
+          13
+        ],
+        "model_titles": [
+          "Wall Art Set",
+          "Decorative Vase Set"
+        ],
+        "shown_ids": [
+          9,
+          24,
+          7,
+          12,
+          10
+        ],
+        "shown_titles": [
+          "Television",
+          "Tall Shelving Unit",
+          "Compact Monitor",
+          "Bookshelf",
+          "Blue Sofa"
+        ],
+        "fallback": true,
+        "fallback_title": "No relevant listings found for this search.",
+        "ndcg5_shown": null,
+        "ndcg5_model": null,
+        "recall5_shown": null,
+        "distractors_shown": [],
+        "generation_s": 6.93,
+        "request_s": 6.94
+      }
+    ]
+  },
+  "pricing": {
+    "warmup_s": 5.67,
+    "cases": [
+      {
+        "case": "P1",
+        "title": "IKEA Malm 6-drawer dresser, white",
+        "condition": "GOOD",
+        "brand": "IKEA",
+        "candidates": [
+          {
+            "item_type_id": 16,
+            "category_id": 3,
+            "category": "Furniture",
+            "item_type": "Dresser",
+            "observation_count": 2,
+            "may_support_price": true,
+            "limited_evidence": true,
+            "example_title": "acotar feyre dresser",
+            "similarity": 0.4992,
+            "price_guide": {
+              "method": "SPARSE_CONDITION_MEDIAN",
+              "suggested_listing_price": "100.00",
+              "range_low": null,
+              "range_high": null,
+              "evidence_grade": "VERY_LOW",
+              "comparable_count": 1
+            }
+          }
+        ],
+        "latency_s": 0.009
+      },
+      {
+        "case": "P2",
+        "title": "Mini fridge for dorm room",
+        "condition": "LIKE_NEW",
+        "brand": "",
+        "candidates": [
+          {
+            "item_type_id": 6,
+            "category_id": 1,
+            "category": "Appliances",
+            "item_type": "Refrigerator",
+            "observation_count": 2,
+            "may_support_price": true,
+            "limited_evidence": true,
+            "example_title": "corona extra mini fridge",
+            "similarity": 0.6514,
+            "price_guide": {
+              "method": "SPARSE_TYPE_MEDIAN",
+              "suggested_listing_price": "67.00",
+              "range_low": null,
+              "range_high": null,
+              "evidence_grade": "VERY_LOW",
+              "comparable_count": 2
+            }
+          }
+        ],
+        "latency_s": 0.028
+      },
+      {
+        "case": "P3",
+        "title": "LED desk lamp with USB port",
+        "condition": "GOOD",
+        "brand": "",
+        "candidates": [
+          {
+            "item_type_id": 24,
+            "category_id": 4,
+            "category": "Home Decor",
+            "item_type": "Lamp & Lighting",
+            "observation_count": 44,
+            "may_support_price": true,
+            "limited_evidence": false,
+            "example_title": "(2) philips landscape led 7w light bulbs t5 wedge base 2-bulbs 120 lumens new",
+            "similarity": 0.4253,
+            "price_guide": {
+              "method": "TYPE_MEDIAN_UNADJUSTED",
+              "suggested_listing_price": "22.50",
+              "range_low": "15.75",
+              "range_high": "73.75",
+              "evidence_grade": "LOW",
+              "comparable_count": 44
+            }
+          }
+        ],
+        "latency_s": 0.012
+      },
+      {
+        "case": "P4",
+        "title": "Queen size memory foam mattress topper",
+        "condition": "GOOD",
+        "brand": "",
+        "candidates": [
+          {
+            "item_type_id": 11,
+            "category_id": 2,
+            "category": "Bedding & Bath",
+            "item_type": "Pillow & Bedding Accessories",
+            "observation_count": 9,
+            "may_support_price": true,
+            "limited_evidence": true,
+            "example_title": "camo bed sheets and pillow cases",
+            "similarity": 0.5416,
+            "price_guide": {
+              "method": "SPARSE_TYPE_MEDIAN",
+              "suggested_listing_price": "27.00",
+              "range_low": null,
+              "range_high": null,
+              "evidence_grade": "VERY_LOW",
+              "comparable_count": 9
+            }
+          }
+        ],
+        "latency_s": 0.007
+      },
+      {
+        "case": "P5",
+        "title": "Xbox wireless controller",
+        "condition": "GOOD",
+        "brand": "Microsoft",
+        "candidates": [],
+        "latency_s": 0.012
+      },
+      {
+        "case": "P6",
+        "title": "asdf qwerty",
+        "condition": "GOOD",
+        "brand": "",
+        "candidates": [],
+        "latency_s": 0.007
+      }
+    ]
+  }
+}
