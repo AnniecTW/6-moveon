@@ -17,7 +17,8 @@ _RELEVANCE_STOP_WORDS = frozenset(
     want with would you your looking find need items item things thing nice room
     rooms products product listings listing few minimal modern classic beautiful
     great good best affordable cheap inexpensive used new under over below above
-    less than budget price maximum minimum dollars""".split()
+    less than budget price maximum minimum dollars something stuff up so can
+    make when just really get""".split()
 )
 _RELEVANCE_GROUPS = (
     frozenset(
@@ -97,16 +98,29 @@ def _listing_payload(candidates):
     ]
 
 
+def _singular(token):
+    """Light plural folding so "decoratives" can match "decorative"."""
+    if len(token) > 4 and token.endswith("s") and not token.endswith("ss"):
+        return token[:-1]
+    return token
+
+
 def _tokens(value):
-    return {
+    """Return each alphabetic word plus its singular form."""
+    words = {
         token
         for token in re.findall(r"[a-z0-9]+", str(value or "").casefold())
         if token.isalpha()
     }
+    return words | {_singular(token) for token in words}
 
 
 def _relevance_requirements(query):
-    query_tokens = _tokens(query) - _RELEVANCE_STOP_WORDS
+    query_tokens = {
+        _singular(token)
+        for token in _tokens(query) - _RELEVANCE_STOP_WORDS
+        if _singular(token) not in _RELEVANCE_STOP_WORDS
+    }
     requirements = []
     covered_tokens = set()
     for group in _RELEVANCE_GROUPS:
@@ -133,7 +147,9 @@ def _gate_ranked_ids(query, ranked_ids, catalog):
                 (listing["title"], listing["category"], listing["description"])
             )
         )
-        if requirements and all(requirement & listing_tokens for requirement in requirements):
+        # Keep a model pick when it shares at least one query concept. Requiring
+        # every query word rejected valid matches for natural phrasing (A9 Part 3).
+        if any(requirement & listing_tokens for requirement in requirements):
             accepted_ids.append(listing_id)
         else:
             rejected_ids.append(listing_id)
@@ -151,8 +167,9 @@ def _build_messages(query, catalog):
         "relevance order; return fewer when fewer listings are relevant, and do not add "
         "unrelated listings just to fill the list. Recency alone is never a reason to select "
         "a listing; when relevance is uncertain, leave it out. If no listing is relevant, return exactly "
-        "{\"ids\":[]}. Return only a JSON object with an ids array, for example "
-        "{\"ids\":[19,13]}. Do not include explanations or markdown."
+        "{\"ids\":[]}. Return only a JSON object with an ids array whose items are "
+        "the integer id values of the selected candidate_listings, copied exactly from "
+        "those listings. Do not include explanations or markdown."
     )
     user_message = json.dumps(
         {

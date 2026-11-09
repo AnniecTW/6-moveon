@@ -289,6 +289,24 @@ class LocalLLMSearchViewTests(TestCase):
         self.assertNotContains(response, "Small Coffee Table")
         self.assertNotContains(response, "Refurbished Flatscreen")
 
+    @patch("marketplace.local_llm._generate_response")
+    def test_relevance_gate_keeps_match_when_query_has_extra_words(
+        self, generate_response
+    ):
+        # A9 Part 3: the old gate required every query word, so natural
+        # phrasing like this sent valid model picks to the random fallback.
+        generate_response.return_value = f'{{"ids":[{self.second.pk}]}}'
+
+        response = self.client.get(
+            reverse("home"),
+            {"q": "need something blue to complement my bedside lamps", "search_mode": "ai"},
+        )
+
+        self.assertEqual(
+            [listing.pk for listing in response.context["listings"]], [self.second.pk]
+        )
+        self.assertFalse(response.context["ai_search_fallback"])
+
     @patch("marketplace.browse.rank_listing_ids")
     def test_database_recheck_excludes_inactive_model_ids(self, rank_listing_ids):
         rank_listing_ids.return_value = [self.inactive.pk, self.second.pk]
