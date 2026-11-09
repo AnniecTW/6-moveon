@@ -85,10 +85,41 @@ default remains `data/db.sqlite3`. Creating a directory or selecting a path does
 not back up a database. Keep `.env` private and untracked; see the
 [Environment and database setup guide](docs/notes/week5_setup.md) for key generation and environment details.
 
-#### 5. AI Feature
-To use AI search, accept the Llama model license and set `HF_TOKEN` in the local environment or project `.env`, then run `python manage.py runserver`. The first search downloads the model weights to the Hugging Face cache and may require several gigabytes of disk space and enough RAM or accelerator memory. Do not commit tokens or model weights.
+#### 5. AI Features (setup, demo data, and how to use them)
 
-To reproduce the A9 Part 3 evaluation of AI search and pricing suggestions, use a throwaway database: `DATABASE_PATH=data/eval.sqlite3 python manage.py migrate`, then `python manage.py sync_pricing_taxonomy`, then `python manage.py evaluate_ai --seed` (all with the same `DATABASE_PATH`). Results are written to `docs/A9-part3/`; see [README_AI.md](README_AI.md#part-3-evaluation-of-the-integrated-features).
+**Model downloads.** No model weights are committed; they download to the Hugging Face cache (`~/.cache/huggingface/`) on first use.
+
+| Model | Used for | Access | Size |
+|---|---|---|---|
+| `meta-llama/Llama-3.2-3B-Instruct` | Natural-language listing search (main AI feature) | Gated: accept the Llama 3.2 license on Hugging Face, create a read token, and set `HF_TOKEN=hf_...` in `.env` | ~6 GB |
+| `sentence-transformers/all-MiniLM-L6-v2` | Item-type and price suggestions when creating a listing | Public, no token | ~90 MB |
+
+The first AI search downloads Llama (several minutes) and loads it into memory. After that, a search takes about 8 s on an Apple M-series laptop. A CUDA GPU is used automatically if available. Optional Gemini features (bundle tiers, photo autofill) use `GEMINI_API_KEY` and fall back without it. Do not commit `.env`, tokens, or model weights.
+
+**Demo data.** A newly migrated database has no listings, so AI search has nothing to rank. To load the 40-listing catalogue used in our A6 and A9 evaluations into a separate database:
+
+```bash
+export DATABASE_PATH=data/eval.sqlite3      # PowerShell: $env:DATABASE_PATH="data/eval.sqlite3"
+python manage.py migrate
+python manage.py sync_pricing_taxonomy      # item types for pricing suggestions
+python manage.py evaluate_ai --seed         # loads the listings, then runs the evaluation once
+python manage.py runserver
+```
+
+`--seed` only works on an empty database; omit it on later runs. Results are written to `docs/A9-part3/`; see [README_AI.md](README_AI.md#part-3-evaluation-of-the-integrated-features). Keep the same `DATABASE_PATH` set when starting the server.
+
+**Using AI search (no login needed).**
+1. Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) or `/listings/`.
+2. Turn on the **AI natural-language search** switch next to the search box.
+3. Type a request such as `I need to heat up food quickly` or `comfortable seating for when friends visit`, then press Enter.
+4. AI-ranked listings appear as cards. If the model fails or finds nothing relevant (try `snowboard for winter break`), the page shows a labelled message with random fallback listings.
+
+You can also open a search directly: `/listings/?search_mode=ai&q=I+need+to+heat+up+food+quickly`.
+
+**Using pricing suggestions (campus login needed).**
+1. Sign up at `/account/` with an `@illinois.edu` address. In development, the verification code is printed in the `runserver` console.
+2. Open `/listings/new/` and type a title such as `Mini fridge for dorm room`.
+3. Suggested item types with price guides appear under the title. Select one, then accept, edit, or ignore the suggested price.
 
 #### 6. Frontend Assets
 No frontend installation or build step is required. The browse page uses the
