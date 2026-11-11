@@ -9,7 +9,14 @@ from .auth_backend import has_campus_access
 from .featured import decorate_listing, featured_bundles
 from .forms import BrowseForm
 from .models import Listing
-from .local_llm import InvalidListingIDsError, LocalLLMError, rank_listing_ids
+from .local_llm import (
+    InvalidListingIDsError,
+    LocalLLMError,
+    query_concepts,
+    rank_listing_ids,
+    relevance_score,
+)
+from .search_embeddings import listing_similarities
 
 ORDERING = {
     "newest": "-created_at",
@@ -17,6 +24,14 @@ ORDERING = {
     "price-desc": "-listing_price",
 }
 MAX_LOCAL_LLM_CANDIDATES = 40
+MAX_LOCAL_LLM_SEARCH_TERMS = 80
+MAX_LOCAL_LLM_MATCH_SCAN = 200
+# Embedding mode: score up to this many recent listings, send the best 15.
+MAX_LOCAL_LLM_EMBEDDING_SCAN = 500
+MAX_LOCAL_LLM_SEMANTIC_CANDIDATES = 15
+# Added per matched query concept, so an exact "coffee table" outranks a
+# merely similar desk.
+KEYWORD_MATCH_BONUS = 0.1
 SEARCH_STOP_WORDS = {
     "a", "an", "and", "are", "for", "i", "in", "is", "it", "me", "my",
     "of", "on", "or", "please", "recommend", "some", "the", "this", "to",
@@ -82,8 +97,115 @@ def filtered_listings(form, include_query=True):
     return listings
 
 
+def _text_match(term):
+    return (
+        Q(title__icontains=term)
+        | Q(description__icontains=term)
+        | Q(item_type__item_type_name__icontains=term)
+        | Q(item_type__category__category_name__icontains=term)
+    )
+
+
+def _candidate_search_terms(eligible, query):
+    """Literal query words, plus synonyms for any concept they find nothing for.
+
+    "decorate" matches no listing text, so it is widened to its group (decor, rug,
+    lamp, vase, ...). "table" already matches, so it is not widened to that same
+    broad decor group, which would crowd coffee tables out with vases.
+    """
+    terms = [
+        term
+        for term in re.findall(r"[\w'-]{2,}", query.casefold())
+        if term not in SEARCH_STOP_WORDS
+    ][:20]
+    for words, group in query_concepts(query):
+        if len(group) == 1:
+            continue
+        literal_filter = Q()
+        for word in words:
+            literal_filter |= _text_match(word)
+        if not eligible.filter(literal_filter).exists():
+            terms.extend(sorted(group))
+    return list(dict.fromkeys(terms))[:MAX_LOCAL_LLM_SEARCH_TERMS]
+
+
+def _candidate_text(candidate):
+    return " ".join(
+        str(candidate[field] or "")
+        for field in (
+            "title",
+            "description",
+            "item_type__item_type_name",
+            "item_type__category__category_name",
+        )
+    )
+
+
+def _keyword_matches(eligible, query, fields):
+    terms = _candidate_search_terms(eligible, query)
+    if not terms:
+        return []
+    matching_filter = Q()
+    for term in terms:
+        matching_filter |= _text_match(term)
+    matched = list(
+        eligible.filter(matching_filter).values(*fields)[:MAX_LOCAL_LLM_MATCH_SCAN]
+    )
+    # Stable sort: equally relevant listings keep newest-first order.
+    matched.sort(
+        key=lambda candidate: relevance_score(query, _candidate_text(candidate)),
+        reverse=True,
+    )
+    return matched
+
+
+def _embedding_text(candidate):
+    """Sentence-like text; MiniLM scores "Sofa. Furniture." higher than run-on words."""
+    return ". ".join(
+        str(candidate[field] or "").strip()
+        for field in (
+            "title",
+            "item_type__item_type_name",
+            "item_type__category__category_name",
+            "description",
+        )
+    )
+
+
+def _semantic_candidates(eligible, query, fields, keyword_matched):
+    """Rank keyword matches and recent listings by embedding similarity.
+
+    Returns None when embeddings are unavailable. Each candidate carries its
+    "similarity" so the relevance gate can accept intent matches ("sit" ->
+    sofa) that share no words with the query.
+    """
+    keyword_ids = {candidate["pk"] for candidate in keyword_matched}
+    pool = keyword_matched + list(
+        eligible.exclude(pk__in=keyword_ids).values(*fields)[
+            :MAX_LOCAL_LLM_EMBEDDING_SCAN
+        ]
+    )
+    similarities = listing_similarities(
+        query, [_embedding_text(candidate) for candidate in pool]
+    )
+    if similarities is None:
+        return None
+    scored = []
+    for candidate, similarity in zip(pool, similarities):
+        candidate["similarity"] = similarity
+        concepts_matched = relevance_score(query, _candidate_text(candidate))[0]
+        scored.append((similarity + KEYWORD_MATCH_BONUS * concepts_matched, candidate))
+    # Stable sort keeps newest-first among equal scores.
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [candidate for _, candidate in scored[:MAX_LOCAL_LLM_SEMANTIC_CANDIDATES]]
+
+
 def _local_llm_candidates(form, query):
-    """Prioritize text matches, then recent eligible listings, within a fixed cap."""
+    """Put the most query-relevant listings first; the model favors the top.
+
+    Embedding similarity plus a keyword bonus decides the order. If embeddings
+    are unavailable, keyword matches come first and recent listings pad the pool.
+    """
     eligible = filtered_listings(form, include_query=False).order_by(
         "-created_at", "pk"
     )
@@ -96,38 +218,18 @@ def _local_llm_candidates(form, query):
         "item_type__item_type_name",
         "item_type__category__category_name",
     )
-    terms = [
-        term
-        for term in re.findall(r"[\w'-]{2,}", query.casefold())
-        if term not in SEARCH_STOP_WORDS
-    ][:20]
-
-    matching_filter = Q()
-    for term in terms:
-        matching_filter |= (
-            Q(title__icontains=term)
-            | Q(description__icontains=term)
-            | Q(item_type__item_type_name__icontains=term)
-            | Q(item_type__category__category_name__icontains=term)
+    matched = _keyword_matches(eligible, query, fields)
+    candidates = _semantic_candidates(eligible, query, fields, matched)
+    if candidates is None:
+        matched = matched[:MAX_LOCAL_LLM_CANDIDATES]
+        matched_ids = [candidate["pk"] for candidate in matched]
+        remaining = MAX_LOCAL_LLM_CANDIDATES - len(matched)
+        recent = (
+            list(eligible.exclude(pk__in=matched_ids).values(*fields)[:remaining])
+            if remaining
+            else []
         )
-
-    matched = (
-        list(
-            eligible.filter(matching_filter)
-            .values(*fields)[:MAX_LOCAL_LLM_CANDIDATES]
-        )
-        if terms
-        else []
-    )
-    matched_ids = [candidate["pk"] for candidate in matched]
-    remaining = MAX_LOCAL_LLM_CANDIDATES - len(matched)
-    recent = (
-        list(eligible.exclude(pk__in=matched_ids).values(*fields)[:remaining])
-        if remaining
-        else []
-    )
-
-    candidates = matched + recent
+        candidates = matched + recent
     for candidate in candidates:
         candidate["category"] = " / ".join(
             (

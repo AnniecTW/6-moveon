@@ -56,7 +56,37 @@ class ListingIdValidationTests(TestCase):
             parse_listing_ids('{"ids":[999]}', [1, 2])
 
 
+class WrappedResponseParsingTests(TestCase):
+    def test_accepts_ids_object_wrapped_in_a_single_item_list(self):
+        self.assertEqual(parse_listing_ids('[{"ids":[2,1]}]', [1, 2]), [2, 1])
+
+    def test_rejects_a_list_of_several_objects(self):
+        with self.assertRaises(LocalLLMError):
+            parse_listing_ids('[{"ids":[1]},{"ids":[2]}]', [1, 2])
+
+
 class LocalLLMSearchViewTests(TestCase):
+    def setUp(self):
+        # Keyword candidate path by default; never load the real encoder in tests.
+        patcher = patch("marketplace.browse.listing_similarities", return_value=None)
+        self.listing_similarities = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _use_similarities(self, scores_by_title):
+        """Fake embedding scores: each candidate text scored by its listing title."""
+
+        def similarities(query, texts):
+            return [
+                next(
+                    (score for title, score in scores_by_title.items() if text.startswith(title)),
+                    0.0,
+                )
+                for text in texts
+            ]
+
+        self.listing_similarities.side_effect = similarities
+        self.listing_similarities.return_value = None
+
     @classmethod
     def setUpTestData(cls):
         cls.seller = User.objects.create_user(
@@ -513,3 +543,163 @@ class LocalLLMSearchViewTests(TestCase):
 
         catalog = generate_response.call_args.args[0][1]["content"]
         self.assertLessEqual(catalog.count('"id":'), 40)
+
+    def _listing(self, title, item_type, description=""):
+        return Listing.objects.create(
+            seller=self.seller,
+            item_type=item_type,
+            title=title,
+            description=description,
+            listing_price="20.00",
+            condition=Listing.Condition.GOOD,
+            status=Listing.Status.ACTIVE,
+            fulfillment_option=Listing.Fulfillment.PICKUP,
+        )
+
+    @patch("marketplace.local_llm._generate_response", return_value='{"ids":[]}')
+    def test_intent_word_without_text_match_puts_related_listings_first(
+        self, generate_response
+    ):
+        # "decorate" appears in no listing, so the pool used to be pure recency
+        # and the model picked whatever was newest.
+        decor = ItemType.objects.create(
+            category=ItemCategory.objects.create(category_name="Home Decor"),
+            item_type_name="Wall Art",
+        )
+        speaker = ItemType.objects.create(
+            category=ItemCategory.objects.create(category_name="Electronics"),
+            item_type_name="Speaker",
+        )
+        wall_art = self._listing("Wall art set", decor)
+        newer_speaker = self._listing("Bluetooth speaker", speaker)
+
+        self.client.get(
+            reverse("home"), {"q": "I want to decorate my room", "search_mode": "ai"}
+        )
+
+        catalog_ids = [
+            item["id"]
+            for item in json.loads(generate_response.call_args.args[0][1]["content"])[
+                "candidate_listings"
+            ]
+        ]
+        self.assertLess(catalog_ids.index(wall_art.pk), catalog_ids.index(newer_speaker.pk))
+
+    @patch("marketplace.local_llm._generate_response", return_value='{"ids":[]}')
+    def test_literal_match_is_not_widened_to_broad_synonym_group(
+        self, generate_response
+    ):
+        decor = ItemType.objects.create(
+            category=ItemCategory.objects.create(category_name="Home Decor"),
+            item_type_name="Vase",
+        )
+        table_type = ItemType.objects.create(
+            category=self.first.item_type.category, item_type_name="Coffee Table"
+        )
+        coffee_table = self._listing("Glass coffee table", table_type)
+        vase = self._listing("Decorative vase", decor)
+
+        self.client.get(reverse("home"), {"q": "coffee table", "search_mode": "ai"})
+
+        catalog_ids = [
+            item["id"]
+            for item in json.loads(generate_response.call_args.args[0][1]["content"])[
+                "candidate_listings"
+            ]
+        ]
+        self.assertEqual(catalog_ids[0], coffee_table.pk)
+        self.assertLess(catalog_ids.index(coffee_table.pk), catalog_ids.index(vase.pk))
+
+    @patch("marketplace.local_llm._generate_response")
+    def test_semantic_candidates_surface_and_keep_intent_match(self, generate_response):
+        # "sit" appears in no listing; only embeddings connect it to a sofa.
+        sofa_type = ItemType.objects.create(
+            category=self.first.item_type.category, item_type_name="Sofa"
+        )
+        speaker_type = ItemType.objects.create(
+            category=ItemCategory.objects.create(category_name="Electronics"),
+            item_type_name="Speaker",
+        )
+        sofa = self._listing("Blue sofa", sofa_type)
+        speaker = self._listing("Bluetooth speaker", speaker_type)
+        self._use_similarities({"Blue sofa": 0.45, "Bluetooth speaker": 0.10})
+        generate_response.return_value = f'{{"ids":[{speaker.pk},{sofa.pk}]}}'
+
+        response = self.client.get(
+            reverse("home"), {"q": "something to sit on", "search_mode": "ai"}
+        )
+
+        catalog = json.loads(generate_response.call_args.args[0][1]["content"])
+        self.assertEqual(catalog["candidate_listings"][0]["id"], sofa.pk)
+        self.assertNotIn("similarity", catalog["candidate_listings"][0])
+        self.assertEqual([item.pk for item in response.context["listings"]], [sofa.pk])
+        self.assertFalse(response.context["ai_search_fallback"])
+
+    @patch("marketplace.local_llm._generate_response")
+    def test_semantic_gate_rejects_low_similarity_picks(self, generate_response):
+        self._use_similarities({"Oak bedside lamp": 0.27, "Blue reading lamp": 0.20})
+        generate_response.return_value = f'{{"ids":[{self.first.pk},{self.second.pk}]}}'
+
+        response = self.client.get(
+            reverse("home"), {"q": "bathroom cleaning", "search_mode": "ai"}
+        )
+
+        self.assertTrue(response.context["ai_search_fallback"])
+        self.assertEqual(
+            response.context["ai_search_fallback_title"],
+            "No relevant listings found for this search.",
+        )
+
+    @patch("marketplace.local_llm._generate_response", return_value='{"ids":[]}')
+    def test_semantic_pool_sends_only_the_best_fifteen(self, generate_response):
+        for index in range(30):
+            self._listing(f"Bedroom lamp {index}", self.first.item_type)
+        self._use_similarities({})
+
+        self.client.get(reverse("home"), {"q": "bedroom lamp", "search_mode": "ai"})
+
+        catalog = json.loads(generate_response.call_args.args[0][1]["content"])
+        self.assertEqual(len(catalog["candidate_listings"]), 15)
+
+    @patch("marketplace.search_embeddings.sentence_encoder", side_effect=OSError("no model"))
+    @patch("marketplace.local_llm._generate_response")
+    def test_encoder_failure_falls_back_to_keyword_candidates(
+        self, generate_response, sentence_encoder
+    ):
+        from marketplace.search_embeddings import listing_similarities
+
+        self.listing_similarities.side_effect = listing_similarities
+        generate_response.return_value = f'{{"ids":[{self.second.pk}]}}'
+
+        with self.assertLogs("marketplace.search_embeddings", level="ERROR"):
+            response = self.client.get(
+                reverse("home"), {"q": "bedroom lamp", "search_mode": "ai"}
+            )
+
+        self.assertEqual([item.pk for item in response.context["listings"]], [self.second.pk])
+        self.assertFalse(response.context["ai_search_fallback"])
+
+
+class ListingSimilarityTests(TestCase):
+    def test_listing_vectors_are_cached_by_text(self):
+        import numpy as np
+
+        from marketplace import search_embeddings
+
+        class FakeEncoder:
+            def __init__(self):
+                self.encoded = []
+
+            def encode(self, texts, normalize_embeddings):
+                self.encoded.extend(texts)
+                return [np.array([1.0, 0.0]) if "sofa" in t else np.array([0.0, 1.0]) for t in texts]
+
+        encoder = FakeEncoder()
+        with patch.object(search_embeddings, "sentence_encoder", return_value=encoder), \
+                patch.dict(search_embeddings._vector_cache, clear=True):
+            first = search_embeddings.listing_similarities("sofa", ["blue sofa", "lamp"])
+            second = search_embeddings.listing_similarities("sofa", ["blue sofa", "lamp"])
+
+        self.assertEqual(first, [1.0, 0.0])
+        self.assertEqual(second, first)
+        self.assertEqual(encoder.encoded.count("blue sofa"), 1)

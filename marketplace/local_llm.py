@@ -3,6 +3,7 @@
 import json
 import logging
 import re
+from functools import lru_cache
 from threading import Lock
 from time import monotonic
 
@@ -10,6 +11,11 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 LOCAL_LLM_GENERATION_TIMEOUT_SECONDS = 30
+# MiniLM cosine similarity at which a model pick with no shared query words is
+# still accepted. On the A9 evaluation catalogue every value from 0.28 to 0.35
+# scored the same, so this is the strictest of them: a dresser for "bathroom
+# cleaning" (0.27) and most coffee tables for "something to sit on" are rejected.
+MIN_SEMANTIC_SIMILARITY = 0.35
 _model_load_lock = Lock()
 _loaded_model = None
 _RELEVANCE_STOP_WORDS = frozenset(
@@ -62,6 +68,9 @@ def parse_listing_ids(response, candidate_ids):
     except (TypeError, ValueError) as error:
         raise LocalLLMError("The local model returned malformed JSON.") from error
 
+    # The 3B model sometimes wraps the object in a list: [{"ids":[...]}].
+    if isinstance(payload, list) and len(payload) == 1 and isinstance(payload[0], dict):
+        payload = payload[0]
     if not isinstance(payload, dict) or not isinstance(payload.get("ids"), list):
         raise LocalLLMError("The local model response must contain an ids list.")
 
@@ -115,41 +124,58 @@ def _tokens(value):
     return words | {_singular(token) for token in words}
 
 
-def _relevance_requirements(query):
+@lru_cache(maxsize=128)
+def query_concepts(query):
+    """Return (query words, synonym group) pairs, e.g. ({"decorate"}, decor group).
+
+    A query word outside every group becomes its own one-word group.
+    """
     query_tokens = {
         _singular(token)
         for token in _tokens(query) - _RELEVANCE_STOP_WORDS
         if _singular(token) not in _RELEVANCE_STOP_WORDS
     }
-    requirements = []
+    concepts = []
     covered_tokens = set()
     for group in _RELEVANCE_GROUPS:
         matched_query_tokens = query_tokens & group
         if matched_query_tokens:
-            requirements.append(group)
+            concepts.append((frozenset(matched_query_tokens), group))
             covered_tokens.update(matched_query_tokens)
-    requirements.extend(
-        frozenset({token})
+    concepts.extend(
+        (frozenset({token}), frozenset({token}))
         for token in sorted(query_tokens - covered_tokens)
     )
-    return requirements
+    return tuple(concepts)
 
 
-def _gate_ranked_ids(query, ranked_ids, catalog):
-    requirements = _relevance_requirements(query)
+def _relevance_requirements(query):
+    return tuple(group for _, group in query_concepts(query))
+
+
+def relevance_score(query, text):
+    """Return (query concepts matched, words matched) for a listing's text."""
+    tokens = _tokens(text)
+    matches = [requirement & tokens for requirement in _relevance_requirements(query)]
+    return (sum(1 for match in matches if match), sum(len(match) for match in matches))
+
+
+def _gate_ranked_ids(query, ranked_ids, catalog, similarities):
     listings_by_id = {item["id"]: item for item in catalog}
     accepted_ids = []
     rejected_ids = []
     for listing_id in ranked_ids:
         listing = listings_by_id[listing_id]
-        listing_tokens = _tokens(
-            " ".join(
-                (listing["title"], listing["category"], listing["description"])
-            )
+        listing_text = " ".join(
+            (listing["title"], listing["category"], listing["description"])
         )
+        similarity = similarities.get(listing_id)
         # Keep a model pick when it shares at least one query concept. Requiring
         # every query word rejected valid matches for natural phrasing (A9 Part 3).
-        if any(requirement & listing_tokens for requirement in requirements):
+        # Embedding similarity also counts, since "sit" never appears in "Sofa".
+        if relevance_score(query, listing_text)[0] or (
+            similarity is not None and similarity >= MIN_SEMANTIC_SIMILARITY
+        ):
             accepted_ids.append(listing_id)
         else:
             rejected_ids.append(listing_id)
@@ -282,6 +308,11 @@ def rank_listing_ids(query, candidates):
     except LocalLLMError:
         logger.warning("Local listing model returned an invalid ranking response.", exc_info=True)
         raise
-    ranked_ids = _gate_ranked_ids(query, ranked_ids, catalog)
+    similarities = {
+        candidate["pk"]: candidate["similarity"]
+        for candidate in candidates
+        if candidate.get("similarity") is not None
+    }
+    ranked_ids = _gate_ranked_ids(query, ranked_ids, catalog, similarities)
     logger.debug("Local listing model validated IDs: %s", ranked_ids)
     return ranked_ids

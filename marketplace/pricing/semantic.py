@@ -28,6 +28,11 @@ def _model():
     return _model_instance
 
 
+def sentence_encoder():
+    """The shared MiniLM encoder; local AI search reuses the pricing model."""
+    return _model()
+
+
 @lru_cache(maxsize=2)
 def _document_vectors(texts: tuple[str, ...]):
     """Encode the small, stable type catalog once per process and content."""
