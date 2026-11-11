@@ -30,7 +30,7 @@
       Number(floor.value) > Number(current.suggested_listing_price));
     button.disabled = tooLow;
     const baseExplanation = current?.warning ?
-      "This is a provisional observed-price reference. You choose the listing price." :
+      "This is a provisional price reference. You choose the listing price." :
       current?.explanation;
     if (tooLow) {
       explanation.textContent = `${baseExplanation} This reference is below your minimum price, so set your own price or change the minimum.`;
@@ -42,7 +42,7 @@
 
   const showResult = (result) => {
     explanation.textContent = result.warning ?
-      "This is a provisional observed-price reference. You choose the listing price." : result.explanation;
+      "This is a provisional price reference. You choose the listing price." : result.explanation;
     warning.hidden = !result.warning;
     warningText.textContent = result.warning || "";
     if (!result.suggested_listing_price) {
@@ -58,7 +58,7 @@
     button.setAttribute("aria-label", `Use ${label.toLowerCase()} of $${result.suggested_listing_price}`);
     const basis = result.method === "TYPE_MEDIAN_UNADJUSTED" ? " · all conditions" : "";
     range.textContent = result.warning ?
-      `$${result.suggested_listing_price} · ${result.comparable_count} observed item${result.comparable_count === 1 ? "" : "s"} · VERY LOW evidence` :
+      `$${result.suggested_listing_price} · ${result.comparable_count} ${result.source_price_kind === "MOVEON_ACTIVE_ASKING_PRICE" ? "current asking price" : "historical item"}${result.comparable_count === 1 ? "" : "s"} · VERY LOW evidence` :
       `$${result.suggested_listing_price} · observed middle 50%: $${result.range_low}–$${result.range_high}${basis} · ${result.evidence_grade} evidence`;
     card.hidden = false;
     decline.hidden = false;
@@ -75,7 +75,7 @@
     decline.hidden = true;
     decline.textContent = "No thanks, I’ll set my price";
     if (!itemType?.value) {
-      explanation.textContent = "Choose an item type for a historical price guide.";
+      explanation.textContent = "Choose an item type for a price guide.";
       publish(null, explanation.textContent);
       return;
     }
@@ -88,6 +88,7 @@
     const query = new URLSearchParams({
       item_type: itemType.value, condition: condition?.value || "", brand: brand?.value || "",
     });
+    if (explanation.dataset.listingId) query.set("listing_id", explanation.dataset.listingId);
     try {
       const response = await fetch(`${explanation.dataset.pricingUrl}?${query}`, {
         credentials: "same-origin",

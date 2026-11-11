@@ -15,6 +15,7 @@ from django.utils import timezone
 from PIL import Image
 
 from bundles.models import Bundle, BundleItem
+from bundles.pricing import propose
 from marketplace.models import ItemCategory, ItemType, Listing, Transaction, User
 from messaging.models import Conversation, Message, MessageImage
 
@@ -225,9 +226,17 @@ class MessagingApiTests(TestCase):
         self.assertEqual(Conversation.objects.count(), 1)
 
     def test_bundle_decision_creates_transaction_once(self):
+        self.listing.bundle_eligible = True
+        self.listing.minimum_price = 40
+        self.listing.bundle_discount_cap = 5
+        self.listing.benchmark_price = 45
+        self.listing.valuation_metadata = {"evidence_grade": "LOW"}
+        self.listing.save()
         bundle = Bundle.objects.create(buyer=self.buyer, space=Bundle.Space.BEDROOM, status=Bundle.Status.REQUESTS_SENT)
+        price, calculation = propose(self.listing)
         item = BundleItem.objects.create(bundle=bundle, listing=self.listing,
-                                         listing_price_snapshot=50, proposed_bundle_price=45,
+                                         listing_price_snapshot=50, proposed_bundle_price=price,
+                                         discount_calculation=calculation,
                                          item_status=BundleItem.ItemStatus.REQUESTED)
         self.conversation.bundle_item = item
         self.conversation.save(update_fields=["bundle_item"])
@@ -239,14 +248,62 @@ class MessagingApiTests(TestCase):
         self.assertEqual(self.post_json("messaging_request_decision", item.pk, data={"decision": "accepted"}).status_code, 200)
         self.assertEqual(Transaction.objects.count(), 1)
 
+    def test_bundle_proposal_respects_floor_cap_and_current_markdown(self):
+        self.listing.listing_price = 42
+        self.listing.minimum_price = 40
+        self.listing.bundle_discount_cap = 10
+        self.listing.bundle_eligible = True
+        self.listing.benchmark_price = 30
+        self.listing.valuation_metadata = {"evidence_grade": "LOW"}
+        price, details = propose(self.listing)
+        self.assertEqual(price, 40)
+        self.assertEqual(details["proposed_discount"], "2.00")
+        self.listing.valuation_metadata = {"evidence_grade": "VERY_LOW"}
+        self.assertEqual(propose(self.listing)[0], 42)
+        self.listing.valuation_metadata = {"evidence_grade": "LOW"}
+        self.listing.bundle_discount_cap = None
+        self.assertEqual(propose(self.listing)[0], 42)
+        self.listing.bundle_discount_cap = 10
+        self.listing.minimum_price = None
+        self.assertEqual(propose(self.listing)[0], 42)
+
+    def test_changed_bundle_terms_require_new_seller_approval(self):
+        self.listing.bundle_eligible = True
+        self.listing.minimum_price = 40
+        self.listing.bundle_discount_cap = 5
+        self.listing.benchmark_price = 40
+        self.listing.valuation_metadata = {"evidence_grade": "LOW"}
+        self.listing.save()
+        bundle = Bundle.objects.create(buyer=self.buyer, space=Bundle.Space.BEDROOM,
+                                       status=Bundle.Status.REQUESTS_SENT)
+        price, calculation = propose(self.listing)
+        item = BundleItem.objects.create(bundle=bundle, listing=self.listing,
+            listing_price_snapshot=self.listing.listing_price, proposed_bundle_price=price,
+            discount_calculation=calculation, item_status=BundleItem.ItemStatus.REQUESTED)
+        self.login(self.seller)
+        self.listing.bundle_discount_cap = 1
+        self.listing.save(update_fields=["bundle_discount_cap"])
+        result = self.post_json("messaging_request_decision", item.pk,
+                                data={"decision": "accepted"})
+        self.assertEqual(result.status_code, 409)
+        self.assertEqual(result.json()["code"], "stale_price")
+        self.assertFalse(Transaction.objects.filter(bundle_item=item).exists())
+
     def test_bundle_send_is_idempotent_and_keeps_existing_request_link(self):
+        self.listing.bundle_eligible = True
+        self.listing.minimum_price = 40
+        self.listing.bundle_discount_cap = 6
+        self.listing.benchmark_price = 45
+        self.listing.valuation_metadata = {"evidence_grade": "LOW"}
+        self.listing.save()
         bundle = Bundle.objects.create(buyer=self.buyer, space=Bundle.Space.BEDROOM)
         item = BundleItem.objects.create(bundle=bundle, listing=self.listing,
             listing_price_snapshot=50, item_status=BundleItem.ItemStatus.SELECTED)
         for number in (2, 3):
             listing = Listing.objects.create(seller=self.seller, item_type=self.listing.item_type,
                 title=f"Desk {number}", condition=Listing.Condition.GOOD, listing_price=50,
-                fulfillment_option=Listing.Fulfillment.PICKUP, status=Listing.Status.ACTIVE)
+                fulfillment_option=Listing.Fulfillment.PICKUP, status=Listing.Status.ACTIVE,
+                bundle_eligible=True)
             BundleItem.objects.create(bundle=bundle, listing=listing,
                 listing_price_snapshot=50, item_status=BundleItem.ItemStatus.SELECTED)
         earlier = Bundle.objects.create(buyer=self.buyer, space=Bundle.Space.KITCHEN)
@@ -262,6 +319,9 @@ class MessagingApiTests(TestCase):
         item.refresh_from_db()
         self.assertEqual(self.conversation.bundle_item_id, old_item.pk)
         self.assertEqual(item.item_status, BundleItem.ItemStatus.REQUESTED)
+        self.assertEqual(item.proposed_bundle_price, 45)
+        self.assertEqual(item.discount_calculation["proposed_discount"], "5.00")
+        self.assertEqual(item.discount_calculation["policy_version"], "bundle-market-gap-v1")
         self.assertEqual(Message.objects.count(), 3)
 
     @staticmethod

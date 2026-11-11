@@ -1,6 +1,5 @@
 """Database querying and template context; independent of browser scripting."""
 
-import re
 import logging
 
 from django.db import DatabaseError
@@ -9,20 +8,16 @@ from .auth_backend import has_campus_access
 from .featured import decorate_listing, featured_bundles
 from .forms import BrowseForm
 from .models import Listing
-from .local_llm import InvalidListingIDsError, LocalLLMError, rank_listing_ids
+from .local_llm import LocalLLMError, rank_listing_ids
+from .search_semantic import MIN_FALLBACK_SIMILARITY, SemanticSearchError, retrieve
 
 ORDERING = {
     "newest": "-created_at",
     "price-asc": "listing_price",
     "price-desc": "-listing_price",
 }
-MAX_LOCAL_LLM_CANDIDATES = 40
-SEARCH_STOP_WORDS = {
-    "a", "an", "and", "are", "for", "i", "in", "is", "it", "me", "my",
-    "of", "on", "or", "please", "recommend", "some", "the", "this", "to",
-    "want", "with",
-}
 logger = logging.getLogger(__name__)
+MAX_SEMANTIC_SCAN = 1000
 
 
 def filtered_listings(form, include_query=True):
@@ -83,10 +78,8 @@ def filtered_listings(form, include_query=True):
 
 
 def _local_llm_candidates(form, query):
-    """Prioritize text matches, then recent eligible listings, within a fixed cap."""
-    eligible = filtered_listings(form, include_query=False).order_by(
-        "-created_at", "pk"
-    )
+    """Read all listings that satisfy structured filters for semantic retrieval."""
+    eligible = filtered_listings(form, include_query=False).order_by("pk")
     fields = (
         "pk",
         "title",
@@ -96,38 +89,9 @@ def _local_llm_candidates(form, query):
         "item_type__item_type_name",
         "item_type__category__category_name",
     )
-    terms = [
-        term
-        for term in re.findall(r"[\w'-]{2,}", query.casefold())
-        if term not in SEARCH_STOP_WORDS
-    ][:20]
-
-    matching_filter = Q()
-    for term in terms:
-        matching_filter |= (
-            Q(title__icontains=term)
-            | Q(description__icontains=term)
-            | Q(item_type__item_type_name__icontains=term)
-            | Q(item_type__category__category_name__icontains=term)
-        )
-
-    matched = (
-        list(
-            eligible.filter(matching_filter)
-            .values(*fields)[:MAX_LOCAL_LLM_CANDIDATES]
-        )
-        if terms
-        else []
-    )
-    matched_ids = [candidate["pk"] for candidate in matched]
-    remaining = MAX_LOCAL_LLM_CANDIDATES - len(matched)
-    recent = (
-        list(eligible.exclude(pk__in=matched_ids).values(*fields)[:remaining])
-        if remaining
-        else []
-    )
-
-    candidates = matched + recent
+    candidates = list(eligible.values(*fields)[:MAX_SEMANTIC_SCAN + 1])
+    if len(candidates) > MAX_SEMANTIC_SCAN:
+        raise SemanticSearchError("Too many eligible listings to search safely.")
     for candidate in candidates:
         candidate["category"] = " / ".join(
             (
@@ -136,14 +100,6 @@ def _local_llm_candidates(form, query):
             )
         )
     return candidates
-
-
-def _random_filtered_listings(form):
-    try:
-        return list(filtered_listings(form, include_query=False).order_by("?")[:5])
-    except DatabaseError:
-        logger.exception("Local AI search fallback listing query failed.")
-        return None
 
 
 def browse_context(request, use_local_llm=False):
@@ -160,94 +116,65 @@ def browse_context(request, use_local_llm=False):
     if use_local_llm and search_mode == "ai" and query:
         if form.is_valid():
             listings = []
-            fallback_kind = ""
+            search_state = "no_results"
             try:
                 candidates = _local_llm_candidates(form, query)
-            except DatabaseError:
+            except (DatabaseError, SemanticSearchError):
                 logger.exception("Local AI search candidate query failed.")
-                fallback_kind = "unavailable"
+                search_state = "unavailable"
                 candidates = []
             if candidates:
-                logger.debug(
-                    "Local search candidates: %s",
-                    [
-                        {
-                            "id": item["pk"],
-                            "title": item["title"],
-                            "category": item["category"],
-                        }
-                        for item in candidates
-                    ],
-                )
                 try:
-                    ranked_ids = rank_listing_ids(query, candidates)
-                except InvalidListingIDsError:
-                    logger.warning("Local AI search returned no valid candidate IDs.")
-                    ranked_ids = []
-                    fallback_kind = "no_results"
-                except LocalLLMError:
-                    ranked_ids = []
-                    fallback_kind = "unavailable"
-                if ranked_ids:
+                    retrieved = retrieve(query, candidates)
+                except SemanticSearchError:
+                    search_state = "unavailable"
+                    retrieved = []
+                if retrieved:
+                    relevant_candidates = [item for item, _ in retrieved]
+                    fallback_ids = [item["pk"] for item, score in retrieved
+                                    if score >= MIN_FALLBACK_SIMILARITY][:5]
                     try:
-                        ranked_listings = filtered_listings(
-                            form, include_query=False
-                        ).filter(
-                            pk__in=ranked_ids,
-                            status=Listing.Status.ACTIVE,
-                        )
-                        listings_by_id = {item.pk: item for item in ranked_listings}
-                        listings = [
-                            listings_by_id[listing_id]
-                            for listing_id in ranked_ids
-                            if listing_id in listings_by_id
-                        ]
-                    except DatabaseError:
-                        logger.exception("Local AI search result query failed.")
-                        fallback_kind = "unavailable"
-                    if not listings and not fallback_kind:
-                        fallback_kind = "no_results"
-                    logger.debug(
-                        "Local search displayed listings: %s",
-                        [
-                            {
-                                "id": item.pk,
-                                "title": item.title,
-                                "category": item.item_type.category.category_name,
-                            }
-                            for item in listings
-                        ],
-                    )
-                elif not fallback_kind:
-                    fallback_kind = "no_results"
-            if fallback_kind:
-                fallback_listings = _random_filtered_listings(form)
-                if fallback_listings is None:
-                    ai_search_error = (
-                        "AI search could not load listings right now. Please try again."
-                    )
-                elif not fallback_listings:
-                    ai_search_error = (
-                        "AI search could not be completed, and no listings match "
-                        "your filters. Please adjust your filters and try again."
+                        ranked_ids = rank_listing_ids(query, relevant_candidates)
+                        if ranked_ids:
+                            search_state = "ai"
+                        else:
+                            ranked_ids = fallback_ids
+                            search_state = "semantic_fallback_empty" if ranked_ids else "no_results"
+                    except LocalLLMError:
+                        logger.warning("Using semantic search results after Llama failure.")
+                        ranked_ids = fallback_ids
+                        search_state = "semantic_fallback_error" if ranked_ids else "unavailable"
+                    if ranked_ids:
+                        try:
+                            ranked_listings = filtered_listings(form, include_query=False).filter(
+                                pk__in=ranked_ids, status=Listing.Status.ACTIVE
+                            )
+                            listings_by_id = {item.pk: item for item in ranked_listings}
+                            listings = [listings_by_id[pk] for pk in ranked_ids if pk in listings_by_id]
+                            if not listings:
+                                search_state = "no_results"
+                        except DatabaseError:
+                            logger.exception("Local AI search result query failed.")
+                            search_state = "unavailable"
+            if search_state in {"semantic_fallback_empty", "semantic_fallback_error"}:
+                ai_search_fallback = True
+                ai_search_fallback_title = "Showing semantic search matches."
+                if search_state == "semantic_fallback_empty":
+                    ai_search_fallback_message = (
+                        "Llama did not select any listings. These items were found "
+                        "by semantic similarity to your search."
                     )
                 else:
-                    listings = fallback_listings
-                    ai_search_fallback = True
-                    if fallback_kind == "unavailable":
-                        ai_search_fallback_title = "AI search couldn't be completed."
-                        ai_search_fallback_message = (
-                            "We're showing random available listings that match your "
-                            "filters. They are not AI recommendations. Please try again later."
-                        )
-                    else:
-                        ai_search_fallback_title = (
-                            "No relevant listings found for this search."
-                        )
-                        ai_search_fallback_message = (
-                            "Please update your search terms. The listings below are "
-                            "randomly selected fallback items, not AI recommendations."
-                        )
+                    ai_search_fallback_message = (
+                        "Llama ranking could not be completed. These items were "
+                        "found by semantic similarity to your search."
+                    )
+            elif search_state == "unavailable":
+                listings = []
+                ai_search_error = "AI search is unavailable right now. Please try again later."
+            elif search_state == "no_results":
+                listings = []
+                ai_search_error = "No relevant listings found. Try another search or adjust your filters."
     chips = []
     if form.is_valid():
         for name in (

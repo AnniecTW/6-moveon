@@ -866,3 +866,7 @@
   .messaging__sidebar { width: 280px; }
   .messaging__header-actions { width: 220px; }
 }
+.messaging__system-notifications { display: flex; gap: 12px; overflow-x: auto; padding: 8px 0 14px; }
+.messaging__system-card { flex: 0 0 min(320px, 90vw); padding: 12px; border: 1px solid #d5e5da; border-radius: 8px; background: #f7faf6; }
+.messaging__system-card.is-unread { border-color: #448263; }
+.messaging__system-card p { margin: 6px 0; }

@@ -14,12 +14,14 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.cache import cache
 from django.core.validators import URLValidator
 from django.http import HttpResponse, JsonResponse
+from django.contrib import messages
 from django.contrib.auth import logout
 from allauth.account.utils import perform_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
 from django.conf import settings
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
@@ -31,7 +33,7 @@ from .auth_forms import CampusAuthenticationForm, ListingSignupForm
 from .auth_backend import credential_user, has_campus_access
 from .email_verification import EmailDeliveryError, consume_code, issue_code
 from .oauth import google_configured
-from .models import ItemCategory, ItemType, Listing, ListingImage, Transaction, User, WatchlistItem
+from .models import DeadlineNotification, ItemCategory, ItemType, Listing, ListingImage, PriceRecommendation, Transaction, User, WatchlistItem
 from django.views.generic import CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .featured import decorate_listing, discount_percent
@@ -39,8 +41,9 @@ from .browse import browse_context
 from .forms import ListingCreateForm, SellerSettingsForm, PurchaseHistorySearchForm
 from .charts import listing_inquiry_data
 from .validation import database_for
-from .pricing.initial import recommend
+from .pricing.inventory import active_observations, recommend_for_item_type
 from .pricing.semantic import suggest_types, suggestion_source
+from .pricing.deadline import decide, evaluate_listing
 
 
 def _safe_return(request):
@@ -359,17 +362,19 @@ class ListingFormContextMixin:
 
 @login_required
 def initial_price_recommendation(request):
-    """Preview a source-backed benchmark without using the seller's ask."""
+    """Preview a research or current-inventory reference without the current ask."""
     item_type = get_object_or_404(
         ItemType.objects.select_related("category"), pk=request.GET.get("item_type")
     ) if (request.GET.get("item_type") or "").isdigit() else None
     if item_type is None:
         return JsonResponse({"error": "Choose an item type."}, status=400)
     records, profile = suggestion_source()
-    result = recommend(
-        records, category=item_type.category.category_name,
-        item_type=item_type.item_type_name,
+    listing_id = request.GET.get("listing_id", "")
+    edited = Listing.objects.filter(pk=listing_id, seller=request.user).first() if listing_id.isdigit() else None
+    result = recommend_for_item_type(
+        records, item_type,
         condition=request.GET.get("condition", ""), brand=request.GET.get("brand", ""),
+        exclude_listing_id=edited.pk if edited else None,
     )
     return JsonResponse({
         **{key: str(value) if isinstance(value, Decimal) else value
@@ -389,9 +394,12 @@ def listing_type_suggestions(request):
     type_id = request.GET.get("item_type", "")
     item_type = ItemType.objects.filter(pk=type_id).first() if type_id.isdigit() else None
     records, profile = suggestion_source()
+    listing_id = request.GET.get("listing_id", "")
+    edited = Listing.objects.filter(pk=listing_id, seller=request.user).first() if listing_id.isdigit() else None
     try:
         candidates = suggest_types(
-            records, ItemType.objects.select_related("category"), title=title,
+            [*records, *active_observations(exclude_listing_id=edited.pk if edited else None)],
+            ItemType.objects.select_related("category"), title=title,
             category=category.category_name if category else "",
             item_type=item_type.item_type_name if item_type else "",
         )
@@ -405,9 +413,10 @@ def listing_type_suggestions(request):
     condition = request.GET.get("condition", "")
     brand = request.GET.get("brand", "")
     for candidate in candidates:
-        result = recommend(
-            records, category=candidate["category"],
-            item_type=candidate["item_type"], condition=condition, brand=brand,
+        candidate_type = ItemType.objects.select_related("category").get(pk=candidate["item_type_id"])
+        result = recommend_for_item_type(
+            records, candidate_type, condition=condition, brand=brand,
+            exclude_listing_id=edited.pk if edited else None,
         )
         candidate["price_guide"] = {
             key: str(value) if isinstance(value, Decimal) else value
@@ -444,7 +453,11 @@ class ListingUpdateView(LoginRequiredMixin, ListingFormContextMixin, UpdateView)
     def form_valid(self, form):
         if self.request.POST.get("action") == "preview":
             form.instance.status = Listing.Status.DRAFT
-        return super().form_valid(form)
+        try:
+            return super().form_valid(form)
+        except DjangoValidationError as exc:
+            form.add_error(None, exc)
+            return self.form_invalid(form)
 
 
 @require_POST
@@ -484,10 +497,19 @@ def listing_publish(request, primary_key):
         "minimum_price": (
             str(listing.minimum_price) if listing.minimum_price is not None else ""
         ),
+        "deadline_base_price": (
+            str(listing.deadline_base_price) if listing.deadline_base_price is not None else ""
+        ),
+        "urgent_minimum_price": (
+            str(listing.urgent_minimum_price) if listing.urgent_minimum_price is not None else ""
+        ),
         "move_out_date": (
             listing.move_out_date.isoformat() if listing.move_out_date else ""
         ),
         "bundle_eligible": "on" if listing.bundle_eligible else "",
+        "bundle_discount_cap": (
+            str(listing.bundle_discount_cap) if listing.bundle_discount_cap is not None else ""
+        ),
         "sell_no_matter_what": "on" if listing.sell_no_matter_what else "",
         "image_ids": ",".join(str(image_id) for image_id in image_ids),
     }
@@ -503,7 +525,13 @@ def listing_publish(request, primary_key):
         )
 
     form.instance.status = Listing.Status.ACTIVE
-    listing = form.save()
+    try:
+        listing = form.save()
+    except DjangoValidationError as exc:
+        form.add_error(None, exc)
+        return render(request, "marketplace/listing_form.html", {
+            "form": form, "initial_photos": form.selected_images_for_display(),
+        })
     return redirect(listing.get_absolute_url())
 
 
@@ -729,11 +757,11 @@ def _seller_dashboard_context(user):
 
 @login_required
 def seller_listings_view(request):
-    today = date.today()
+    today = timezone.localdate()
     listings = (
         Listing.objects.filter(seller=request.user)
         .select_related("item_type", "item_type__category")
-        .prefetch_related("images")
+        .prefetch_related("images", "price_recommendations")
         .annotate(inquiry_count=Count("conversations__buyer", distinct=True))
     )
     query = request.GET.get("q", "").strip()
@@ -757,6 +785,17 @@ def seller_listings_view(request):
             if listing.move_out_date
             else None
         )
+        history = [entry for entry in listing.price_recommendations.all()
+                   if entry.policy_version.startswith("deadline-")]
+        listing.pending_deadline = next((entry for entry in history
+                                         if entry.status == PriceRecommendation.Status.PENDING
+                                         and entry.schedule_date == today and listing.status == Listing.Status.ACTIVE), None)
+        listing.deadline_history = history[:3]
+        if listing.pending_deadline and listing.listing_price > 0:
+            reduction = listing.listing_price - listing.pending_deadline.recommended_price
+            listing.deadline_reduction = reduction
+            listing.deadline_reduction_percent = (reduction / listing.listing_price * 100).quantize(Decimal("0.1"))
+        listing.valuation_grade = listing.valuation_metadata.get("evidence_grade", "UNKNOWN")
         listing_rows.append(listing)
 
     return render(
@@ -776,6 +815,53 @@ def seller_listings_view(request):
             "selected_ordering": ordering,
         },
     )
+
+
+@require_POST
+@login_required
+def deadline_recommendation_decision(request, recommendation_id):
+    recommendation = get_object_or_404(
+        PriceRecommendation.objects.filter(listing__seller=request.user), pk=recommendation_id
+    )
+    try:
+        decide(recommendation.pk, request.user.pk, request.POST.get("action"),
+               chosen_price=request.POST.get("chosen_price"),
+               below_floor_approved=request.POST.get("below_floor_approved") == "on")
+        messages.success(request, "Deadline recommendation updated.")
+    except ValueError as exc:
+        messages.error(request, str(exc))
+    return redirect("seller-listings")
+
+
+@require_POST
+@login_required
+def request_deadline_suggestion(request, primary_key):
+    listing = get_object_or_404(Listing, pk=primary_key, seller=request.user)
+    recommendation = evaluate_listing(listing.pk)
+    listing.refresh_from_db()
+    if recommendation:
+        messages.success(request, "Your current markdown suggestion is ready below.")
+    elif listing.minimum_price is None:
+        messages.info(request, "Add your private minimum price and move-out date in Edit to enable markdown suggestions.")
+    elif listing.deadline_start_date is None:
+        messages.info(request, "Check your move-out date, minimum prices, and markdown base price in Edit to enable suggestions.")
+    else:
+        messages.info(request, "The deadline curve does not recommend a lower price today. Your listed price has not changed.")
+    return redirect(reverse("seller-listings") + f"#listing-{listing.pk}")
+
+
+@require_POST
+@login_required
+def open_deadline_notification(request, notification_id):
+    notification = get_object_or_404(
+        DeadlineNotification, pk=notification_id, seller=request.user,
+    )
+    if notification.read_at is None:
+        notification.read_at = timezone.now()
+        notification.save(update_fields=["read_at"])
+    if notification.resolved_at is None:
+        evaluate_listing(notification.listing_id)
+    return redirect(reverse("seller-listings") + f"#listing-{notification.listing_id}")
 
 
 @login_required

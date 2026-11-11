@@ -17,7 +17,7 @@ from PIL import Image, UnidentifiedImageError
 
 from bundles.models import Bundle, BundleItem
 from marketplace.auth_backend import has_campus_access
-from marketplace.models import Listing, Transaction
+from marketplace.models import DeadlineNotification, Listing, Transaction
 from .models import Conversation, Message, MessageImage
 
 PAGE_SIZE = 30
@@ -84,6 +84,8 @@ def request_data(item):
         "bundleLabel": item.bundle.get_space_display() + " bundle",
         "itemCount": item.bundle.bundle_items.count(),
         "requestedPrice": float(item.proposed_bundle_price if item.proposed_bundle_price is not None else item.listing_price_snapshot),
+        "listedPrice": float(item.listing_price_snapshot),
+        "discount": float(item.listing_price_snapshot - (item.proposed_bundle_price if item.proposed_bundle_price is not None else item.listing_price_snapshot)),
         "status": {
             BundleItem.ItemStatus.REQUESTED: "awaiting",
             BundleItem.ItemStatus.ACCEPTED: "accepted",
@@ -124,8 +126,14 @@ def conversation_data(conversation, user):
 
 @require_GET
 def page(request):
+    system_notifications = (
+        DeadlineNotification.objects.filter(seller=request.user)
+        .select_related("listing").order_by("-created_at")[:20]
+        if request.user.is_authenticated else []
+    )
     return render(request, "messaging/page.html", {
         "campus_access": has_campus_access(request.user),
+        "system_notifications": system_notifications,
         "messaging_config": {
             "conversations": reverse("messaging_conversations"),
             "create": reverse("messaging_create"),
@@ -170,6 +178,7 @@ def unread(request):
         Q(conversation__buyer=request.user) | Q(conversation__seller=request.user),
         is_read=False,
     ).exclude(sender=request.user).count()
+    count += DeadlineNotification.objects.filter(seller=request.user, read_at__isnull=True).count()
     response = JsonResponse({"unreadCount": count})
     response["Cache-Control"] = "private, no-store"
     return response
@@ -347,10 +356,14 @@ def request_decision(request, request_id):
             return error("This request has already been handled.", 409, "stale_request")
         listing = Listing.objects.select_for_update().get(pk=item.listing_id)
         if decision == "accepted":
+            from bundles.pricing import still_valid
             if listing.status != Listing.Status.ACTIVE or Transaction.objects.filter(
                 listing=listing, status__in=[Transaction.Status.PENDING_PICKUP, Transaction.Status.COMPLETED]
             ).exists():
                 return error("This listing is unavailable.", 409, "listing_unavailable")
+            if not still_valid(item, listing):
+                return error("The listing price or bundle terms changed. Ask the buyer to create a new bundle request.",
+                             409, "stale_price")
             price = item.proposed_bundle_price if item.proposed_bundle_price is not None else item.listing_price_snapshot
             Transaction.objects.create(listing=listing, buyer=item.bundle.buyer, seller=request.user,
                 bundle=item.bundle, bundle_item=item, agreed_price=price,

@@ -66,6 +66,21 @@ class SellerListingsViewTests(TestCase):
 		self.assertContains(response, "Study Desk")
 		self.assertContains(response, "My Listings (1)")
 
+	def test_single_price_reference_and_missing_reference_are_labeled(self):
+		listing = Listing.objects.get(title="Study Desk")
+		listing.benchmark_low = None
+		listing.benchmark_high = None
+		listing.benchmark_price = 30
+		listing.valuation_metadata = {"evidence_grade": "VERY_LOW"}
+		listing.save()
+		self.client.force_login(self.user)
+		response = self.client.get(reverse("seller-listings"))
+		self.assertContains(response, "Comparable: $30 (limited)")
+		listing.benchmark_price = None
+		listing.save(update_fields=["benchmark_price"])
+		response = self.client.get(reverse("seller-listings"))
+		self.assertContains(response, "Comparable: unavailable")
+
 	def test_profile_routes_are_unified_and_insights_is_removed(self):
 		self.assertEqual(reverse("seller-listings"), "/profile/listings/")
 		self.assertEqual(reverse("seller-settings"), "/profile/settings/")

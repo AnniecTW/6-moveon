@@ -437,6 +437,12 @@
     priceRow.appendChild(el("span", "messaging__request-price-label", "Requested price"));
     priceRow.appendChild(el("span", "messaging__request-price", esc(money(req.requestedPrice))));
     card.appendChild(priceRow);
+    if (req.discount > 0) {
+      const detail = el("div", "messaging__request-price-row");
+      detail.appendChild(el("span", "messaging__request-price-label", "Listed " + money(req.listedPrice)));
+      detail.appendChild(el("span", "messaging__request-price", "Bundle savings " + money(req.discount)));
+      card.appendChild(detail);
+    }
 
     // Seller actions — only while awaiting a response (see TRANSACTION RULES).
     if (canDecide(conv, req)) {

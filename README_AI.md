@@ -17,8 +17,8 @@ Natural-language listing search and the AI Bundle Builder address two main buyer
 #### Natural-Language Listing Search
 
 1. **User input.** Buyers enter a request on the home page or `/listings/` and choose AI mode. The browser sends the query as `q`, sets `search_mode=ai`, and includes the selected filters for price, category, condition, and fulfillment. Buyers use these controls to specify exact constraints such as a maximum price. [Search mode][search-entry] · [Filter form][browse-form]
-2. **Input preprocessing.** Django starts with active listings that meet the selected filters. It prioritizes listings whose titles, descriptions, categories, or item types match query terms and fills any remaining slots with recent eligible listings. The candidate pool contains at most 40 listings. The application normalizes whitespace and serializes the query and candidate IDs, titles, category or type labels, prices, conditions, and descriptions as JSON. The payload omits separate seller identity and contact fields. [Candidate selection][search-candidates] · [Model payload][search-payload]
-3. **Model.** The local `meta-llama/Llama-3.2-3B-Instruct` model ranks candidates against the buyer's request. Django prepares the input using the Transformers chat template. [Model configuration][ai-settings] · [Local inference][search-generation]
+2. **Input preprocessing.** Django starts with active listings that meet the selected structured filters. MiniLM compares the query with each eligible listing's title, category, and description. The highest scoring eight above the search similarity cutoff form the Llama candidate set. [Candidate selection][search-candidates] · [Semantic retrieval](marketplace/search_semantic.py)
+3. **Model.** The original local `meta-llama/Llama-3.2-3B-Instruct` model reranks those candidates. Django prepares a compact JSON payload with the Transformers chat template. [Model configuration][ai-settings] · [Local inference][search-generation]
 4. **Output generation.** The prompt asks the model to return up to five candidate IDs in a JSON `ids` array ordered by relevance. The array may be empty when there is no suitable match. Django applies the [search validation checks](#search-guardrails) and queries the database for the remaining listings. [Output prompt][search-prompt] · [Final listing query][search-result-query]
 5. **User response.** Django preserves the model's relative ordering and renders the listings as cards on the home or browse page. [Search Guardrails](#search-guardrails) explains the empty-result and fallback states. [Result ordering][search-result-query] · [Listing card template][search-result-cards]
 
@@ -51,9 +51,9 @@ Natural-language listing search and the AI Bundle Builder address two main buyer
 ### Search Guardrails
 
 - **Input and candidate limits.** `BrowseForm` limits the query to 200 characters. An empty query skips model inference and shows the normal browse results. A missing or invalid search mode defaults to keyword search. An AI query with an empty initial candidate pool shows an empty result without running inference. [Query validation][browse-form] · [Search mode and empty input][search-entry]
-- **Model input and generation limits.** The model payload limits titles and category labels to 200 characters each, condition values to 50 characters, and descriptions to 1,000 characters. Generation is limited to 128 new tokens. Timing starts after model loading and tokenization. The application passes `max_time=30` and checks elapsed generation time when the model call returns. [Field limits][search-payload] · [Generation timing][search-generation]
-- **Result validation.** Django parses the `ids` array, discards noninteger, duplicate, and noncandidate IDs, and keeps at most five. Malformed JSON, an invalid response structure, or a nonempty array containing no valid IDs enters the corresponding error path. Valid IDs pass through a lexical relevance check based on query terms and synonym groups. Django then rechecks that the listings remain active and satisfy the selected filters. [ID parsing][search-parse] · [Lexical relevance check][search-relevance] · [Database recheck][search-result-query]
-- **No results and fallback.** If the model call fails, the ranking is unusable, or a candidate or result query fails, Django attempts to display up to five randomly selected listings that meet the filters. The page labels these as fallback results. If the fallback query fails or returns no listings, the page displays the corresponding message. [Fallback query and messages][search-fallback] · [Fallback notice][search-fallback-ui]
+- **Model input and generation limits.** The Llama payload limits titles to 120 characters, category labels to 100, condition values to 50, and descriptions to 280. Generation is limited to 64 new tokens. The application passes an attention mask, `max_time=60`, and checks elapsed generation time when the call returns. This is not a strict wall-clock request deadline. [Field limits][search-payload] · [Generation timing][search-generation]
+- **Result validation.** MiniLM admits candidates at a 0.30 cosine retrieval cutoff so Llama can inspect use-case matches. Django parses Llama's `ids` array, discards noninteger, duplicate, and noncandidate IDs, and keeps at most five. It rechecks that the listings remain active and satisfy selected filters. These cutoffs still need held-out validation before quality claims. [Semantic retrieval](marketplace/search_semantic.py) · [ID parsing][search-parse] · [Database recheck][search-result-query]
+- **No results and fallback.** When Llama fails, returns invalid IDs, or returns an empty list, the page labels up to five semantic matches scoring at least 0.40. Without such matches, it shows an empty or unavailable state. A database or embedding failure also shows an unavailable message. [Search states][search-fallback] · [Fallback notice][search-fallback-ui]
 
 ### Bundling Guardrails
 
@@ -82,23 +82,27 @@ flowchart LR
     U["Enter query and select filters"] --> F["Django validates input and search mode"]
     F -->|"Keyword mode or empty query"| K["Browse or use ORM keyword search"]
     F -->|"Invalid input"| I["Show form errors"]
-    F -->|"Valid nonempty AI query"| C["Retrieve up to 40 eligible listings"]
+    F -->|"Valid nonempty AI query"| C["Read eligible listings after structured filters"]
     C -->|"No candidates"| E["Show empty results without inference"]
-    C -->|"Query failed"| B["Query up to five random eligible listings"]
-    C -->|"Candidates found"| P["Normalize fields and build JSON prompt"]
+    C -->|"Query failed"| X["Show unavailable state"]
+    C -->|"Candidates found"| S["MiniLM scores listing text"]
+    S -->|"No relevant scores"| E
+    S -->|"Top eight above cutoff"| P["Build compact JSON prompt"]
     P --> M["Local Llama generates ranked listing IDs"]
-    M -->|"Load or generation failed"| B
-    M --> V["Parse JSON, filter IDs, and check lexical relevance"]
-    V -->|"Invalid response or no relevant IDs"| B
+    M -->|"Load or generation failed"| B["Use labeled semantic results"]
+    M --> V["Parse JSON and validate candidate IDs"]
+    V -->|"Invalid response"| B
+    V -->|"Empty IDs"| B
     V -->|"Valid IDs"| D["Recheck listing status and selected filters"]
+    B -->|"Score at least 0.40"| D
+    B -->|"No confident match"| E
     D -->|"Results remain in rank order"| R["Render listing cards"]
-    D -->|"No results or query failed"| B
-    B -->|"Fallback listings found"| L["Display labeled fallback results"]
-    B -->|"No fallback listings or query failed"| X["Show the empty or error state"]
+    D -->|"No results"| E
+    D -->|"Query failed"| X
     K --> R
 ```
 
-[Search Guardrails](#search-guardrails) describes the query limits, result checks, and random-listing fallback. [Search request handling][search-entry] · [Model ranking][search-rank]
+[Search Guardrails](#search-guardrails) describes the query limits, result checks, and fallback. [Search request handling][search-entry] · [Model ranking][search-rank]
 
 ### AI Bundle Builder Diagram
 
@@ -164,6 +168,8 @@ The project README explains environment setup, server startup, and model downloa
 Local search uses `LOCAL_LLM_MODEL_ID` and `HF_TOKEN`. Bundling and photo autofill share `GEMINI_API_KEY`. [AI settings][ai-settings]
 
 ## Part 3: Evaluation of the Integrated Features
+
+The following A9 measurements and failure analysis describe the earlier 40-candidate lexical search implementation. They are retained as a historical baseline; the current MiniLM retrieval and Llama reranking path has not yet been measured with local model weights. See [current search optimization and evaluation](docs/search-optimization.md).
 
 Part 3 evaluates the two features that run on local models: natural-language listing search (`meta-llama/Llama-3.2-3B-Instruct`) and pricing type suggestions (`sentence-transformers/all-MiniLM-L6-v2`). The [`evaluate_ai`](marketplace/management/commands/evaluate_ai.py) management command runs every case through application code, not a notebook. Search cases call `browse_context`, the same function the home and browse pages render, so candidate selection, Llama ranking, the relevance gate, the database recheck, and the random fallback all apply. Pricing cases call `suggest_types` and `recommend` in the same way as the seller endpoint. Raw results are in [`docs/A9-part3/`](docs/A9-part3/).
 

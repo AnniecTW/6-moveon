@@ -13,10 +13,10 @@
         </form>
         <div class="seller-listings">
           {% for listing in listings %}
-          <article class="seller-listing-row">
+          <article class="seller-listing-row" id="listing-{{ listing.pk }}">
             <div class="seller-listing-image">{% if listing.display_image_url %}<img src="{{ listing.display_image_url }}" alt="{{ listing.title }}" />{% else %}<span aria-hidden="true">&#9633;</span>{% endif %}</div>
             <div class="listing-identity"><h3>{{ listing.title }}</h3><p>{{ listing.item_type.category.category_name }} · {{ listing.get_condition_display }}</p><p>Listed: {{ listing.created_at|date:"M d, Y" }}</p><div class="listing-tags">{% if listing.bundle_eligible %}<span>Bundle included</span>{% endif %}{% if listing.sell_no_matter_what %}<span>Sell no matter what</span>{% endif %}</div></div>
-            <div class="listing-price"><strong>${{ listing.listing_price|floatformat:0 }}</strong><span>Comparable: {% if listing.benchmark_low %}${{ listing.benchmark_low|floatformat:0 }}{% endif %}{% if listing.benchmark_low and listing.benchmark_high %} &ndash; {% endif %}{% if listing.benchmark_high %}${{ listing.benchmark_high|floatformat:0 }}{% endif %}</span><b class="listing-status listing-status-{{ listing.status|lower }}">{{ listing.get_status_display|upper }}</b></div>
+            <div class="listing-price"><strong>${{ listing.listing_price|floatformat:0 }}</strong><span>Comparable: {% if listing.benchmark_low and listing.benchmark_high %}${{ listing.benchmark_low|floatformat:0 }} &ndash; ${{ listing.benchmark_high|floatformat:0 }}{% elif listing.benchmark_price %}${{ listing.benchmark_price|floatformat:0 }}{% if listing.valuation_grade == "VERY_LOW" %} (limited){% endif %}{% else %}unavailable{% endif %}</span><b class="listing-status listing-status-{{ listing.status|lower }}">{{ listing.get_status_display|upper }}</b></div>
             <div class="listing-performance"><span>&#9673; {% if listing.view_count is not None %}{{ listing.view_count }} views{% endif %}</span><span aria-label="{{ listing.inquiry_count }} inquiries">&#9675; {{ listing.inquiry_count }} inquiries</span></div>
             <div class="listing-moveout">{% if listing.move_out_date %}<span>&#9632; Move-out: {{ listing.move_out_date|date:"M d, Y" }}</span>{% if listing.days_remaining is not None %}<small>{{ listing.days_remaining }} days left</small>{% endif %}{% endif %}</div>
             <div class="pricing-plan">
@@ -24,6 +24,27 @@
               {% if listing.pricing_plan %}<strong>{{ listing.get_pricing_plan_display }}</strong>{% endif %}
             </div>
             <div class="listing-actions"><a class="button" href="{% url 'listing-update-url' listing.pk %}">Edit</a></div>
+            {% if listing.move_out_date or listing.deadline_history %}
+            <section class="deadline-review" aria-label="Deadline pricing for {{ listing.title }}">
+              <strong>Deadline pricing</strong>
+              {% if listing.deadline_start_date %}
+                <p>Markdown base ${{ listing.deadline_start_price|floatformat:2 }}; normal minimum ${{ listing.deadline_floor|floatformat:2 }}{% if listing.deadline_urgent_floor %}; urgent minimum ${{ listing.deadline_urgent_floor|floatformat:2 }}{% endif %}. Market valuation: {% if listing.benchmark_price %}${{ listing.benchmark_price|floatformat:2 }} ({{ listing.valuation_grade }} evidence){% else %}unavailable{% endif %}.</p>
+              {% elif listing.status == 'ACTIVE' %}
+                <p>No active schedule. Set a future move-out date and minimum price in Edit.</p>
+              {% endif %}
+              {% if listing.pending_deadline %}
+                <p><strong>Markdown suggestion: ${{ listing.pending_deadline.recommended_price|floatformat:2 }}</strong> from your current ${{ listing.listing_price|floatformat:2 }} price ({{ listing.deadline_reduction_percent }}% lower).</p>
+                <div class="deadline-actions">
+                  <form method="post" action="{% url 'deadline-recommendation-decision' listing.pending_deadline.pk %}">{% csrf_token %}{% if listing.pending_deadline.below_floor %}<label><input type="checkbox" name="below_floor_approved" required> Approve a price below my normal minimum</label>{% endif %}<button class="button" type="submit" name="action" value="accept">Accept</button></form>
+                  <form method="post" action="{% url 'deadline-recommendation-decision' listing.pending_deadline.pk %}">{% csrf_token %}<button class="button" type="submit" name="action" value="decline">Decline</button></form>
+                  <form method="post" action="{% url 'deadline-recommendation-decision' listing.pending_deadline.pk %}">{% csrf_token %}<label>My lower price <input type="number" name="chosen_price" min="0.01" step="0.01" max="{{ listing.listing_price }}" required></label>{% if listing.sell_no_matter_what %}<label><input type="checkbox" name="below_floor_approved"> Approve this change if below my normal minimum</label>{% endif %}<button class="button" type="submit" name="action" value="modify">Apply my price</button></form>
+                </div>
+              {% elif listing.status == 'ACTIVE' and listing.deadline_start_date %}
+                <form method="post" action="{% url 'request-deadline-suggestion' listing.pk %}">{% csrf_token %}<button class="button" type="submit">Markdown suggestion</button></form>
+              {% endif %}
+              {% if listing.deadline_history %}<details><summary>Recent recommendation history</summary><ul>{% for entry in listing.deadline_history %}<li>{{ entry.schedule_date|date:"M j" }}: ${{ entry.previous_price|floatformat:2 }} proposed ${{ entry.recommended_price|floatformat:2 }} — {{ entry.get_status_display }}{% if entry.applied_price %}, applied ${{ entry.applied_price|floatformat:2 }}{% endif %}</li>{% endfor %}</ul></details>{% endif %}
+            </section>
+            {% endif %}
           </article>
           {% empty %}<div class="empty-state"><h3>No active listings yet</h3><p>Your active items will appear here after you create a listing.</p></div>{% endfor %}
         </div>

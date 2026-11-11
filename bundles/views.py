@@ -13,6 +13,7 @@ from marketplace.models import ItemType, Listing
 from . import messaging as bundle_messaging
 from .forms import CategorySelectForm, SpaceSelectForm
 from .models import Bundle, BundleCategory, BundleItem
+from .pricing import propose
 from .services import generate_bundle_tiers
 from .space_categories import available_item_types_for_space
 
@@ -442,11 +443,19 @@ class BundleSummaryView(LoginRequiredMixin, View):
             )
             return redirect(f"{reverse('bundles:builder')}?bundle={bundle.id}")
 
-        total = sum((item.listing.listing_price for item in bundle_items), start=0)
+        if bundle.status == Bundle.Status.DRAFT:
+            for item in bundle_items:
+                item.proposed_bundle_price, item.discount_calculation = propose(item.listing)
+                item.listing_price_snapshot = item.listing.listing_price
+        original_total = sum((item.listing_price_snapshot for item in bundle_items), start=0)
+        total = sum((item.proposed_bundle_price if item.proposed_bundle_price is not None
+                     else item.listing_price_snapshot for item in bundle_items), start=0)
         context = {
             "bundle": bundle,
             "bundle_items": bundle_items,
             "total": total,
+            "original_total": original_total,
+            "savings": original_total - total,
             "sent": bundle.status != Bundle.Status.DRAFT,
         }
         return render(request, self.template_name, context)

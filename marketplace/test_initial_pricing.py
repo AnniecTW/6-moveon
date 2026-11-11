@@ -11,6 +11,7 @@ from django.utils import timezone as django_timezone
 
 from marketplace.models import ItemCategory, ItemType, Listing, User
 from marketplace.pricing.initial import Observation, load_source, recommend
+from marketplace.pricing.inventory import active_observations
 from marketplace.pricing.semantic import suggest_types
 from marketplace.pricing import semantic
 from marketplace.apps import MarketplaceConfig
@@ -431,3 +432,109 @@ class InitialPricingIntegrationTests(TestCase):
         self.assertIsNone(listing.benchmark_price)
         self.assertEqual(listing.listing_price, Decimal("999.00"))
         self.assertEqual(listing.valuation_metadata["seller_decision"], "ABSTAINED")
+
+    def test_posted_painting_becomes_a_provisional_price_comparable(self):
+        category = ItemCategory.objects.create(category_name="Art")
+        painting = ItemType.objects.create(category=category, item_type_name="Painting")
+        first = self.client.post(reverse("listing-create-url"), self.form_data(
+            title="First painting", item_type=str(painting.pk), category=str(category.pk),
+            listing_price="120.00", condition="GOOD",
+        ))
+        self.assertEqual(first.status_code, 302)
+        original = Listing.objects.get(title="First painting")
+        self.assertIsNone(original.benchmark_price)
+        self.assertEqual(original.status, Listing.Status.DRAFT)
+        published = self.client.post(reverse("listing-publish-url", args=[original.pk]))
+        self.assertEqual(published.status_code, 302)
+        original.refresh_from_db()
+        self.assertEqual(original.status, Listing.Status.ACTIVE)
+
+        preview = self.client.get(reverse("listing-initial-price"), {
+            "item_type": painting.pk, "condition": "GOOD",
+        }).json()
+        self.assertEqual(preview["suggested_listing_price"], "120.00")
+        self.assertEqual(preview["source_price_kind"], "MOVEON_ACTIVE_ASKING_PRICE")
+        self.assertEqual(preview["comparable_count"], 1)
+        self.assertIn("not a completed sale", preview["warning"])
+
+        second = self.client.post(reverse("listing-create-url"), self.form_data(
+            title="Second painting", item_type=str(painting.pk), category=str(category.pk),
+            listing_price="200.00", condition="GOOD", pricing_decision="ACCEPTED",
+        ))
+        self.assertEqual(second.status_code, 302)
+        saved = Listing.objects.get(title="Second painting")
+        self.assertEqual(saved.listing_price, Decimal("120.00"))
+        self.assertEqual(saved.valuation_metadata["source_price_kind"], "MOVEON_ACTIVE_ASKING_PRICE")
+        self.assertEqual(len(active_observations()), 1)
+        class Encoder:
+            def encode(self, texts, normalize_embeddings=True):
+                return [[1.0, 0.0] for _ in texts]
+        matches = suggest_types(active_observations(), [painting],
+            title="Painting for living room", category="Art", item_type="Painting",
+            model=Encoder())
+        self.assertEqual(matches[0]["item_type_id"], painting.pk)
+
+        own_edit = self.client.get(reverse("listing-initial-price"), {
+            "item_type": painting.pk, "condition": "GOOD", "listing_id": original.pk,
+        }).json()
+        self.assertIsNone(own_edit["suggested_listing_price"])
+
+    def test_inactive_or_draft_listings_do_not_set_live_price(self):
+        category = ItemCategory.objects.create(category_name="Art")
+        painting = ItemType.objects.create(category=category, item_type_name="Painting")
+        for status in (Listing.Status.DRAFT, Listing.Status.INACTIVE):
+            Listing.objects.create(seller=self.seller, item_type=painting,
+                title=f"{status} painting", condition=Listing.Condition.GOOD,
+                listing_price=Decimal("90.00"), fulfillment_option=Listing.Fulfillment.PICKUP,
+                status=status)
+        response = self.client.get(reverse("listing-initial-price"), {
+            "item_type": painting.pk, "condition": "GOOD",
+        }).json()
+        self.assertIsNone(response["suggested_listing_price"])
+
+    def test_live_median_updates_with_new_sellers_and_prefers_same_condition(self):
+        category = ItemCategory.objects.create(category_name="Art")
+        painting = ItemType.objects.create(category=category, item_type_name="Painting")
+        for index, price in enumerate(("80.00", "100.00", "120.00")):
+            seller = User.objects.create_user(
+                username=f"art-seller-{index}", email=f"art-seller-{index}@illinois.edu",
+                password="test-password", email_verified=True,
+                email_verified_at=django_timezone.now(),
+            )
+            Listing.objects.create(seller=seller, item_type=painting,
+                title=f"Painting {index}", condition=Listing.Condition.GOOD,
+                listing_price=Decimal(price), fulfillment_option=Listing.Fulfillment.PICKUP,
+                status=Listing.Status.ACTIVE)
+        url = reverse("listing-initial-price")
+        first = self.client.get(url, {"item_type": painting.pk, "condition": "GOOD"}).json()
+        self.assertEqual(first["suggested_listing_price"], "100.00")
+        self.assertEqual(first["comparable_count"], 3)
+        Listing.objects.filter(title="Painting 0").update(listing_price=Decimal("140.00"))
+        updated = self.client.get(url, {"item_type": painting.pk, "condition": "GOOD"}).json()
+        self.assertEqual(updated["suggested_listing_price"], "120.00")
+        fair = self.client.get(url, {"item_type": painting.pk, "condition": "FAIR"}).json()
+        self.assertEqual(fair["method"], "LIVE_TYPE_MEDIAN")
+        self.assertIn("mixed conditions", fair["warning"])
+
+    def test_historical_and_live_sources_have_explicit_precedence(self):
+        url = reverse("listing-initial-price")
+        parameters = {"item_type": self.item_type.pk, "condition": "NEW"}
+        research = self.client.get(url, parameters).json()
+        self.assertEqual(research["source_price_kind"], "UNVERIFIED_BUY_COMP_OBSERVED_PRICE")
+        for index in range(3):
+            seller = User.objects.create_user(
+                username=f"mug-seller-{index}", email=f"mug-seller-{index}@illinois.edu",
+                password="test-password", email_verified=True,
+                email_verified_at=django_timezone.now(),
+            )
+            Listing.objects.create(seller=seller, item_type=self.item_type,
+                title=f"Mug {index}", condition=Listing.Condition.NEW,
+                listing_price=Decimal(str(30 + index * 10)),
+                fulfillment_option=Listing.Fulfillment.PICKUP,
+                status=Listing.Status.ACTIVE)
+            result = self.client.get(url, parameters).json()
+            if index < 2:
+                self.assertEqual(result["source_price_kind"], "UNVERIFIED_BUY_COMP_OBSERVED_PRICE")
+            else:
+                self.assertEqual(result["source_price_kind"], "MOVEON_ACTIVE_ASKING_PRICE")
+                self.assertEqual(result["suggested_listing_price"], "40.00")

@@ -1,6 +1,6 @@
 # Phase 1 implementation notes
 
-Feature 1 is implemented. Features 2 and 3 remain untouched. The concise
+All three pricing features are implemented. The concise
 status is in [implementation progress](IMPLEMENTATION_PROGRESS.md); this file
 keeps the implementation history and file inventory. Source profiles and
 statistical reports are under `validation/`.
@@ -40,7 +40,7 @@ there and `manage.py check` passes afterward.
 |---|---|---|
 | Matching | `marketplace/pricing/semantic.py` embeds the seller's title/category/type and source-backed type descriptions with `all-MiniLM-L6-v2`; it ranks cosine scores and returns up to five types above provisional 0.40. | Similarity measures text, not price equivalence. The threshold has no labeled calibration yet. |
 | Seller flow | Category and Item type are separate fields. The seller can select one suggested type or None; the latter keeps the manually selected type. | There may be fewer than five matches. |
-| Price calculation | Existing `initial.recommend()` runs for the selected type and condition. Sparse observations now yield a warned reference median; no same-type observations still abstain. | The source has very little Furniture data; discovery cannot create missing comparables. |
+| Price calculation | `initial.recommend()` supplies the historical guide; `inventory.recommend_for_item_type()` can supply a separate active-listing asking-price guide. | One live listing is a provisional reference, not a verified sale. |
 | Provenance | Choice is saved in existing `valuation_metadata` JSON. | No migration needed. |
 
 The local database initially had only 6 of the 42 source-backed category/type
@@ -90,10 +90,11 @@ Node syntax checking.
 
 ## Price-selection latency update
 
-- The suggestions endpoint now runs `initial.recommend()` for each returned
-  candidate using the current condition and brand. It returns source-backed
-  guides and abstentions with the candidates; it never creates a price from
-  text similarity.
+- The suggestions endpoint now prices each returned candidate using the
+  current condition and brand. It uses the 2023 research guide or a separate
+  active MoveOn asking-price median, with a provisional warning for live
+  asking prices. Text similarity only discovers item types; it never creates
+  a price.
 - Selecting a candidate renders that result immediately. If the condition or
   brand has changed since the search, the form requests a new guide. Saving
   recalculates the benchmark and retains seller minimum-price protection.
@@ -113,7 +114,8 @@ Node syntax checking.
   exist, it shows their observed median with **VERY LOW evidence**. It uses
   sparse condition matches when available; otherwise it uses all conditions
   and explicitly says the selected condition is not represented. No condition
-  discount is invented. With no same-type records, it still abstains.
+  discount is invented. With no same-type research records, the historical
+  engine abstains; active MoveOn listings may supply a separate live guide.
 - The price card and selected-type result show a yellow warning with the exact
   reference count and reliability caveat. Sparse guides omit the observed
   middle-50% range. The seller can set another price; accepting a reference

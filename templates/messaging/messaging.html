@@ -41,6 +41,20 @@
     </div>
   </header>
 
+  {% if system_notifications %}
+  <section class="messaging__system-notifications" aria-label="MoveOn pricing reminders">
+    {% for notification in system_notifications %}
+    <article class="messaging__system-card{% if not notification.read_at %} is-unread{% endif %}">
+      <strong>MoveOn{% if not notification.read_at %} · New{% endif %}</strong>
+      <p>{{ notification.listing.title }}: {{ notification.trigger_days }} days until move-out. Markdown suggestion at notification: ${{ notification.suggested_price_snapshot|floatformat:2 }}.</p>
+      {% if notification.resolved_at %}<small>Reviewed</small>{% else %}
+      <form method="post" action="{% url 'deadline-notification-open' notification.pk %}">{% csrf_token %}<button type="submit">Review suggestion</button></form>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
   <!-- ============================================================
        WORKSPACE — two columns: LEFT list, RIGHT chat.
        Height-constrained (see .messaging__body in the CSS) so the

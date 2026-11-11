@@ -315,6 +315,7 @@ class Assignment3Tests(TestCase):
 
 
     def test_uploaded_image_bundle_checkout_and_retry(self):
+        Listing.objects.filter(pk__in=[item.pk for item in self.items[:3]]).update(bundle_eligible=True)
         ListingImage.objects.create(listing=self.items[2], uploaded_by=self.seller,
                                     image="listing_images/example.png")
         bundle = Bundle.objects.create(buyer=self.buyer, space="LIVING_ROOM")

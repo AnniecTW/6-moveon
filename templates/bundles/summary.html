@@ -24,7 +24,8 @@
               <th>Condition</th>
               <th>Delivery</th>
               <th>Seller</th>
-              <th>Price</th>
+              <th>Listed price</th>
+              <th>Proposed price</th>
             </tr>
           </thead>
           <tbody>
@@ -34,17 +35,20 @@
                 <td><span class="condition">{{ item.listing.get_condition_display }}</span></td>
                 <td>{{ item.listing.get_fulfillment_option_display }}</td>
                 <td>{{ item.listing.seller.display_name }}</td>
-                <td>${{ item.listing.listing_price }}</td>
+                <td>${{ item.listing_price_snapshot }}</td>
+                <td>${{ item.proposed_bundle_price|default:item.listing_price_snapshot }}</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
 
-      <p class="wizard-total"><strong>Total: ${{ total }}</strong></p>
+      <p class="wizard-total"><strong>Proposed total: ${{ total }}</strong></p>
       <p class="muted">
-        No bundle discount is applied yet — a minimum-price-based discount is a
-        planned future add-on. This total is the sum of listed prices.
+        Listed total: ${{ original_total }}. Proposed savings: ${{ savings }}.
+        Each seller must accept the proposed price. Proposals use the current listing
+        price, seller minimum and bundle limit, and a provisional historical market
+        benchmark when available.
       </p>
 
       {% if not sent %}

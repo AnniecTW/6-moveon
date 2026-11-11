@@ -1,4 +1,4 @@
-"""A9 Part 3: evaluate the integrated local AI features through the app code paths.
+"""Evaluate integrated local AI features through the app code paths.
 
 Usage (use a throwaway database; seeding expects an empty listings table):
 
@@ -7,8 +7,8 @@ Usage (use a throwaway database; seeding expects an empty listings table):
     DATABASE_PATH=data/eval.sqlite3 python manage.py evaluate_ai --seed --label after
 
 Search cases run through ``browse_context`` (the same function the home and
-browse pages render), so candidate selection, the Llama ranking, the lexical
-relevance gate, the database recheck, and the random fallback all apply.
+browse pages render), so structured filtering, semantic retrieval, Llama
+reranking, the database recheck, and labeled fallback all apply.
 Pricing cases call ``suggest_types`` and ``recommend`` as the seller endpoint does.
 """
 
@@ -26,7 +26,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.test import RequestFactory
 
-from marketplace import local_llm
+from marketplace import browse, local_llm
 from marketplace.browse import browse_context
 from marketplace.models import ItemCategory, ItemType, Listing
 from marketplace.pricing.initial import recommend
@@ -50,7 +50,8 @@ A6_ITEM_TYPES = {
     23: "Microwave", 35: "Microwave",
 }
 
-# Search inputs: the eight A6 gold queries plus app-specific edge cases.
+# Search inputs: the eight A6 gold queries plus unseen paraphrases, filters,
+# multi-attribute requests and no-match cases. Labels are for evaluation only.
 EXTRA_SEARCH_CASES = [
     {
         "case": "S9",
@@ -66,8 +67,22 @@ EXTRA_SEARCH_CASES = [
         "filters": {},
         "relevant": [],
         "acceptable": [],
-        "note": "Nothing in the catalogue matches; expect an empty AI result and a labelled fallback.",
+        "note": "Nothing in the catalogue matches; expect an empty result.",
     },
+    {"case": "S11", "query": "something to heat leftovers in my dorm", "filters": {},
+     "relevant": [23, 35], "acceptable": [], "note": "Appliance use-case paraphrase."},
+    {"case": "S12", "query": "block morning sunlight in my bedroom", "filters": {},
+     "relevant": [4], "acceptable": [40], "note": "Room and intended use."},
+    {"case": "S13", "query": "small screen for my desk under $50", "filters": {"max_price": "50"},
+     "relevant": [7], "acceptable": [], "note": "Electronics and budget."},
+    {"case": "S14", "query": "blue accent for a living room", "filters": {},
+     "relevant": [10, 25, 32], "acceptable": [15], "note": "Color and decor."},
+    {"case": "S15", "query": "compact place to sit in my apartment", "filters": {"max_price": "60"},
+     "relevant": [26], "acceptable": [1], "note": "Use, size, and budget."},
+    {"case": "S16", "query": "storage for books beside my study desk", "filters": {},
+     "relevant": [12, 24, 38], "acceptable": [], "note": "Furniture use case."},
+    {"case": "S17", "query": "equipment for snowboarding", "filters": {},
+     "relevant": [], "acceptable": [], "note": "No relevant inventory."},
 ]
 
 PRICING_CASES = [
@@ -90,6 +105,10 @@ def ndcg5(ranked, relevant, acceptable):
 
 def recall5(ranked, relevant):
     return len(set(ranked[:5]) & set(relevant)) / len(relevant) if relevant else None
+
+
+def precision5(ranked, relevant, acceptable):
+    return len(set(ranked[:5]) & (set(relevant) | set(acceptable))) / min(5, len(ranked)) if ranked else None
 
 
 class Command(BaseCommand):
@@ -153,6 +172,7 @@ class Command(BaseCommand):
         factory = RequestFactory()
         captured = {}
         original_generate = local_llm._generate_response
+        original_retrieve = browse.retrieve
 
         def instrumented(messages):
             started = perf_counter()
@@ -163,7 +183,18 @@ class Command(BaseCommand):
             captured["raw"] = text
             return text
 
+        def instrumented_retrieve(query, candidates):
+            started = perf_counter()
+            try:
+                result = original_retrieve(query, candidates)
+            finally:
+                captured["retrieval_s"] = perf_counter() - started
+            captured["retrieved_ids"] = [item["pk"] for item, _ in result]
+            captured["retrieved_scores"] = [round(score, 1) for _, score in result]
+            return result
+
         local_llm._generate_response = instrumented
+        browse.retrieve = instrumented_retrieve
         titles = dict(Listing.objects.values_list("pk", "title"))
         results = []
         try:
@@ -178,13 +209,13 @@ class Command(BaseCommand):
                 context = browse_context(request, use_local_llm=True)
                 total_s = perf_counter() - started
                 shown = [item.pk for item in context["listings"]]
-                fallback = context["ai_search_fallback"] or bool(context["ai_search_error"])
+                fallback = context["ai_search_fallback"]
                 raw = captured.get("raw", "")
                 try:
                     model_ids = [i for i in json.loads(raw).get("ids", []) if isinstance(i, int)]
                 except (ValueError, AttributeError):
                     model_ids = None
-                ai_ids = [] if fallback else shown
+                ai_ids = shown
                 results.append({
                     **case,
                     "model_raw": raw,
@@ -193,10 +224,15 @@ class Command(BaseCommand):
                     "shown_ids": shown,
                     "shown_titles": [titles.get(i, "?") for i in shown],
                     "fallback": fallback,
+                    "retrieved_ids": captured.get("retrieved_ids", []),
+                    "retrieved_scores": captured.get("retrieved_scores", []),
+                    "retrieval_s": round(captured.get("retrieval_s", 0.0), 2),
                     "fallback_title": context["ai_search_fallback_title"] or context["ai_search_error"],
                     "ndcg5_shown": ndcg5(ai_ids, case["relevant"], case["acceptable"]),
                     "ndcg5_model": ndcg5(model_ids or [], case["relevant"], case["acceptable"]),
                     "recall5_shown": recall5(ai_ids, case["relevant"]),
+                    "precision5_shown": precision5(ai_ids, case["relevant"], case["acceptable"]),
+                    "false_positive_count": len(set(ai_ids) - set(case["relevant"]) - set(case["acceptable"])),
                     "distractors_shown": sorted(set(ai_ids) & set(case["distractors"])),
                     "generation_s": round(captured.get("generation_s", 0.0), 2),
                     "request_s": round(total_s, 2),
@@ -207,15 +243,19 @@ class Command(BaseCommand):
                 )
         finally:
             local_llm._generate_response = original_generate
+            browse.retrieve = original_retrieve
         gold = [r for r in results if r["case"] in {f"S{i}" for i in range(1, 9)}]
         summary = {
             "model_load_s": round(load_s, 1),
             "gold_queries": len(gold),
             "mean_ndcg5_shown": round(statistics.mean(r["ndcg5_shown"] for r in gold), 3),
-            "mean_ndcg5_model_before_gate": round(statistics.mean(r["ndcg5_model"] for r in gold), 3),
+            "mean_ndcg5_model_raw": round(statistics.mean(r["ndcg5_model"] for r in gold), 3),
             "mean_recall5_shown": round(statistics.mean(r["recall5_shown"] for r in gold), 3),
+            "mean_precision5_shown": round(statistics.mean(r["precision5_shown"] for r in gold if r["precision5_shown"] is not None), 3) if any(r["precision5_shown"] is not None for r in gold) else None,
+            "false_positive_count": sum(r["false_positive_count"] for r in results),
             "fallback_count": sum(r["fallback"] for r in results),
             "median_generation_s": round(statistics.median(r["generation_s"] for r in results), 2),
+            "median_retrieval_s": round(statistics.median(r["retrieval_s"] for r in results), 2),
             "median_request_s": round(statistics.median(r["request_s"] for r in results), 2),
         }
         self.stdout.write(json.dumps(summary))

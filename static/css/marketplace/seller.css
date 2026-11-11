@@ -59,6 +59,11 @@
 .control-sort { margin-left: auto; }
 .seller-listing-row { display: grid; grid-template-columns: 84px minmax(130px, 1.35fr) minmax(96px, .72fr) minmax(82px, .68fr) minmax(105px, .82fr) minmax(142px, 1fr) 104px; gap: 10px; align-items: center; width: 100%; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 9px; padding: 10px; margin-top: 8px; background: #fffefa; font-size: 11px; }
 .seller-listing-row > * { min-width: 0; }
+.deadline-review { grid-column: 1 / -1; padding: 12px; border-top: 1px solid var(--border); background: #f7faf6; font-size: 12px; line-height: 1.5; }
+.deadline-review p { margin: 5px 0; }
+.deadline-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin: 8px 0; }
+.deadline-actions form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.deadline-actions input[type="number"] { width: 95px; }
 .seller-listing-image { width: 84px; height: 60px; display: grid; place-items: center; border-radius: 7px; overflow: hidden; background: var(--soft); color: var(--muted); font-size: 28px; }
 .seller-listing-image img { width: 100%; height: 100%; object-fit: cover; }
 .listing-identity h3 { overflow: hidden; font-size: 14px; font-weight: 600; margin-bottom: 2px; text-overflow: ellipsis; white-space: nowrap; }

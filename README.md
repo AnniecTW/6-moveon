@@ -92,9 +92,9 @@ not back up a database. Keep `.env` private and untracked; see the
 | Model | Used for | Access | Size |
 |---|---|---|---|
 | `meta-llama/Llama-3.2-3B-Instruct` | Natural-language listing search (main AI feature) | Gated: accept the Llama 3.2 license on Hugging Face, create a read token, and set `HF_TOKEN=hf_...` in `.env` | ~6 GB |
-| `sentence-transformers/all-MiniLM-L6-v2` | Item-type and price suggestions when creating a listing | Public, no token | ~90 MB |
+| `sentence-transformers/all-MiniLM-L6-v2` | Listing search retrieval and item-type suggestions | Public, no token | ~90 MB |
 
-The first AI search downloads Llama (several minutes) and loads it into memory. After that, a search takes about 8 s on an Apple M-series laptop. A CUDA GPU is used automatically if available. Optional Gemini features (bundle tiers, photo autofill) use `GEMINI_API_KEY` and fall back without it. Do not commit `.env`, tokens, or model weights.
+The first AI search loads both MiniLM and Llama. The earlier 8 s warm-search measurement was on an Apple M-series laptop with the old 40-listing prompt; performance for the current pipeline and CPU-only Windows needs fresh measurement. A CUDA GPU is used automatically if available. Optional Gemini features (bundle tiers, photo autofill) use `GEMINI_API_KEY` and fall back without it. Do not commit `.env`, tokens, or model weights. See [the search evaluation notes](docs/search-optimization.md).
 
 **Demo data.** A newly migrated database has no listings, so AI search has nothing to rank. To load the 40-listing catalogue used in our A6 and A9 evaluations into a separate database:
 
@@ -112,7 +112,7 @@ python manage.py runserver
 1. Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) or `/listings/`.
 2. Turn on the **AI natural-language search** switch next to the search box.
 3. Type a request such as `I need to heat up food quickly` or `comfortable seating for when friends visit`, then press Enter.
-4. AI-ranked listings appear as cards. If the model fails or finds nothing relevant (try `snowboard for winter break`), the page shows a labelled message with random fallback listings.
+4. AI-ranked listings appear as cards. If Llama fails, the page labels semantic search matches. If no candidate passes the relevance check (try `snowboard for winter break`), the page shows an empty state.
 
 You can also open a search directly: `/listings/?search_mode=ai&q=I+need+to+heat+up+food+quickly`.
 

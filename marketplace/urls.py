@@ -39,6 +39,9 @@ urlpatterns = [
     # Marketplace pages and preserved account workflows.
     path("profile/inquiries.png", charts.listing_inquiry_png, name="listing-inquiry-chart"),
     path("profile/listings/", views.seller_listings_view, name="seller-listings"),
+    path("profile/listings/<int:primary_key>/markdown-suggestion/", views.request_deadline_suggestion, name="request-deadline-suggestion"),
+    path("profile/listings/notifications/<int:notification_id>/open/", views.open_deadline_notification, name="deadline-notification-open"),
+    path("profile/listings/deadline/<int:recommendation_id>/", views.deadline_recommendation_decision, name="deadline-recommendation-decision"),
     path("profile/settings/", views.seller_settings_view, name="seller-settings"),
     path("profile/pickups/", views.buyer_pickups_view, name="buyer-pickups"),
     path("profile/saved-bundles/", views.buyer_bundles_view, name="buyer-bundles"),

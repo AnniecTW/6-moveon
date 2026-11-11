@@ -97,6 +97,7 @@
       title: title.value, category: category.value, item_type: itemType.value,
       condition: condition?.value || "", brand: brand?.value || "",
     });
+    if (root.dataset.listingId) params.set("listing_id", root.dataset.listingId);
     try {
       const response = await fetch(`${root.dataset.suggestionsUrl}?${params}`, {
         credentials: "same-origin", signal: activeRequest.signal,
