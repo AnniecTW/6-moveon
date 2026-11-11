@@ -8,6 +8,13 @@ sentences. The highest scoring eight listings above a 0.30 retrieval threshold r
 `meta-llama/Llama-3.2-3B-Instruct` model for final ordering. Llama sees short
 listing fields and can return at most five IDs. Django checks ID membership,
 removes duplicates, and rechecks active status and filters before display.
+The restored relevance gate also requires at least one query concept to appear
+in the listing's title, category, or description. It ignores filler words and
+uses synonym groups, including seating terms for "sit"; it does not require
+every word in a natural-language query to match. The same gate applies to
+semantic fallback results so rejected listings cannot reappear through fallback.
+This lexical safeguard can miss paraphrases outside its synonym groups and
+does not guarantee that a listing satisfies every part of the shopper's intent.
 The retrieval stage scans at most 1,000 eligible listings; above that limit
 search reports unavailable rather than silently excluding older inventory.
 
@@ -76,7 +83,7 @@ cutoff checks use the unrounded scores. Compare the generated
 after accounting for hardware, model cache state, and the expanded query set.
 Run repeat trials, inspect every false positive and false negative, then
 choose the cutoff and rerank size on a separate held-out set. No examples in
-the evaluation set are rules in the search implementation.
+the evaluation set should be treated as proof of general search quality.
 
 Model-load and prompt-tokenization timings are logged by `marketplace.local_llm`.
 It also logs time to first token, which includes model prompt processing and

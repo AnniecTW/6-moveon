@@ -8,7 +8,7 @@ from .auth_backend import has_campus_access
 from .featured import decorate_listing, featured_bundles
 from .forms import BrowseForm
 from .models import Listing
-from .local_llm import LocalLLMError, rank_listing_ids
+from .local_llm import LocalLLMError, gate_listing_ids, rank_listing_ids
 from .search_semantic import MIN_FALLBACK_SIMILARITY, SemanticSearchError, retrieve
 
 ORDERING = {
@@ -132,7 +132,11 @@ def browse_context(request, use_local_llm=False):
                 if retrieved:
                     relevant_candidates = [item for item, _ in retrieved]
                     fallback_ids = [item["pk"] for item, score in retrieved
-                                    if score >= MIN_FALLBACK_SIMILARITY][:5]
+                                    if score >= MIN_FALLBACK_SIMILARITY]
+                    fallback_ids = gate_listing_ids(
+                        query, fallback_ids,
+                        [{**item, "id": item["pk"]} for item in relevant_candidates],
+                    )[:5]
                     try:
                         ranked_ids = rank_listing_ids(query, relevant_candidates)
                         if ranked_ids:

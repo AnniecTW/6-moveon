@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.urls import reverse
 
-from marketplace.local_llm import LocalLLMError, parse_listing_ids
+from marketplace.local_llm import LocalLLMError, parse_listing_ids, rank_listing_ids
 from marketplace.models import ItemCategory, ItemType, Listing, User
 from marketplace.search_semantic import SemanticSearchError, retrieve
 
@@ -51,6 +51,28 @@ class ListingIdValidationTests(TestCase):
                 parse_listing_ids(response, [1, 2])
 
 
+class RelevanceGateTests(TestCase):
+    @patch("marketplace.local_llm._generate_response", return_value='{"ids":[1,2]}')
+    def test_sit_keeps_seating_and_rejects_coffee_table(self, generate):
+        candidates = [
+            {"pk": 1, "title": "Coffee table", "category": "Furniture / Tables",
+             "description": "Oak table", "listing_price": "20", "condition": "good"},
+            {"pk": 2, "title": "Armchair", "category": "Furniture / Chairs",
+             "description": "Comfy chair", "listing_price": "30", "condition": "good"},
+        ]
+        self.assertEqual(rank_listing_ids("sit", candidates), [2])
+
+    @patch("marketplace.local_llm._generate_response", return_value='{"ids":[1]}')
+    def test_free_text_does_not_require_every_query_word(self, generate):
+        candidates = [
+            {"pk": 1, "title": "Blue reading lamp", "category": "Lighting",
+             "description": "Reading light", "listing_price": "20", "condition": "good"},
+        ]
+        self.assertEqual(rank_listing_ids(
+            "need something blue to complement my bedside lamps", candidates,
+        ), [1])
+
+
 class LocalLLMSearchViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -71,6 +93,21 @@ class LocalLLMSearchViewTests(TestCase):
 
     def _get(self, query="bedroom lighting", **filters):
         return self.client.get(reverse("home"), {"q": query, "search_mode": "ai", **filters})
+
+    @patch("marketplace.browse.retrieve")
+    @patch("marketplace.local_llm._generate_response")
+    def test_irrelevant_dresser_cannot_return_through_ai_or_fallback(self, generate, semantic):
+        dresser = self._listing(self.first.item_type, "Wood dresser", "Bedroom storage", "40")
+        semantic.side_effect = lambda query, candidates: [
+            (item, .8) for item in candidates if item["pk"] == dresser.pk
+        ]
+        for model_response in (json.dumps({"ids": [dresser.pk]}), '{"ids":[]}', RuntimeError("offline")):
+            with self.subTest(model_response=model_response):
+                generate.side_effect = model_response if isinstance(model_response, Exception) else None
+                generate.return_value = model_response
+                response = self._get("bathroom cleaning")
+                self.assertEqual(response.context["listings"], [])
+                self.assertFalse(response.context["ai_search_fallback"])
 
     @patch("marketplace.browse.retrieve")
     @patch("marketplace.local_llm._generate_response")

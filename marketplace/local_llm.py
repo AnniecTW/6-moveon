@@ -13,6 +13,44 @@ LOCAL_LLM_GENERATION_TIMEOUT_SECONDS = 60
 _model_load_lock = Lock()
 _loaded_model = None
 _CODE_FENCE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.DOTALL)
+_RELEVANCE_STOP_WORDS = frozenset(
+    """a an and are for i in it me my of on or please recommend some the this to
+    want with would you your looking find need items item things thing nice room
+    rooms products product listings listing few minimal modern classic beautiful
+    great good best affordable cheap inexpensive used new under over below above
+    less than budget price maximum minimum dollars something stuff up so can
+    make when just really get""".split()
+)
+_RELEVANCE_GROUPS = (
+    frozenset(
+        """sit sitting seat seats seating chair chairs sofa sofas couch couches
+        sectional sectionals loveseat loveseats stool stools bench benches
+        armchair armchairs recliner recliners""".split()
+    ),
+    frozenset(
+        """bathroom bathrooms bath baths restroom restrooms shower showers toilet
+        toilets sink sinks vanity vanities""".split()
+    ),
+    frozenset("bedroom bedrooms bedside nightstand nightstands".split()),
+    frozenset("kitchen kitchens pantry pantries kitchenette".split()),
+    frozenset("living lounge den familyroom".split()),
+    frozenset("office offices workspace workspaces desk".split()),
+    frozenset(
+        """clean cleaning cleaner cleaners cleanse cleanser cleansers detergent
+        detergents mop mops broom brooms scrub scrubbing brush brushes sponge
+        sponges disinfect disinfectant disinfectants sanitizer sanitizers squeegee
+        squeegees supply supplies""".split()
+    ),
+    frozenset(
+        """decorate decorates decorating decor decoration decorations decorative
+        art artwork rug rugs mirror mirrors vase vases accent accents furniture
+        table tables chair chairs sofa sofas couch couches dresser dressers lamp
+        lamps shelf shelves bed beds""".split()
+    ),
+    frozenset("light lights lighting lamp lamps fixture fixtures".split()),
+    frozenset("sofa sofas couch couches sectional sectionals loveseat loveseats".split()),
+    frozenset("television televisions tv tvs flatscreen flatscreens".split()),
+)
 
 
 class LocalLLMError(RuntimeError):
@@ -77,6 +115,71 @@ def _listing_payload(candidates):
         }
         for candidate in candidates
     ]
+
+
+def _singular(token):
+    """Light plural folding so "decoratives" can match "decorative"."""
+    if len(token) > 4 and token.endswith("s") and not token.endswith("ss"):
+        return token[:-1]
+    return token
+
+
+def _tokens(value):
+    """Return each alphabetic word plus its singular form."""
+    words = {
+        token
+        for token in re.findall(r"[a-z0-9]+", str(value or "").casefold())
+        if token.isalpha()
+    }
+    return words | {_singular(token) for token in words}
+
+
+def _relevance_requirements(query):
+    query_tokens = {
+        _singular(token)
+        for token in _tokens(query) - _RELEVANCE_STOP_WORDS
+        if _singular(token) not in _RELEVANCE_STOP_WORDS
+    }
+    requirements = []
+    covered_tokens = set()
+    for group in _RELEVANCE_GROUPS:
+        matched_query_tokens = query_tokens & group
+        if matched_query_tokens:
+            requirements.append(group)
+            covered_tokens.update(matched_query_tokens)
+    requirements.extend(
+        frozenset({token})
+        for token in sorted(query_tokens - covered_tokens)
+    )
+    return requirements
+
+
+def gate_listing_ids(query, ranked_ids, catalog):
+    """Keep picks sharing a query concept, including semantic fallback picks.
+
+    This is a lexical safety net, not a complete intent classifier. Synonym
+    groups allow natural phrasing without requiring every query word.
+    """
+    requirements = _relevance_requirements(query)
+    listings_by_id = {item["id"]: item for item in catalog}
+    accepted_ids = []
+    rejected_ids = []
+    for listing_id in ranked_ids:
+        listing = listings_by_id[listing_id]
+        listing_tokens = _tokens(
+            " ".join(
+                (listing["title"], listing["category"], listing["description"])
+            )
+        )
+        # Keep a model pick when it shares at least one query concept. Requiring
+        # every query word rejected valid matches for natural phrasing (A9 Part 3).
+        if any(requirement & listing_tokens for requirement in requirements):
+            accepted_ids.append(listing_id)
+        else:
+            rejected_ids.append(listing_id)
+    if rejected_ids:
+        logger.debug("Local relevance gate rejected IDs: %s", rejected_ids)
+    return accepted_ids
 
 
 def _build_messages(query, catalog):
@@ -176,6 +279,9 @@ def _generate_response(messages):
         tokenize=True,
         add_generation_prompt=True,
         return_tensors="pt",
+        # Transformers 5 defaults to a BatchEncoding; generation below expects
+        # the input-ID tensor returned by Transformers 4.
+        return_dict=False,
     ).to(model.device)
     attention_mask = torch.ones_like(input_ids, device=model.device)
     logger.info("Local listing prompt prepared: %s tokens in %.2fs",
@@ -226,5 +332,6 @@ def rank_listing_ids(query, candidates):
     except LocalLLMError:
         logger.warning("Local listing model returned an invalid ranking response.", exc_info=True)
         raise
+    ranked_ids = gate_listing_ids(query, ranked_ids, catalog)
     logger.debug("Local listing model validated IDs: %s", ranked_ids)
     return ranked_ids
