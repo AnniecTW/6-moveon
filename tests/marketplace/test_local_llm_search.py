@@ -35,6 +35,21 @@ class ListingIdValidationTests(TestCase):
         with self.assertRaises(LocalLLMError):
             parse_listing_ids('{"ids":[999]}', [1])
 
+    def test_accepts_near_miss_formats_from_the_3b_model(self):
+        self.assertEqual(parse_listing_ids('```json\n{"ids":[2,1]}\n```', [1, 2]), [2, 1])
+        self.assertEqual(parse_listing_ids('[{"ids":[2]}]', [1, 2]), [2])
+        self.assertEqual(parse_listing_ids("[6]", [6]), [6])
+
+    def test_still_rejects_prose_code_and_ambiguous_lists(self):
+        for response in (
+            "```json\ndef rank_marketplace_listings(candidates):",
+            "The only matching item is a Microwave.",
+            '[{"ids":[1]},{"ids":[2]}]',
+            '[1, "2"]',
+        ):
+            with self.subTest(response=response), self.assertRaises(LocalLLMError):
+                parse_listing_ids(response, [1, 2])
+
 
 class LocalLLMSearchViewTests(TestCase):
     @classmethod
