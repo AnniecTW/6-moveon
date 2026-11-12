@@ -1,6 +1,8 @@
 from .base import *
 
 DEBUG = True
+# Local CPU inference is too slow for interactive search. Keep embeddings live.
+LOCAL_LLM_ENABLED = env.bool("LOCAL_LLM_ENABLED", default=False)
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 LOGGING = {

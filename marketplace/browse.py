@@ -2,6 +2,7 @@
 
 import logging
 
+from django.conf import settings
 from django.db import DatabaseError
 from django.db.models import Q, Count
 from .auth_backend import has_campus_access
@@ -9,7 +10,10 @@ from .featured import decorate_listing, featured_bundles
 from .forms import BrowseForm
 from .models import Listing
 from .local_llm import LocalLLMError, gate_listing_ids, rank_listing_ids
-from .search_semantic import MIN_FALLBACK_SIMILARITY, SemanticSearchError, retrieve
+from .search_semantic import (
+    MIN_FALLBACK_SIMILARITY, MIN_SEMANTIC_ONLY_SIMILARITY,
+    SemanticSearchError, retrieve,
+)
 
 ORDERING = {
     "newest": "-created_at",
@@ -117,6 +121,13 @@ def browse_context(request, use_local_llm=False):
         if form.is_valid():
             listings = []
             search_state = "no_results"
+            semantic_only = not settings.LOCAL_LLM_ENABLED
+            if semantic_only:
+                ai_search_fallback = True
+                ai_search_fallback_title = "Showing semantic search matches."
+                ai_search_fallback_message = (
+                    "Llama ranking is currently unavailable. Using semantic search instead."
+                )
             try:
                 candidates = _local_llm_candidates(form, query)
             except (DatabaseError, SemanticSearchError):
@@ -131,15 +142,20 @@ def browse_context(request, use_local_llm=False):
                     retrieved = []
                 if retrieved:
                     relevant_candidates = [item for item, _ in retrieved]
+                    minimum_similarity = MIN_SEMANTIC_ONLY_SIMILARITY if semantic_only else MIN_FALLBACK_SIMILARITY
                     fallback_ids = [item["pk"] for item, score in retrieved
-                                    if score >= MIN_FALLBACK_SIMILARITY]
-                    fallback_ids = gate_listing_ids(
-                        query, fallback_ids,
-                        [{**item, "id": item["pk"]} for item in relevant_candidates],
-                    )[:5]
+                                    if score >= minimum_similarity]
+                    if not semantic_only:
+                        fallback_ids = gate_listing_ids(
+                            query, fallback_ids,
+                            [{**item, "id": item["pk"]} for item in relevant_candidates],
+                        )
+                    fallback_ids = fallback_ids[:5]
                     try:
-                        ranked_ids = rank_listing_ids(query, relevant_candidates)
-                        if ranked_ids:
+                        ranked_ids = fallback_ids if semantic_only else rank_listing_ids(query, relevant_candidates)
+                        if semantic_only:
+                            search_state = "semantic_only" if ranked_ids else "no_results"
+                        elif ranked_ids:
                             search_state = "ai"
                         else:
                             ranked_ids = fallback_ids

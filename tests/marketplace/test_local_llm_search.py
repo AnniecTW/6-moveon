@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from marketplace.local_llm import LocalLLMError, parse_listing_ids, rank_listing_ids
@@ -73,6 +73,7 @@ class RelevanceGateTests(TestCase):
         ), [1])
 
 
+@override_settings(LOCAL_LLM_ENABLED=True)
 class LocalLLMSearchViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -93,6 +94,34 @@ class LocalLLMSearchViewTests(TestCase):
 
     def _get(self, query="bedroom lighting", **filters):
         return self.client.get(reverse("home"), {"q": query, "search_mode": "ai", **filters})
+
+    @override_settings(LOCAL_LLM_ENABLED=False)
+    @patch("marketplace.browse.rank_listing_ids")
+    @patch("marketplace.browse.retrieve")
+    def test_semantic_mode_matches_paraphrases_without_calling_llama(self, semantic, rank):
+        microwave = self._listing(self.first.item_type, "Microwave", "Countertop appliance", "15")
+        self._listing(self.first.item_type, "Microwave", "Expensive appliance", "100")
+        semantic.side_effect = lambda query, candidates: [
+            (item, .345 if item["pk"] == microwave.pk else .31) for item in candidates
+        ]
+        response = self._get("heat up food quickly", max_price="20")
+        self.assertEqual([item.pk for item in response.context["listings"]], [microwave.pk])
+        self.assertContains(response, "Llama ranking is currently unavailable")
+        self.assertContains(response, "Using semantic search instead")
+        self.assertContains(response, "data-ai-search-toast")
+        self.assertContains(response, "Llama search status")
+        self.assertTrue(all(item["listing_price"] <= 20 for item in semantic.call_args.args[1]))
+        rank.assert_not_called()
+
+    @override_settings(LOCAL_LLM_ENABLED=False)
+    @patch("marketplace.browse.rank_listing_ids")
+    @patch("marketplace.browse.retrieve", return_value=[])
+    def test_semantic_mode_keeps_notice_when_no_items_match(self, semantic, rank):
+        response = self._get("snowboard for winter break")
+        self.assertEqual(response.context["listings"], [])
+        self.assertContains(response, "No relevant listings found")
+        self.assertContains(response, "Llama ranking is currently unavailable")
+        rank.assert_not_called()
 
     @patch("marketplace.browse.retrieve")
     @patch("marketplace.local_llm._generate_response")

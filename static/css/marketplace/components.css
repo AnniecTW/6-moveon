@@ -284,6 +284,18 @@
   color: var(--muted);
   margin: 12px 0 20px;
 }
+.ai-search-notice {
+  flex-basis: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--canvas);
+  color: var(--ink);
+  line-height: 1.5;
+}
+.ai-search-notice p {
+  margin: 0;
+}
 .ai-search-toast {
   width: min(520px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);

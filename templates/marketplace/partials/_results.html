@@ -1,7 +1,10 @@
 <div class="results-meta">
   {% if ai_search_error %}<p class="muted ai-search-error" role="alert">{{ ai_search_error }}</p>{% endif %}
-  {% if ai_search_fallback %}<dialog class="ai-search-toast" data-ai-search-toast aria-labelledby="ai-search-toast-title" aria-describedby="ai-search-toast-message">
-    <h2 id="ai-search-toast-title">{{ ai_search_fallback_title }}</h2>
+  {% if ai_search_fallback %}<div class="ai-search-notice" role="status">
+    <p><strong>{{ ai_search_fallback_title }}</strong> {{ ai_search_fallback_message }}</p>
+  </div>
+  <dialog class="ai-search-toast" data-ai-search-toast aria-labelledby="ai-search-toast-title" aria-describedby="ai-search-toast-message">
+    <h2 id="ai-search-toast-title">Llama search status</h2>
     <p id="ai-search-toast-message">{{ ai_search_fallback_message }}</p>
     <button class="button primary" type="button" data-ai-search-toast-close>Got it</button>
   </dialog>{% endif %}

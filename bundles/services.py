@@ -201,7 +201,8 @@ GEMINI_TIMEOUT_SECONDS = 10
 def _call_gemini(prompt, api_key):
     import google.generativeai as genai
 
-    genai.configure(api_key=api_key)
+    # Use HTTPS consistently with photo analysis (gRPC can stall locally).
+    genai.configure(api_key=api_key, transport="rest")
     model = genai.GenerativeModel(GEMINI_MODEL_NAME)
     response = model.generate_content(
         prompt,

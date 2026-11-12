@@ -6,14 +6,16 @@ from random import uniform
 from time import sleep
 
 from PIL import Image, UnidentifiedImageError
-from google.api_core.exceptions import ServiceUnavailable
+from google.api_core.exceptions import DeadlineExceeded, ServiceUnavailable
+from requests.exceptions import Timeout
 
 from .models import Listing
 
 logger = logging.getLogger(__name__)
 
 GEMINI_MODEL_NAME = "gemini-3.5-flash-lite"
-GEMINI_TIMEOUT_SECONDS = 15
+GEMINI_FALLBACK_MODEL_NAME = "gemini-3.6-flash"
+GEMINI_TIMEOUT_SECONDS = 45
 MAX_IMAGE_DIMENSION = 1024
 
 
@@ -77,25 +79,41 @@ def analyze_listing_images(images, item_types, api_key):
 
         import google.generativeai as genai
 
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(GEMINI_MODEL_NAME)
+        # HTTPS works on networks that block or stall the SDK's default gRPC.
+        genai.configure(api_key=api_key, transport="rest")
         response = None
-        for attempt in range(2):
+        for attempt, model_name in enumerate((GEMINI_MODEL_NAME, GEMINI_FALLBACK_MODEL_NAME)):
             try:
+                model = genai.GenerativeModel(model_name)
                 response = model.generate_content(
                     [prompt, *visual_inputs],
                     generation_config=genai.GenerationConfig(
                         response_mime_type="application/json",
-                        max_output_tokens=512,
+                        response_schema={
+                            "type": "OBJECT",
+                            "properties": {
+                                "recognizable": {"type": "BOOLEAN"},
+                                "title": {"type": "STRING"},
+                                "description": {"type": "STRING"},
+                                "item_type_id": {"type": "INTEGER", "nullable": True},
+                                "condition": {
+                                    "type": "STRING", "enum": condition_values,
+                                    "nullable": True,
+                                },
+                            },
+                            "required": ["recognizable", "title", "description", "item_type_id", "condition"],
+                        },
+                        max_output_tokens=2048,
                     ),
                     request_options={"timeout": GEMINI_TIMEOUT_SECONDS, "retry": None},
                 )
+                result = json.loads(response.text)
                 break
-            except ServiceUnavailable:
+            except (ServiceUnavailable, DeadlineExceeded, Timeout, ValueError):
                 if attempt:
                     raise
+                logger.warning("Photo model %s unavailable; trying %s.", model_name, GEMINI_FALLBACK_MODEL_NAME)
                 sleep(uniform(0.4, 0.8))
-        result = json.loads(response.text)
         if not isinstance(result, dict) or result.get("recognizable") is not True:
             return None, {
                 "kind": "photo",

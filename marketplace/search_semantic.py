@@ -13,6 +13,8 @@ MAX_RERANK_CANDIDATES = 8
 # is required when embeddings alone must supply the displayed results.
 MIN_SEARCH_SIMILARITY = 0.30
 MIN_FALLBACK_SIMILARITY = 0.40
+# Direct semantic mode admits short paraphrases ("heat up food" -> microwave).
+MIN_SEMANTIC_ONLY_SIMILARITY = 0.33
 
 
 class SemanticSearchError(RuntimeError):

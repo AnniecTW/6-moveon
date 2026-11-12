@@ -36,6 +36,7 @@ LOCAL_LLM_MODEL_ID = env(
     "LOCAL_LLM_MODEL_ID", default="meta-llama/Llama-3.2-3B-Instruct"
 )
 HF_TOKEN = env("HF_TOKEN", default="")
+LOCAL_LLM_ENABLED = env.bool("LOCAL_LLM_ENABLED", default=True)
 
 
 # Application definition
