@@ -152,7 +152,11 @@ def browse_context(request, use_local_llm=False):
                         )
                     fallback_ids = fallback_ids[:5]
                     try:
-                        ranked_ids = fallback_ids if semantic_only else rank_listing_ids(query, relevant_candidates)
+                        # In Llama mode the fallback above stays word-gated.
+                        ranked_ids = fallback_ids if semantic_only else rank_listing_ids(
+                            query, relevant_candidates,
+                            {item["pk"]: score for item, score in retrieved},
+                        )
                         if semantic_only:
                             search_state = "semantic_only" if ranked_ids else "no_results"
                         elif ranked_ids:
