@@ -13,6 +13,10 @@ LOCAL_LLM_GENERATION_TIMEOUT_SECONDS = 60
 _model_load_lock = Lock()
 _loaded_model = None
 _CODE_FENCE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.DOTALL)
+# Embedding cosine at which a Llama pick passes the gate without a shared word.
+# Same bar as semantic fallback; with Llama's pick, two signals then agree.
+# 0.35 also admitted coffee tables for "sit" and curtains for "brighter".
+MIN_GATE_SIMILARITY = 0.40
 _RELEVANCE_STOP_WORDS = frozenset(
     """a an and are for i in it me my of on or please recommend some the this to
     want with would you your looking find need items item things thing nice room
@@ -154,13 +158,16 @@ def _relevance_requirements(query):
     return requirements
 
 
-def gate_listing_ids(query, ranked_ids, catalog):
+def gate_listing_ids(query, ranked_ids, catalog, similarities=None):
     """Keep picks sharing a query concept, including semantic fallback picks.
 
     This is a lexical safety net, not a complete intent classifier. Synonym
     groups allow natural phrasing without requiring every query word.
+    ``similarities`` (ID -> cosine) lets a Llama pick through without a shared
+    word when the embedding also rates it close ("food warm" -> "Microwave").
     """
     requirements = _relevance_requirements(query)
+    similarities = similarities or {}
     listings_by_id = {item["id"]: item for item in catalog}
     accepted_ids = []
     rejected_ids = []
@@ -173,7 +180,8 @@ def gate_listing_ids(query, ranked_ids, catalog):
         )
         # Keep a model pick when it shares at least one query concept. Requiring
         # every query word rejected valid matches for natural phrasing (A9 Part 3).
-        if any(requirement & listing_tokens for requirement in requirements):
+        if (any(requirement & listing_tokens for requirement in requirements)
+                or similarities.get(listing_id, 0.0) >= MIN_GATE_SIMILARITY):
             accepted_ids.append(listing_id)
         else:
             rejected_ids.append(listing_id)
@@ -313,7 +321,7 @@ def _generate_response(messages):
     return tokenizer.decode(output_ids[0, input_ids.shape[-1]:], skip_special_tokens=True)
 
 
-def rank_listing_ids(query, candidates):
+def rank_listing_ids(query, candidates, similarities=None):
     """Return the model's validated ranking for the supplied active listings."""
     catalog = _listing_payload(candidates)
     if not catalog:
@@ -332,6 +340,6 @@ def rank_listing_ids(query, candidates):
     except LocalLLMError:
         logger.warning("Local listing model returned an invalid ranking response.", exc_info=True)
         raise
-    ranked_ids = gate_listing_ids(query, ranked_ids, catalog)
+    ranked_ids = gate_listing_ids(query, ranked_ids, catalog, similarities)
     logger.debug("Local listing model validated IDs: %s", ranked_ids)
     return ranked_ids

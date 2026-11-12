@@ -138,7 +138,11 @@ def browse_context(request, use_local_llm=False):
                         [{**item, "id": item["pk"]} for item in relevant_candidates],
                     )[:5]
                     try:
-                        ranked_ids = rank_listing_ids(query, relevant_candidates)
+                        # Fallback above stays word-gated: it has no Llama check.
+                        ranked_ids = rank_listing_ids(
+                            query, relevant_candidates,
+                            {item["pk"]: score for item, score in retrieved},
+                        )
                         if ranked_ids:
                             search_state = "ai"
                         else:
