@@ -80,6 +80,8 @@ class GroqGenerationTests(SimpleTestCase):
                     _generate_response(MESSAGES, metrics)
                 self.assertEqual(raised.exception.reason, reason)
                 self.assertEqual(metrics["error"], reason)
+                # The wait still counts as LLM time for the stage breakdown.
+                self.assertIn("seconds", metrics)
                 if reason == "rate_limited":
                     self.assertEqual(raised.exception.retry_after, "7")
 

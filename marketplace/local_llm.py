@@ -336,6 +336,7 @@ def _generate_response(messages, metrics=None):
     or an ``error`` code, so callers can log AI search usage.
     """
     metrics = {} if metrics is None else metrics
+    started = monotonic()
     if settings.LLM_RANKING_BACKEND == "groq":
         metrics.update(backend="groq", model=settings.GROQ_MODEL)
         try:
@@ -344,6 +345,9 @@ def _generate_response(messages, metrics=None):
             )
         except RankingServiceError as error:
             metrics["error"] = error.reason
+            # A failed call still costs wall time (a timeout waits 15 s); count it
+            # as LLM time so analytics does not blame other server work.
+            metrics["seconds"] = round(monotonic() - started, 3)
             raise
         metrics.update(
             seconds=round(seconds, 3),
@@ -353,7 +357,11 @@ def _generate_response(messages, metrics=None):
         )
         return content
     metrics.update(backend="local", model=settings.LOCAL_LLM_MODEL_ID)
-    return _generate_local(messages, metrics)
+    try:
+        return _generate_local(messages, metrics)
+    except Exception:
+        metrics.setdefault("seconds", round(monotonic() - started, 3))
+        raise
 
 
 def _generate_local(messages, metrics):

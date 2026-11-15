@@ -20,7 +20,7 @@ PUBLIC_ROUTES = ACCOUNT_ROUTES | frozenset({
     "listing-api", "listing-api-demo",
 })
 # Staff-only pages that external reviewers (staff without a campus email) must reach.
-# The views themselves still require login and is_staff.
+# Their views require login (via the Django admin sign-in) and is_staff themselves.
 STAFF_ROUTES = frozenset({"ai-search-analytics"})
 
 
@@ -50,10 +50,9 @@ class CampusAccessMiddleware:
         match = request.resolver_match
         if "admin" in match.namespaces or (not match.namespaces and match.url_name in PUBLIC_ROUTES):
             return None
-        if request.user.is_authenticated and has_campus_access(request.user):
+        if not match.namespaces and match.url_name in STAFF_ROUTES:
             return None
-        if (not match.namespaces and match.url_name in STAFF_ROUTES
-                and request.user.is_authenticated and request.user.is_active and request.user.is_staff):
+        if request.user.is_authenticated and has_campus_access(request.user):
             return None
         json_response = (
             request.path.startswith("/api/")

@@ -62,12 +62,39 @@ class AnalyticsMathTests(SimpleTestCase):
         self.assertEqual(report["tables"]["errors"],
                          [["LLM ranking (Groq)", "rate_limited", 1, "14.3%"],
                           ["Embedding (Gemini)", "rate_limited", 1, "14.3%"]])
-        self.assertEqual(report["tables"]["zero_result_queries"], [["snowboard", 1]])
+        self.assertEqual(report["tables"]["zero_result_queries"], [["snowboard", 1, 0]])
         groups = {row[0] for row in report["charts"]["stages"]["table"]["rows"]}
         self.assertEqual(groups, {"Cache hit", "Cache miss"})
         # Every spec must be JSON for json_script and declare Vega-Lite v5.
         for chart in report["charts"].values():
             self.assertIn("vega-lite/v5", json.loads(json.dumps(chart["spec"]))["$schema"])
+
+    def test_timeouts_share_the_last_latency_bar_and_are_counted(self):
+        rows = [ai_row(total_ms=ms) for ms in (400, 500, 600)] + [ai_row(total_ms=15_200)]
+        chart = Report(rows, days=30).latency_distribution()
+        plotted = [value["seconds"] for value in chart["spec"]["layer"][0]["data"]["values"]]
+        self.assertLess(max(plotted), 5.0)
+        self.assertIn("1 took 5 s or more", chart["caption"])
+        self.assertEqual(chart["table"]["rows"][-1], ["5.0s+", 1])
+        labels = [layer["data"]["values"][0] for layer in chart["spec"]["layer"][2:]]
+        self.assertEqual([(label["align"], label["label"][:3]) for label in labels],
+                         [("right", "p50"), ("left", "p95")])
+
+    def test_zero_result_table_separates_ai_and_keyword_misses(self):
+        rows = [ai_row(query="heat leftovers", result_count=2),
+                ai_row(query="heat leftovers", mode="keyword", state="", result_count=0),
+                ai_row(query="Heat  leftovers", mode="keyword", state="", result_count=0),
+                ai_row(query="snowboard", result_count=0, state="no_results")]
+        self.assertEqual(Report(rows, days=30).zero_result_queries(),
+                         [["heat leftovers", 0, 2], ["snowboard", 1, 0]])
+
+    def test_days_are_grouped_in_campus_time(self):
+        from datetime import datetime, timezone as dt_timezone
+
+        # 03:00 UTC on Nov 15 is 21:00 on Nov 14 in Illinois.
+        late_evening = datetime(2026, 11, 15, 3, 0, tzinfo=dt_timezone.utc)
+        chart = Report([ai_row(created_at=late_evening)], days=30).searches_by_day()
+        self.assertEqual(chart["table"]["rows"], [["2026-11-14", 1, 0]])
 
     def test_keyword_only_data_skips_ai_charts_without_failing(self):
         report = Report([ai_row(mode="keyword", state="")], days=7).build()
@@ -100,7 +127,7 @@ class AnalyticsPageTests(TestCase):
     def test_anonymous_visitors_are_sent_to_sign_in(self):
         response = self.client.get(URL)
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/account/", response["Location"])
+        self.assertIn("/admin/login/", response["Location"])
         self.assertIn("next=", response["Location"])
 
     def test_signed_in_non_staff_are_forbidden(self):
@@ -134,7 +161,7 @@ class AnalyticsPageTests(TestCase):
             self.assertContains(response, f'id="question-{code}"')
         self.assertContains(response, 'id="spec-p1" type="application/json"')
         self.assertContains(response, 'data-vega-spec-id="spec-u3-b"')
-        self.assertContains(response, "2 real searches, 0 simulated")
+        self.assertContains(response, "2 site searches, 0 simulated")
         self.assertContains(response, "vega-charts.js?v=ai-analytics-1")
 
     def test_time_range_and_source_filters(self):

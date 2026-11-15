@@ -25,7 +25,8 @@ SECTIONS = [
          "question": "How often do shoppers choose AI search over keyword search, day by day?"},
         {"code": "U2", "table": "top_queries",
          "table_columns": ["Query", "Searches", "AI share", "Mean results", "No-result searches"],
-         "second_table": "zero_result_queries", "second_columns": ["Query with no results", "Searches"],
+         "second_table": "zero_result_queries",
+         "second_columns": ["Query with no results", "AI searches", "Keyword searches"],
          "question": "What do shoppers search for most, and which requests find nothing (missing inventory)?"},
         {"code": "U3", "chart": "query_length", "second_chart": "filters",
          "question": "What kinds of input do shoppers give: short keywords or full requests, and with which filters?"},
@@ -88,7 +89,9 @@ def _sections(report):
     return sections
 
 
-@login_required
+# Reviewers are staff without a campus email, so they sign in through Django admin;
+# the campus login page accepts only verified @illinois.edu accounts.
+@login_required(login_url="admin:login")
 @require_GET
 def ai_search_analytics(request):
     if not request.user.is_staff:
@@ -109,6 +112,6 @@ def ai_search_analytics(request):
         "range_key": range_key,
         "source_key": source_key,
         "range_options": [("7", "Last 7 days"), ("30", "Last 30 days"), ("all", "All time")],
-        "source_options": [("all", "All data"), ("real", "Real searches"), ("simulated", "Simulated")],
+        "source_options": [("all", "All data"), ("real", "Site searches"), ("simulated", "Simulated")],
         "totals": totals,
     })

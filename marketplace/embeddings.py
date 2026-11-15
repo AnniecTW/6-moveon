@@ -24,6 +24,10 @@ GEMINI_EMBEDDING_TIMEOUT_SECONDS = 15
 TASK_QUERY = "retrieval_query"
 TASK_DOCUMENT = "retrieval_document"
 MAX_CACHED_VECTORS = 5000
+# The free tier counts every text against 100 embed requests per minute. Sending a
+# large catalog in one batch would fail as a whole and retry the whole batch forever,
+# so texts go in chunks and each chunk is cached as soon as it succeeds.
+GEMINI_TEXTS_PER_REQUEST = 80
 
 # Cosine cutoffs differ per model: Gemini scores sit higher overall (an unrelated
 # dresser scored 0.53 for "heat up food quickly"), so MiniLM's values would let
@@ -126,12 +130,13 @@ class GeminiEncoder:
     def __init__(self, api_key, *, model_name=GEMINI_EMBEDDING_MODEL_NAME,
                  dimensions=GEMINI_EMBEDDING_DIMENSIONS,
                  timeout=GEMINI_EMBEDDING_TIMEOUT_SECONDS,
-                 max_cached=MAX_CACHED_VECTORS):
+                 max_cached=MAX_CACHED_VECTORS, chunk_size=GEMINI_TEXTS_PER_REQUEST):
         self.api_key = api_key
         self.model_name = model_name
         self.dimensions = dimensions
         self.timeout = timeout
         self.max_cached = max_cached
+        self.chunk_size = chunk_size
         self._cache = OrderedDict()
         self._lock = Lock()
 
@@ -181,19 +186,24 @@ class GeminiEncoder:
                     found[key] = self._cache[key]
                 else:
                     missing.setdefault(key, text)
-        if missing:
-            vectors = self._embed(list(missing.values()), task_type)
-            logger.info("Gemini embedded %s new texts (%s requested).", len(missing), len(texts))
+        pending = list(missing.items())
+        for start in range(0, len(pending), self.chunk_size):
+            chunk = pending[start:start + self.chunk_size]
+            # A failure raises here; chunks already embedded stay cached, so the
+            # next search resumes where this one stopped instead of starting over.
+            vectors = self._embed([text for _, text in chunk], task_type)
             usage = _embedding_usage.get()
             if usage is not None:
-                usage["texts_sent"] += len(missing)
-                usage["chars"] += sum(len(text) for text in missing.values())
-            found.update(zip(missing, vectors))
+                usage["texts_sent"] += len(chunk)
+                usage["chars"] += sum(len(text) for _, text in chunk)
             with self._lock:
-                for key, vector in zip(missing, vectors):
+                for (key, _), vector in zip(chunk, vectors):
+                    found[key] = vector
                     self._cache[key] = vector
                 while len(self._cache) > self.max_cached:
                     self._cache.popitem(last=False)
+        if missing:
+            logger.info("Gemini embedded %s new texts (%s requested).", len(missing), len(texts))
         return [_normalized(found[key]) if normalize_embeddings else list(found[key])
                 for key in keys]
 

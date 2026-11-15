@@ -9,6 +9,7 @@ import math
 import statistics
 from collections import Counter, defaultdict
 from datetime import timedelta
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.utils import timezone
@@ -46,6 +47,7 @@ A7_DAILY_COST = [
     (100_000_000, 417922.85, 2494100.45, 2404.60, 22505.00),
 ]
 RANGES = {"7": 7, "30": 30, "all": None}
+LATENCY_CAP_S = 5.0
 SOURCES = {"all": None, "real": False, "simulated": True}
 
 
@@ -74,11 +76,16 @@ def search_cost(row):
     }
 
 
+def _local(stamp):
+    """Campus time for grouping; the database stays in UTC."""
+    return timezone.localtime(stamp, ZoneInfo(settings.ANALYTICS_TIME_ZONE))
+
+
 def _day(row):
-    return timezone.localtime(row["created_at"]).date()
+    return _local(row["created_at"]).date()
 
 
-def _base_spec(height=220, **extra):
+def _base_spec(height=240, **extra):
     return {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
         "width": "container", "height": height, "background": "transparent",
@@ -86,13 +93,13 @@ def _base_spec(height=220, **extra):
             "font": "system-ui, sans-serif",
             "view": {"stroke": None},
             "axis": {"labelColor": MUTED, "titleColor": MUTED, "gridColor": GRID,
-                     "domainColor": GRID, "tickColor": GRID, "labelFontSize": 11,
-                     "titleFontSize": 11, "titleFontWeight": "normal"},
+                     "domainColor": GRID, "tickColor": GRID, "labelFontSize": 13,
+                     "titleFontSize": 13, "titleFontWeight": "normal"},
             # Recessive grid: horizontal guides only.
             "axisX": {"grid": False},
             "axisY": {"grid": True, "gridColor": GRID},
             "legend": {"labelColor": INK, "titleColor": MUTED, "orient": "top",
-                       "labelFontSize": 11, "titleFontSize": 11, "titleFontWeight": "normal"},
+                       "labelFontSize": 13, "titleFontSize": 13, "titleFontWeight": "normal"},
             "bar": {"cornerRadiusEnd": 4},
             "line": {"strokeWidth": 2},
         },
@@ -152,7 +159,7 @@ class Report:
         for row in self.ai:
             tokens = (row["prompt_tokens"] or 0) + (row["completion_tokens"] or 0)
             if tokens:
-                stamp = timezone.localtime(row["created_at"])
+                stamp = _local(row["created_at"])
                 groq_minutes[stamp.replace(second=0, microsecond=0)] += tokens
                 groq_days[stamp.date()] += tokens
         limits = settings.AI_FREE_TIER_LIMITS
@@ -174,32 +181,49 @@ class Report:
 
     # ------------------------------------------------- system performance
     def latency_distribution(self):
-        """P1: how AI search latency is distributed, with p50/p95 marked."""
-        values = [{"seconds": round(row["total_ms"] / 1000, 3)} for row in self.ai]
-        if not values:
+        """P1: how AI search latency is distributed, with p50/p95 marked.
+
+        Rare timeouts (~15 s) would stretch the axis and squeeze every other bar,
+        so times beyond LATENCY_CAP_S share the last bar and the caption counts them.
+        """
+        seconds = [row["total_ms"] / 1000 for row in self.ai]
+        if not seconds:
             return None
-        seconds = [value["seconds"] for value in values]
-        markers = [{"label": f"p50 {percentile(seconds, 50):.2f}s", "seconds": percentile(seconds, 50)},
-                   {"label": f"p95 {percentile(seconds, 95):.2f}s", "seconds": percentile(seconds, 95)}]
+        cap = LATENCY_CAP_S
+        values = [{"seconds": round(min(value, cap - 0.001), 3)} for value in seconds]
+        p50, p95 = percentile(seconds, 50), percentile(seconds, 95)
+        # p50 labelled on the left of its line and p95 on the right, so close values never collide.
+        markers = [{"label": f"p50 {p50:.2f}s", "seconds": min(p50, cap), "align": "right", "dx": -4},
+                   {"label": f"p95 {p95:.2f}s", "seconds": min(p95, cap), "align": "left", "dx": 4}]
+        x_bin = {"extent": [0, cap], "step": 0.25}
         spec = _base_spec(layer=[
             {"data": {"values": values}, "mark": {"type": "bar", "color": BLUE, "binSpacing": 2},
              "encoding": {
-                 "x": {"field": "seconds", "bin": {"maxbins": 30}, "title": "AI search time (s)"},
+                 "x": {"field": "seconds", "bin": x_bin, "title": f"AI search time (s); last bar is {cap:.0f} s or more",
+                       "scale": {"domain": [0, cap]},
+                       "axis": {"values": [step / 2 for step in range(int(cap * 2) + 1)], "format": ".1f"}},
                  "y": {"aggregate": "count", "title": "Searches"},
-                 "tooltip": [{"field": "seconds", "bin": {"maxbins": 30}, "title": "Seconds"},
+                 "tooltip": [{"field": "seconds", "bin": x_bin, "title": "Seconds"},
                              {"aggregate": "count", "title": "Searches"}]}},
             {"data": {"values": markers}, "mark": {"type": "rule", "color": INK, "strokeDash": [4, 3]},
              "encoding": {"x": {"field": "seconds", "type": "quantitative"},
                           "tooltip": [{"field": "label", "title": "Percentile"}]}},
-            {"data": {"values": markers},
-             "mark": {"type": "text", "align": "left", "dx": 4, "dy": -4, "color": INK, "fontSize": 11},
+        ] + [
+            {"data": {"values": [marker]},
+             "mark": {"type": "text", "align": marker["align"], "dx": marker["dx"], "dy": -4,
+                      "color": INK, "fontSize": 13},
              "encoding": {"x": {"field": "seconds", "type": "quantitative"},
-                          "y": {"value": 8}, "text": {"field": "label"}}},
+                          "y": {"value": 8}, "text": {"field": "label"}}}
+            for marker in markers
         ])
-        buckets = Counter(min(int(value // 0.5) * 0.5, 5.0) for value in seconds)
-        rows = [[f"{start:.1f}–{start + 0.5:.1f}s" if start < 5 else "5.0s+", count]
+        buckets = Counter(min(int(value // 0.5) * 0.5, cap) for value in seconds)
+        rows = [[f"{start:.1f}–{start + 0.5:.1f}s" if start < cap else f"{cap:.1f}s+", count]
                 for start, count in sorted(buckets.items())]
-        return _chart(spec, ["Time", "Searches"], rows, f"n = {len(values)} AI searches")
+        slow = sum(value >= cap for value in seconds)
+        caption = f"n = {len(seconds)} AI searches"
+        if slow:
+            caption += f"; {slow} took {cap:.0f} s or more (LLM timeouts) and sit in the last bar"
+        return _chart(spec, ["Time", "Searches"], rows, caption)
 
     def _stage_group(self, row):
         if row["embedding_texts_sent"] is None:
@@ -225,7 +249,7 @@ class Report:
             for index, ((name, _), value) in enumerate(zip(series, (embed, llm, other))):
                 values.append({"group": label, "series": name, "ms": round(value), "order": index})
             rows.append([group, len(items), round(embed), round(llm), round(other)])
-        spec = _base_spec(height=40 + 44 * len(groups), data={"values": values},
+        spec = _base_spec(height=50 + 50 * len(groups), data={"values": values},
                           mark={"type": "bar", "stroke": "#fffefa", "strokeWidth": 2},
                           encoding={
                               "y": {"field": "group", "type": "nominal", "title": None, "sort": None,
@@ -258,7 +282,8 @@ class Report:
                                     "title": None, "axis": {"format": "%b %d"}},
                               "y": {"field": "count", "type": "quantitative", "stack": True,
                                     "title": "AI searches"},
-                              "color": _color(series, "Outcome"),
+                              # Six outcomes at 13px outgrow a half-width card, so wrap them.
+                              "color": {**_color(series, "Outcome"), "legend": {"columns": 3}},
                               "order": {"field": "order", "type": "quantitative"},
                               "tooltip": [{"field": "day", "type": "temporal", "title": "Day"},
                                           {"field": "series", "title": "Outcome"},
@@ -379,10 +404,17 @@ class Report:
                 for query, items in ranked]
 
     def zero_result_queries(self, limit=10):
-        """U2: queries that found nothing, a signal of missing inventory."""
-        counts = Counter(" ".join(row["query"].lower().split())
-                         for row in self.rows if row["result_count"] == 0)
-        return [[query, count] for query, count in counts.most_common(limit)]
+        """U2: queries that found nothing, split by mode.
+
+        AI misses suggest missing inventory; keyword-only misses show requests
+        that keyword matching cannot read (full sentences) but AI search can.
+        """
+        counts = defaultdict(lambda: {"ai": 0, "keyword": 0})
+        for row in self.rows:
+            if row["result_count"] == 0:
+                counts[" ".join(row["query"].lower().split())][row["mode"]] += 1
+        ranked = sorted(counts.items(), key=lambda item: (-sum(item[1].values()), item[0]))[:limit]
+        return [[query, modes["ai"], modes["keyword"]] for query, modes in ranked]
 
     # ---------------------------------------------------------------- cost
     def cost_by_day(self):
@@ -495,8 +527,13 @@ class Report:
                                       {"field": "low", "format": "$,.2f", "title": "Low / month"},
                                       {"field": "high", "format": "$,.2f", "title": "High / month"}]}},
         ])
+        requests_per_day = A7_REQUESTS_PER_DAU * A7_DAILY_COST[0][0]
+        hf_low, hf_high = (cost / requests_per_day for cost in A7_DAILY_COST[0][3:5])
         return _chart(spec, ["DAU", "MoveOn / month", "A7 HF API / month", "A7 AWS / month"], rows,
-                      f"{A7_REQUESTS_PER_DAU} AI searches per user per day, as in A7; bands show A7's model range")
+                      f"Per request: MoveOn ${per_search:.6f} vs A7 HF API ${hf_low:.6f}–${hf_high:.6f}. "
+                      "Both are a few hundred tokens on ~$0.1-per-million-token hosted models, so the "
+                      f"lines meet. A7 priced other tasks (classification, extraction), not search. "
+                      f"{A7_REQUESTS_PER_DAU} requests per user per day, as in A7; bands show A7's model range.")
 
 
 def load_rows(queryset):

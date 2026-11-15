@@ -1,7 +1,7 @@
 {% extends "marketplace/base.html" %}
 {% load static %}
 {% block title %}AI Search Analytics | MoveOn{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/marketplace/analytics.css' %}?v=ai-analytics-1" />{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/marketplace/analytics.css' %}?v=ai-analytics-2" />{% endblock %}
 {% block listing_content %}
 <section class="analytics" aria-labelledby="analytics-title">
   <header class="analytics-heading">
@@ -22,7 +22,7 @@
       </select>
     </label>
     <noscript><button class="button" type="submit">Apply</button></noscript>
-    <p class="analytics-source-note">Stored logs: {{ totals.real }} real search{{ totals.real|pluralize:"es" }}, {{ totals.simulated }} simulated. Simulated rows follow distributions measured on the live system.</p>
+    <p class="analytics-source-note">Stored logs: {{ totals.real }} site search{{ totals.real|pluralize:"es" }}, {{ totals.simulated }} simulated. Site searches are every search made on MoveOn, including the team's own testing. Simulated rows are generated from latency and token counts measured with the real Gemini and Groq APIs on 2026-11-15.</p>
   </form>
 
   {% if report.empty %}
@@ -94,7 +94,7 @@
     <ul>
       <li><strong>Percentiles, not means, for time.</strong> Search time is right-skewed (cache misses, slow API calls), so p50 shows a typical search and p95 the slow tail.</li>
       <li><strong>Distributions and groups.</strong> Histograms show spread; stage and query-length charts compare groups, each labeled with its sample size.</li>
-      <li><strong>Trends.</strong> Daily counts show change over time; read short ranges with care when n is small.</li>
+      <li><strong>Trends.</strong> Daily counts show change over time; read short ranges with care when n is small. Days and per-minute peaks use US Central time (campus time).</li>
       <li><strong>Cost.</strong> Groq reports exact tokens; Gemini embedding tokens are estimated at 4 characters per token. Prices are paid-tier list prices; the projection assumes 5 AI searches per user per day, as in A7, and scales linearly.</li>
     </ul>
   </section>

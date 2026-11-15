@@ -60,6 +60,9 @@ AI_TOKEN_PRICES = {
 }
 # Gemini embedding responses carry no token counts; estimate from characters.
 EMBEDDING_CHARS_PER_TOKEN = 4
+# The site stores and serves UTC; the analytics dashboard groups days and minutes
+# in campus time so an evening search is not counted on the next day.
+ANALYTICS_TIME_ZONE = "America/Chicago"
 # Free-tier ceilings the dashboard compares observed usage against.
 AI_FREE_TIER_LIMITS = {
     "groq_tokens_per_minute": 8_000,

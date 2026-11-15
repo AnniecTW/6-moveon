@@ -1,14 +1,16 @@
-/* Staff AI search analytics dashboard. */
+/* Staff AI search analytics dashboard. Base text is 16px (site default 14px). */
 .analytics {
   width: 100%;
   padding-block: 22px 64px;
+  font-size: 16px;
+  line-height: 1.55;
 }
 .analytics-heading {
   padding: 18px 0 17px;
   border-bottom: 1px solid var(--border);
 }
 .analytics-heading h1 {
-  font-size: clamp(30px, 4vw, 44px);
+  font-size: clamp(34px, 4.5vw, 50px);
 }
 .analytics-subtitle {
   max-width: 72ch;
@@ -26,11 +28,11 @@
   display: grid;
   gap: 4px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 .analytics-filters select {
-  min-width: 160px;
-  padding: 7px 10px;
+  min-width: 180px;
+  padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
@@ -40,11 +42,11 @@
 .analytics-source-note {
   flex-basis: 100%;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 .analytics-kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
   margin: 0 0 8px;
   padding: 0;
@@ -61,15 +63,15 @@
 }
 .analytics-kpi-label {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 .analytics-kpi-value {
-  font: 500 26px/1.2 var(--serif);
+  font: 500 30px/1.2 var(--serif);
   color: var(--ink);
 }
 .analytics-kpi-detail {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 .analytics-code {
   justify-self: start;
@@ -77,15 +79,15 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--muted);
-  font: 600 11px/1.5 system-ui, sans-serif;
+  font: 600 12px/1.5 system-ui, sans-serif;
   letter-spacing: 0.04em;
 }
 .analytics-section {
   padding-top: 28px;
 }
 .analytics-section > h2 {
-  margin-bottom: 12px;
-  font-size: 26px;
+  margin-bottom: 14px;
+  font-size: 30px;
 }
 .analytics-grid {
   display: grid;
@@ -106,7 +108,7 @@
   grid-column: 1 / -1;
 }
 .analytics-card h3 {
-  font: 500 16px/1.4 var(--serif);
+  font: 500 19px/1.4 var(--serif);
 }
 .analytics-card h3 .analytics-code {
   margin-right: 4px;
@@ -118,11 +120,11 @@
 }
 .analytics-caption {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 .analytics-data summary {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
 }
 .analytics-data table,
@@ -130,7 +132,7 @@
   width: 100%;
   margin-top: 6px;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 14px;
 }
 .analytics-data th,
 .analytics-data td,

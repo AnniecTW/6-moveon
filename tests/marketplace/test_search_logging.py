@@ -74,6 +74,7 @@ class RecordedSearchTests(SearchFixtures):
         log = AISearchLog.objects.get()
         self.assertEqual((log.state, log.llm_error), ("semantic_fallback_error", "rate_limited"))
         self.assertIsNone(log.prompt_tokens)
+        self.assertIsNotNone(log.llm_ms)
 
     def test_keyword_search_records_mode_and_results_only(self, retrieve, post):
         self.client.force_login(self.seller)

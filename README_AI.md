@@ -6,6 +6,7 @@
 - [Guardrails and Error Handling](#guardrails-and-error-handling) · [Search](#search-guardrails) · [Bundling](#bundling-guardrails) · [Pricing](#pricing-guardrails) · [Photo autofill](#photo-autofill-guardrails)
 - [S2.2: Architecture Explanation](#s22-architecture-explanation) · [Listing search diagram](#natural-language-listing-search-diagram) · [Bundling diagram](#ai-bundle-builder-diagram) · [Pricing diagram](#pricing-suggestions-diagram)
 - [S2.3: Model Selection Rationale](#s23-model-selection-rationale) · [Setup](#setup)
+- [Production Deployment and Monitoring](#production-deployment-and-monitoring)
 - [Part 3: Evaluation](#part-3-evaluation-of-the-integrated-features) · [S3.1 Inputs](#s31-realistic-app-inputs) · [S3.2 Outputs](#s32-output-evaluation) · [S3.3 Failures](#s33-failure-analysis) · [S3.4 Improvement](#s34-improvement)
 
 ## S2.1: AI Workflow Write-Up
@@ -165,7 +166,22 @@ MoveOn uses `gemini-3.5-flash-lite`, a hosted multimodal model available through
 
 The project README explains environment setup, server startup, and model downloads. [AI feature setup][ai-setup]
 
-Local search uses `LOCAL_LLM_MODEL_ID` and `HF_TOKEN`. Bundling and photo autofill share `GEMINI_API_KEY`. [AI settings][ai-settings]
+Local search uses `LOCAL_LLM_MODEL_ID` and `HF_TOKEN`. Bundling and photo autofill share `GEMINI_API_KEY`. [AI settings][ai-settings] Production replaces the two local search models with hosted APIs; see [Production Deployment and Monitoring](#production-deployment-and-monitoring).
+
+## Production Deployment and Monitoring
+
+PythonAnywhere's free tier (about 512 MB of disk, allowlisted outbound hosts) cannot hold torch or the local models, so production swaps both search models for hosted APIs through settings. Development keeps the local models.
+
+| Search stage | Development | Production | Setting |
+|---|---|---|---|
+| Retrieval embeddings (also pricing suggestions) | `all-MiniLM-L6-v2` | `gemini-embedding-001` | `EMBEDDING_BACKEND=gemini` |
+| Reranking | `Llama-3.2-3B-Instruct` (off by default) | `openai/gpt-oss-20b` on Groq | `LOCAL_LLM_ENABLED=true`, `LLM_RANKING_BACKEND=groq` |
+
+- **Calibration.** Gemini scores run higher than MiniLM's, so each A9 cutoff was translated to the Gemini cutoff with the same recall or false-positive rate ([`calibrate_embeddings`](marketplace/management/commands/calibrate_embeddings.py), [results](docs/search-calibration/gemini_calibration.json)).
+- **Reranker choice.** On the 17 A9 cases, `gpt-oss-20b` cut irrelevant results from 13 to 3 (precision 0.76 to 0.93) at a small nDCG cost, in about 0.34 s per search ([`compare_ranking_backends`](marketplace/management/commands/compare_ranking_backends.py), [results](docs/search-calibration/ranking_comparison.json)). Rate limits and timeouts fall back to the embedding results.
+- **Analytics (A10).** Every search is logged as an [`AISearchLog`](marketplace/models.py) row with stage timing, token counts, and error codes. The staff-only dashboard at `/analytics/ai-search/` answers nine performance, user-behavior, and cost questions ([`ai_analytics.py`](marketplace/ai_analytics.py)).
+
+Production `.env` additions (keys are never committed): `EMBEDDING_BACKEND=gemini`, `LOCAL_LLM_ENABLED=true`, `LLM_RANKING_BACKEND=groq`, `GROQ_API_KEY`, `GEMINI_API_KEY`. After deploying, run `migrate`, `collectstatic`, `ensure_reviewer_account` (prompts for the password), and optionally `seed_ai_search_logs --replace` for simulated history.
 
 ## Part 3: Evaluation of the Integrated Features
 

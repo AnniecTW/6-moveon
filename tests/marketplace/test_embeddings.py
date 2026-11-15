@@ -4,7 +4,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from marketplace.embeddings import (
     TASK_DOCUMENT,
@@ -220,3 +220,81 @@ class SimilarityThresholdTests(SimpleTestCase):
         with patch.dict("marketplace.embeddings.SIMILARITY_THRESHOLDS",
                         {"gemini": dict.fromkeys(GEMINI_TEST_THRESHOLDS)}):
             self.assertEqual(gate_listing_ids("desk", [1], catalog), [1])
+
+
+class CalibratedGeminiThresholdTests(SimpleTestCase):
+    @override_settings(EMBEDDING_BACKEND="gemini")
+    def test_gemini_thresholds_are_calibrated_and_search_stays_loosest_listing_cutoff(self):
+        from marketplace.embeddings import similarity_threshold
+
+        values = {name: similarity_threshold(name)
+                  for name in ("search", "fallback", "semantic_only", "gate", "pricing")}
+        self.assertEqual(values, {"search": 0.62, "fallback": 0.645, "semantic_only": 0.63,
+                                  "gate": 0.645, "pricing": 0.615})
+        # Same ordering as MiniLM: the Llama shortlist admits more than displayed results.
+        self.assertLess(values["search"], values["semantic_only"])
+        self.assertLess(values["semantic_only"], values["fallback"])
+
+
+class ActiveModelNameTests(TestCase):
+    def test_name_follows_the_backend(self):
+        from marketplace.embeddings import active_model_name
+
+        with override_settings(EMBEDDING_BACKEND="local"):
+            self.assertEqual(active_model_name(), "all-MiniLM-L6-v2")
+        with override_settings(EMBEDDING_BACKEND="gemini", GEMINI_EMBEDDING_MODEL="gemini-embedding-001"):
+            self.assertEqual(active_model_name(), "gemini-embedding-001")
+
+    @override_settings(EMBEDDING_BACKEND="gemini", GEMINI_EMBEDDING_MODEL="gemini-embedding-001")
+    def test_type_suggestion_endpoint_reports_the_model_in_use(self):
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+
+        from django.utils import timezone as django_timezone
+
+        user = get_user_model().objects.create_user(
+            username="model-seller", email="model-seller@illinois.edu", password="test-password",
+            display_name="Model Seller", email_verified=True, email_verified_at=django_timezone.now(),
+        )
+        self.client.force_login(user)
+        with patch("marketplace.views.suggest_types", return_value=[]):
+            response = self.client.get(reverse("listing-type-suggestions"), {"title": "small desk"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["model"], "gemini-embedding-001")
+
+
+@patch("google.generativeai.configure")
+class ChunkedEmbeddingTests(SimpleTestCase):
+    def test_large_catalogs_are_sent_in_chunks(self, configure):
+        with patch("google.generativeai.embed_content", side_effect=fake_embed_content) as embed:
+            vectors = GeminiEncoder("test-key", chunk_size=2).encode(["a", "bb", "ccc", "dddd", "eeeee"])
+        self.assertEqual(len(vectors), 5)
+        self.assertEqual([len(call.kwargs["content"]) for call in embed.call_args_list], [2, 2, 1])
+
+    def test_a_rate_limited_chunk_keeps_earlier_chunks_cached(self, configure):
+        encoder = GeminiEncoder("test-key", chunk_size=2)
+        texts = ["a", "bb", "ccc", "dddd", "eeeee"]
+        with patch("google.generativeai.embed_content",
+                   side_effect=[fake_embed_content(model="m", content=["a", "bb"], task_type=None,
+                                                   output_dimensionality=None, request_options=None),
+                                RuntimeError("429 quota")]):
+            with self.assertRaises(EmbeddingError):
+                encoder.encode(texts)
+        self.assertEqual(len(encoder._cache), 2)
+        # The next search sends only the texts that are still missing.
+        with patch("google.generativeai.embed_content", side_effect=fake_embed_content) as embed:
+            self.assertEqual(len(encoder.encode(texts)), 5)
+        self.assertEqual([call.kwargs["content"] for call in embed.call_args_list],
+                         [["ccc", "dddd"], ["eeeee"]])
+
+    def test_usage_counts_only_chunks_that_succeeded(self, configure):
+        from marketplace.embeddings import track_embedding_usage
+
+        encoder = GeminiEncoder("test-key", chunk_size=2)
+        with patch("google.generativeai.embed_content",
+                   side_effect=[fake_embed_content(model="m", content=["a", "bb"], task_type=None,
+                                                   output_dimensionality=None, request_options=None),
+                                RuntimeError("429 quota")]):
+            with track_embedding_usage() as usage, self.assertRaises(EmbeddingError):
+                encoder.encode(["a", "bb", "ccc"])
+        self.assertEqual(usage, {"texts_sent": 2, "chars": 3})
