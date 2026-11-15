@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .models import (
+    AISearchLog,
     ItemCategory,
     ItemType,
     Listing,
@@ -102,3 +103,20 @@ class TransactionAdmin(admin.ModelAdmin):
 class WatchlistItemAdmin(admin.ModelAdmin):
     list_display = ("user", "listing", "created_at")
     search_fields = ("user__username", "listing__title")
+
+
+@admin.register(AISearchLog)
+class AISearchLogAdmin(admin.ModelAdmin):
+    """Read-only: logs are evidence for the analytics dashboard, not editable data."""
+
+    list_display = ("created_at", "mode", "query", "state", "result_count", "total_ms",
+                    "llm_model", "llm_error", "embedding_error", "is_simulated")
+    list_filter = ("mode", "state", "is_simulated", "llm_error", "embedding_error")
+    search_fields = ("query",)
+    date_hierarchy = "created_at"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

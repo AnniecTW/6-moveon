@@ -7,6 +7,7 @@ from django.db.models.signals import post_delete
 from django.core.exceptions import ValidationError
 from django.dispatch import receiver
 from django.urls import reverse
+from django.utils import timezone
 
 from .validation import ValidatedSaveModel, database_for, participant_errors
 
@@ -484,3 +485,56 @@ class Transaction(ValidatedSaveModel):
 
     def __str__(self):
         return f"Transaction #{self.pk}: {self.listing.title}"
+
+
+class AISearchLog(models.Model):
+    """One search request that had a query, for the AI search analytics dashboard.
+
+    Stores token counts rather than prices; the dashboard prices tokens from
+    settings, so a price change never rewrites stored history.
+    """
+
+    class Mode(models.TextChoices):
+        AI = "ai", "AI"
+        KEYWORD = "keyword", "Keyword"
+
+    # A default instead of auto_now_add lets the simulation command backfill history.
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="ai_search_logs",
+    )
+    mode = models.CharField(max_length=10, choices=Mode.choices)
+    query = models.CharField(max_length=200)
+    # Names of the structured filters the shopper set, e.g. ["max_price", "category"].
+    filters_used = models.JSONField(default=list, blank=True)
+    # browse_context's search_state; blank for keyword searches.
+    state = models.CharField(max_length=32, blank=True)
+    result_count = models.PositiveIntegerField(default=0)
+    candidate_count = models.PositiveIntegerField(null=True, blank=True)
+    retrieved_count = models.PositiveIntegerField(null=True, blank=True)
+    total_ms = models.PositiveIntegerField()
+    embedding_ms = models.PositiveIntegerField(null=True, blank=True)
+    llm_ms = models.PositiveIntegerField(null=True, blank=True)
+    embedding_model = models.CharField(max_length=80, blank=True)
+    # Texts that missed the embedding cache and were sent to the API.
+    embedding_texts_sent = models.PositiveIntegerField(null=True, blank=True)
+    # Characters sent for embedding; the API reports no token counts, so cost is estimated.
+    embedding_chars = models.PositiveIntegerField(null=True, blank=True)
+    embedding_error = models.CharField(max_length=32, blank=True)
+    llm_model = models.CharField(max_length=80, blank=True)
+    prompt_tokens = models.PositiveIntegerField(null=True, blank=True)
+    completion_tokens = models.PositiveIntegerField(null=True, blank=True)
+    reasoning_tokens = models.PositiveIntegerField(null=True, blank=True)
+    llm_error = models.CharField(max_length=32, blank=True)
+    is_simulated = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        indexes = [
+            # The dashboard filters by data source and time window.
+            models.Index(fields=["is_simulated", "created_at"], name="aisearchlog_source_time"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_mode_display()} search {self.query[:40]!r} ({self.state or 'keyword'})"
