@@ -127,8 +127,9 @@ class LocalLLMSearchViewTests(TestCase):
     @patch("marketplace.local_llm._generate_response")
     def test_irrelevant_dresser_cannot_return_through_ai_or_fallback(self, generate, semantic):
         dresser = self._listing(self.first.item_type, "Wood dresser", "Bedroom storage", "40")
+        # Below MIN_GATE_SIMILARITY (0.40): an unrelated Llama pick must still need a shared word.
         semantic.side_effect = lambda query, candidates: [
-            (item, .8) for item in candidates if item["pk"] == dresser.pk
+            (item, .35) for item in candidates if item["pk"] == dresser.pk
         ]
         for model_response in (json.dumps({"ids": [dresser.pk]}), '{"ids":[]}', RuntimeError("offline")):
             with self.subTest(model_response=model_response):
