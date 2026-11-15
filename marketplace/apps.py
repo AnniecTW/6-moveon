@@ -12,6 +12,11 @@ class MarketplaceConfig(AppConfig):
     name = "marketplace"
 
     def ready(self):
+        from django.conf import settings
+
+        # The hosted backend has no model to load; warming would spend an API call.
+        if settings.EMBEDDING_BACKEND != "local":
+            return
         # Django imports apps for tests and management commands too. Warm only
         # in the actual runserver process, or when another server opts in.
         is_runserver = "runserver" in sys.argv

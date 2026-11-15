@@ -4,6 +4,7 @@ import logging
 from functools import lru_cache
 from time import perf_counter
 
+from .embeddings import encode_query
 from .pricing.semantic import _model
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,7 @@ def retrieve(query, candidates, *, model=None, limit=MAX_RERANK_CANDIDATES):
     try:
         encoder = model or _model()
         documents = tuple(listing_document(item) for item in candidates)
-        query_vector = encoder.encode([query[:200]], normalize_embeddings=True)[0]
+        query_vector = encode_query(encoder, [query[:200]])[0]
         vectors = (encoder.encode(list(documents), normalize_embeddings=True)
                    if model is not None else _catalog_vectors(documents))
         scored = []

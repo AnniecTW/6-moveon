@@ -4,6 +4,9 @@ from collections import defaultdict
 from functools import lru_cache
 from threading import Lock
 
+from django.conf import settings
+
+from ..embeddings import encode_query, load_encoder
 from .initial import MIN_TYPE_ONLY, Observation, SOURCE_PATH, load_source, normalize
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
@@ -17,14 +20,20 @@ _model_lock = Lock()
 
 
 def _model():
-    """Load once even when warmup and a request arrive together."""
+    """Load once even when warmup and a request arrive together.
+
+    Listing search shares this encoder, so EMBEDDING_BACKEND switches both.
+    """
     global _model_instance
     if _model_instance is None:
         with _model_lock:
             if _model_instance is None:
-                from sentence_transformers import SentenceTransformer
-
-                _model_instance = SentenceTransformer(MODEL_NAME)
+                _model_instance = load_encoder(
+                    settings.EMBEDDING_BACKEND,
+                    local_model_name=MODEL_NAME,
+                    api_key=settings.GEMINI_API_KEY,
+                    gemini_model_name=settings.GEMINI_EMBEDDING_MODEL,
+                )
     return _model_instance
 
 
@@ -73,7 +82,7 @@ def suggest_types(records: list[Observation], types, *, title: str,
         return []
     if model is None:
         document_vectors = _document_vectors(tuple(texts))
-        query_vector = _model().encode([query], normalize_embeddings=True)[0]
+        query_vector = encode_query(_model(), [query])[0]
     else:
         # Test injection keeps the encoder independent of process-global cache.
         vectors = model.encode([query, *texts], normalize_embeddings=True)

@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
+
 from moveon.secrets_environment import env, is_a5_preview_settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,6 +40,13 @@ LOCAL_LLM_MODEL_ID = env(
 )
 HF_TOKEN = env("HF_TOKEN", default="")
 LOCAL_LLM_ENABLED = env.bool("LOCAL_LLM_ENABLED", default=True)
+# Listing search and pricing type discovery share one embedding backend.
+# "local" runs MiniLM with torch; "gemini" calls the hosted API with
+# GEMINI_API_KEY for hosts that cannot install torch (PythonAnywhere).
+EMBEDDING_BACKEND = env("EMBEDDING_BACKEND", default="local")
+if EMBEDDING_BACKEND not in {"local", "gemini"}:
+    raise ImproperlyConfigured("EMBEDDING_BACKEND must be 'local' or 'gemini'.")
+GEMINI_EMBEDDING_MODEL = env("GEMINI_EMBEDDING_MODEL", default="gemini-embedding-001")
 
 
 # Application definition

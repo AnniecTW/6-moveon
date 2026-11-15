@@ -1,13 +1,17 @@
 import math
+from datetime import datetime, timezone
+from decimal import Decimal
+from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 
 from marketplace.embeddings import (
     TASK_DOCUMENT,
     TASK_QUERY,
     EmbeddingError,
     GeminiEncoder,
+    load_encoder,
 )
 
 
@@ -86,3 +90,79 @@ class GeminiEncoderTests(SimpleTestCase):
         embed.side_effect = lambda **kwargs: {"embedding": [[1.0, 0.0]]}
         with self.assertRaises(EmbeddingError):
             GeminiEncoder("test-key").encode(["desk", "chair"])
+
+
+class RecordingEmbed:
+    """Fake embed_content that records each request's task type and texts."""
+
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, *, model, content, task_type, output_dimensionality, request_options):
+        self.calls.append((task_type, list(content)))
+        return {"embedding": [[1.0, 0.0] for _ in content]}
+
+
+@patch("google.generativeai.configure")
+class EmbeddingBackendTests(SimpleTestCase):
+    def test_gemini_backend_builds_gemini_encoder_from_settings(self, configure):
+        from marketplace.pricing import semantic
+
+        with override_settings(EMBEDDING_BACKEND="gemini", GEMINI_API_KEY="test-key",
+                               GEMINI_EMBEDDING_MODEL="gemini-embedding-test"), \
+                patch.object(semantic, "_model_instance", None):
+            encoder = semantic._model()
+            self.assertIsInstance(encoder, GeminiEncoder)
+            self.assertEqual(encoder.api_key, "test-key")
+            self.assertEqual(encoder.model_name, "gemini-embedding-test")
+            self.assertIs(semantic._model(), encoder)
+
+    @patch("sentence_transformers.SentenceTransformer")
+    def test_local_backend_keeps_minilm(self, sentence_transformer, configure):
+        encoder = load_encoder("local", local_model_name="minilm", api_key="",
+                               gemini_model_name="unused")
+        sentence_transformer.assert_called_once_with("minilm")
+        self.assertIs(encoder, sentence_transformer.return_value)
+
+    def test_listing_search_embeds_query_and_listings_with_their_task_types(self, configure):
+        from marketplace.search_semantic import retrieve
+
+        fake = RecordingEmbed()
+        candidates = [{"pk": 1, "title": "Microwave", "category": "Kitchen", "description": ""}]
+        with patch("google.generativeai.embed_content", side_effect=fake):
+            result = retrieve("heat up food", candidates, model=GeminiEncoder("test-key"))
+        self.assertEqual(len(result), 1)
+        self.assertEqual(fake.calls, [
+            (TASK_QUERY, ["heat up food"]),
+            (TASK_DOCUMENT, ["Microwave. Kitchen"]),
+        ])
+
+    def test_pricing_suggestions_embed_title_as_query(self, configure):
+        from marketplace.pricing import semantic
+        from marketplace.pricing.initial import Observation
+
+        category = SimpleNamespace(pk=1, category_name="Furniture")
+        kind = SimpleNamespace(pk=1, category=category, category_id=1, item_type_name="Bookshelf")
+        rows = [Observation("1", datetime(2023, 6, 1, tzinfo=timezone.utc), Decimal("35"),
+                            "furniture", "bookshelf", "GOOD", "", "wooden bookcase", "sample")]
+        fake = RecordingEmbed()
+        semantic._document_vectors.cache_clear()
+        try:
+            with patch("google.generativeai.embed_content", side_effect=fake), \
+                    patch.object(semantic, "_model", return_value=GeminiEncoder("test-key")):
+                result = semantic.suggest_types(rows, [kind], title="Bookcase",
+                                                category="Furniture", item_type="")
+        finally:
+            semantic._document_vectors.cache_clear()
+        self.assertEqual(result[0]["item_type"], "Bookshelf")
+        self.assertEqual(sorted(task for task, _ in fake.calls), [TASK_DOCUMENT, TASK_QUERY])
+        self.assertIn((TASK_QUERY, ["Bookcase Furniture"]), fake.calls)
+
+    @override_settings(EMBEDDING_BACKEND="gemini")
+    @patch.dict("os.environ", {"MOVEON_PRELOAD_PRICING": "1"})
+    def test_startup_preload_skips_the_hosted_backend(self, configure):
+        from django.apps import apps
+
+        with patch("marketplace.pricing.semantic._model") as model:
+            apps.get_app_config("marketplace").ready()
+        model.assert_not_called()

@@ -108,3 +108,19 @@ class GeminiEncoder:
                     self._cache.popitem(last=False)
         return [_normalized(found[key]) if normalize_embeddings else list(found[key])
                 for key in keys]
+
+
+def load_encoder(backend, *, local_model_name, api_key, gemini_model_name):
+    """Build the configured encoder; callers keep one per process."""
+    if backend == "gemini":
+        return GeminiEncoder(api_key, model_name=gemini_model_name)
+    from sentence_transformers import SentenceTransformer
+
+    return SentenceTransformer(local_model_name)
+
+
+def encode_query(encoder, texts):
+    """Embed search text; Gemini uses its query task, MiniLM is symmetric."""
+    if isinstance(encoder, GeminiEncoder):
+        return encoder.encode(texts, normalize_embeddings=True, task_type=TASK_QUERY)
+    return encoder.encode(texts, normalize_embeddings=True)
