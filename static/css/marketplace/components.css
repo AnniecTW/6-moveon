@@ -284,17 +284,66 @@
   color: var(--muted);
   margin: 12px 0 20px;
 }
+/* A brief, self-dismissing note on how AI search produced the results. */
 .ai-search-notice {
-  flex-basis: 100%;
-  padding: 14px 18px;
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 40;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: min(460px, calc(100vw - 32px));
+  padding: 14px 14px 14px 18px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--canvas);
+  border-radius: 14px;
+  background: var(--surface);
   color: var(--ink);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 16%);
   line-height: 1.5;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    visibility 0s linear 0.25s;
+}
+.ai-search-notice.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+  transition-delay: 0s;
 }
 .ai-search-notice p {
+  flex: 1;
   margin: 0;
+}
+.ai-search-notice__close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ai-search-notice__close:hover,
+.ai-search-notice__close:focus-visible {
+  background: var(--soft);
+  color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-search-notice,
+  .ai-search-notice.is-visible {
+    transform: translate(-50%, 0);
+    transition: opacity 0.01s, visibility 0s;
+  }
 }
 .ai-search-toast {
   width: min(520px, calc(100vw - 32px));

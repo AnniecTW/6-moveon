@@ -1,13 +1,12 @@
 <div class="results-meta">
-  {% if ai_search_error %}<p class="muted ai-search-error" role="alert">{{ ai_search_error }}</p>{% endif %}
-  {% if ai_search_fallback %}<div class="ai-search-notice" role="status">
-    <p><strong>{{ ai_search_fallback_title }}</strong> {{ ai_search_fallback_message }}</p>
-  </div>
-  <dialog class="ai-search-toast" data-ai-search-toast aria-labelledby="ai-search-toast-title" aria-describedby="ai-search-toast-message">
-    <h2 id="ai-search-toast-title">Llama search status</h2>
-    <p id="ai-search-toast-message">{{ ai_search_fallback_message }}</p>
+  {% if ai_search_status.alert %}<dialog class="ai-search-toast" data-ai-search-toast data-ai-search-state="{{ ai_search_status.state }}" aria-labelledby="ai-search-toast-title" aria-describedby="ai-search-toast-message">
+    <h2 id="ai-search-toast-title">AI search status</h2>
+    <p id="ai-search-toast-message"><strong>{{ ai_search_status.title }}</strong> {{ ai_search_status.message }}</p>
     <button class="button primary" type="button" data-ai-search-toast-close>Got it</button>
-  </dialog>{% endif %}
+  </dialog>{% elif ai_search_status %}<div class="ai-search-notice" data-ai-search-notice data-ai-search-state="{{ ai_search_status.state }}">
+    <p><strong>{{ ai_search_status.title }}</strong> {{ ai_search_status.message }}</p>
+    <button class="ai-search-notice__close" type="button" aria-label="Dismiss search note" data-ai-search-notice-close>&times;</button>
+  </div>{% endif %}
   <p class="muted" data-result-count role="status">
     {{ listings|length }} listing{{ listings|length|pluralize }}
   </p>

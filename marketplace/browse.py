@@ -104,28 +104,55 @@ def _local_llm_candidates(form, query):
     return candidates
 
 
+# What each AI search outcome tells the shopper. "alert" outcomes mean part of
+# the AI pipeline failed and open a dialog; the rest show a brief notice that
+# explains where the results came from. Model names stay out of the UI.
+AI_SEARCH_STATUS = {
+    "ai": ("Ranked by AI.",
+           "These were picked and ordered by AI from listings that match your request.", False),
+    "semantic_only": ("Matched by meaning.",
+                      "AI ranking is off, so these listings are sorted by how closely "
+                      "they match what you described.", False),
+    "semantic_only_no_results": ("No close matches.",
+                                 "AI ranking is off and no listing closely matches what you "
+                                 "described. Try other words or adjust your filters.", False),
+    "semantic_fallback_empty": ("Matched by meaning.",
+                                "AI ranking found no clear pick, so these are sorted by "
+                                "similarity to your request.", False),
+    "semantic_fallback_error": ("Matched by meaning.",
+                                "AI ranking couldn't finish this time, so these are sorted by "
+                                "similarity to your request.", True),
+    "no_results": ("No close matches.",
+                   "No listing closely matches what you described. Try other words or "
+                   "adjust your filters.", False),
+    "unavailable": ("AI search is unavailable right now.",
+                    "Turn off AI search to use keyword search, or try again in a minute.", True),
+}
+
+
+def _ai_search_status(search_state, semantic_only):
+    """Title, message, and alert flag for an AI search, or None for keyword search."""
+    if not search_state:
+        return None
+    key = "semantic_only_no_results" if semantic_only and search_state == "no_results" else search_state
+    title, message, alert = AI_SEARCH_STATUS[key]
+    return {"state": search_state, "title": title, "message": message, "alert": alert}
+
+
 def browse_context(request, use_local_llm=False):
     form = BrowseForm(request.GET)
     listings = filtered_listings(form)
     search_mode = request.GET.get("search_mode", "keyword")
     if search_mode not in {"keyword", "ai"}:
         search_mode = "keyword"
-    ai_search_error = ""
-    ai_search_fallback = False
-    ai_search_fallback_title = ""
-    ai_search_fallback_message = ""
+    search_state = ""
+    semantic_only = False
     query = form.cleaned_data.get("q", "").strip() if form.is_valid() else ""
     if use_local_llm and search_mode == "ai" and query:
         if form.is_valid():
             listings = []
             search_state = "no_results"
             semantic_only = not settings.LOCAL_LLM_ENABLED
-            if semantic_only:
-                ai_search_fallback = True
-                ai_search_fallback_title = "Showing semantic search matches."
-                ai_search_fallback_message = (
-                    "Llama ranking is currently unavailable. Using semantic search instead."
-                )
             try:
                 candidates = _local_llm_candidates(form, query)
             except (DatabaseError, SemanticSearchError):
@@ -180,25 +207,9 @@ def browse_context(request, use_local_llm=False):
                         except DatabaseError:
                             logger.exception("Local AI search result query failed.")
                             search_state = "unavailable"
-            if search_state in {"semantic_fallback_empty", "semantic_fallback_error"}:
-                ai_search_fallback = True
-                ai_search_fallback_title = "Showing semantic search matches."
-                if search_state == "semantic_fallback_empty":
-                    ai_search_fallback_message = (
-                        "Llama did not select any listings. These items were found "
-                        "by semantic similarity to your search."
-                    )
-                else:
-                    ai_search_fallback_message = (
-                        "Llama ranking could not be completed. These items were "
-                        "found by semantic similarity to your search."
-                    )
-            elif search_state == "unavailable":
+            if search_state in {"unavailable", "no_results"}:
                 listings = []
-                ai_search_error = "AI search is unavailable right now. Please try again later."
-            elif search_state == "no_results":
-                listings = []
-                ai_search_error = "No relevant listings found. Try another search or adjust your filters."
+    ai_search_status = _ai_search_status(search_state, semantic_only)
     chips = []
     if form.is_valid():
         for name in (
@@ -238,10 +249,10 @@ def browse_context(request, use_local_llm=False):
         "listings": [decorate_listing(item) for item in listings],
         "search_mode": search_mode,
         "local_llm_search_enabled": use_local_llm,
-        "ai_search_error": ai_search_error,
-        "ai_search_fallback": ai_search_fallback,
-        "ai_search_fallback_title": ai_search_fallback_title,
-        "ai_search_fallback_message": ai_search_fallback_message,
+        "ai_search_state": search_state,
+        "ai_search_status": ai_search_status,
+        # Results came from embeddings because the LLM step gave nothing usable.
+        "ai_search_fallback": search_state in {"semantic_fallback_empty", "semantic_fallback_error"},
         "filter_form": form,
         "filter_chips": chips,
         "featured_bundles": bundles,

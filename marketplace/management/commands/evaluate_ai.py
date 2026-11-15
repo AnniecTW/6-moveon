@@ -227,7 +227,7 @@ class Command(BaseCommand):
                     "retrieved_ids": captured.get("retrieved_ids", []),
                     "retrieved_scores": captured.get("retrieved_scores", []),
                     "retrieval_s": round(captured.get("retrieval_s", 0.0), 2),
-                    "fallback_title": context["ai_search_fallback_title"] or context["ai_search_error"],
+                    "fallback_title": (context["ai_search_status"] or {}).get("title", ""),
                     "ndcg5_shown": ndcg5(ai_ids, case["relevant"], case["acceptable"]),
                     "ndcg5_model": ndcg5(model_ids or [], case["relevant"], case["acceptable"]),
                     "recall5_shown": recall5(ai_ids, case["relevant"]),

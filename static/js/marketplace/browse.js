@@ -17,6 +17,7 @@ export function setupBrowse({ drawer, favorites }) {
     currencyController,
     timer,
     toastTimer,
+    noticeTimer,
     view = "grid",
     aiSearchPending = false;
   const mapping = JSON.parse(
@@ -105,6 +106,35 @@ export function setupBrowse({ drawer, favorites }) {
         );
     });
   }
+  function showAiSearchNotice(root = results) {
+    const notice = root.querySelector("[data-ai-search-notice]");
+    if (!notice) return;
+    clearTimeout(noticeTimer);
+    const hide = () => {
+      clearTimeout(noticeTimer);
+      notice.classList.remove("is-visible");
+    };
+    const scheduleHide = () => {
+      clearTimeout(noticeTimer);
+      noticeTimer = setTimeout(hide, 6000);
+    };
+    // Hovering or focusing keeps the note open long enough to read.
+    notice.addEventListener("mouseenter", () => clearTimeout(noticeTimer));
+    notice.addEventListener("mouseleave", scheduleHide);
+    notice.addEventListener("focusin", () => clearTimeout(noticeTimer));
+    notice.addEventListener("focusout", scheduleHide);
+    notice
+      .querySelector("[data-ai-search-notice-close]")
+      ?.addEventListener("click", hide);
+    requestAnimationFrame(() => notice.classList.add("is-visible"));
+    // The note fades away, so also announce it in the persistent live region.
+    status.textContent = notice.querySelector("p").textContent.trim();
+    scheduleHide();
+  }
+  function showAiSearchStatus(root = results) {
+    showAiFallbackToast(root);
+    showAiSearchNotice(root);
+  }
   function showAiFallbackToast(root = results) {
     const toast = root.querySelector("[data-ai-search-toast]");
     if (!toast) return;
@@ -159,7 +189,6 @@ export function setupBrowse({ drawer, favorites }) {
       const updated = page.querySelector("[data-results]");
       if (!updated) throw new Error("Missing results");
       results.replaceChildren(...updated.childNodes);
-      showAiFallbackToast();
       document
         .querySelector("[data-form-errors]")
         .replaceChildren(
@@ -175,6 +204,7 @@ export function setupBrowse({ drawer, favorites }) {
       );
       if (hasErrors)
         status.textContent = "Check the filter values and try again.";
+      else showAiSearchStatus();
       if (close && !hasErrors) drawer.close();
     } catch (error) {
       if (error.name !== "AbortError") {
@@ -289,6 +319,6 @@ export function setupBrowse({ drawer, favorites }) {
   );
   syncTypes();
   paintView();
-  showAiFallbackToast();
+  showAiSearchStatus();
   updateCurrencyPrices();
 }

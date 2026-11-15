@@ -106,10 +106,11 @@ class LocalLLMSearchViewTests(TestCase):
         ]
         response = self._get("heat up food quickly", max_price="20")
         self.assertEqual([item.pk for item in response.context["listings"]], [microwave.pk])
-        self.assertContains(response, "Llama ranking is currently unavailable")
-        self.assertContains(response, "Using semantic search instead")
-        self.assertContains(response, "data-ai-search-toast")
-        self.assertContains(response, "Llama search status")
+        self.assertEqual(response.context["ai_search_state"], "semantic_only")
+        self.assertContains(response, "Matched by meaning.")
+        self.assertContains(response, "AI ranking is off")
+        self.assertContains(response, "data-ai-search-notice")
+        self.assertNotContains(response, "data-ai-search-toast")
         self.assertTrue(all(item["listing_price"] <= 20 for item in semantic.call_args.args[1]))
         rank.assert_not_called()
 
@@ -119,8 +120,9 @@ class LocalLLMSearchViewTests(TestCase):
     def test_semantic_mode_keeps_notice_when_no_items_match(self, semantic, rank):
         response = self._get("snowboard for winter break")
         self.assertEqual(response.context["listings"], [])
-        self.assertContains(response, "No relevant listings found")
-        self.assertContains(response, "Llama ranking is currently unavailable")
+        self.assertContains(response, "No close matches.")
+        self.assertContains(response, "AI ranking is off and no listing closely matches")
+        self.assertNotContains(response, "data-ai-search-toast")
         rank.assert_not_called()
 
     @patch("marketplace.browse.retrieve")
@@ -148,22 +150,36 @@ class LocalLLMSearchViewTests(TestCase):
         self.assertEqual([item.pk for item in response.context["listings"]],
                          [self.second.pk, self.first.pk])
         self.assertFalse(response.context["ai_search_fallback"])
+        self.assertEqual(response.context["ai_search_state"], "ai")
+        self.assertContains(response, "Ranked by AI.")
+        self.assertNotContains(response, "data-ai-search-toast")
         catalog = json.loads(generate.call_args.args[0][1]["content"])["candidate_listings"]
         self.assertEqual({item["id"] for item in catalog}, {self.first.pk, self.second.pk})
         self._get(max_price="20")
         self.assertEqual([item["pk"] for item in semantic.call_args.args[1]], [self.second.pk])
 
+    @patch("marketplace.browse.retrieve")
+    def test_keyword_search_shows_no_ai_status(self, semantic):
+        response = self.client.get(reverse("home"), {"q": "lamp", "search_mode": "keyword"})
+        self.assertIsNone(response.context["ai_search_status"])
+        self.assertNotContains(response, "data-ai-search-notice")
+        self.assertNotContains(response, "data-ai-search-toast")
+        semantic.assert_not_called()
+
     @patch("marketplace.browse.retrieve", return_value=[])
     def test_no_relevant_candidates_has_empty_state(self, semantic):
         response = self._get("unrelated request")
         self.assertEqual(response.context["listings"], [])
-        self.assertContains(response, "No relevant listings found")
+        self.assertContains(response, "No close matches.")
 
     @patch("marketplace.browse.retrieve", side_effect=SemanticSearchError("offline"))
     def test_embedding_failure_shows_unavailable_state(self, semantic):
         response = self._get()
         self.assertEqual(response.context["listings"], [])
         self.assertContains(response, "AI search is unavailable right now")
+        self.assertContains(response, "Turn off AI search to use keyword search")
+        self.assertContains(response, "data-ai-search-toast")
+        self.assertContains(response, "AI search status")
 
     @patch("marketplace.browse.retrieve")
     @patch("marketplace.local_llm._generate_response", side_effect=RuntimeError("offline"))
@@ -172,8 +188,11 @@ class LocalLLMSearchViewTests(TestCase):
         response = self._get(max_price="20")
         self.assertEqual([item.pk for item in response.context["listings"]], [self.second.pk])
         self.assertTrue(response.context["ai_search_fallback"])
-        self.assertContains(response, "Showing semantic search matches")
-        self.assertContains(response, "Llama ranking could not be completed")
+        self.assertEqual(response.context["ai_search_state"], "semantic_fallback_error")
+        self.assertContains(response, "Matched by meaning.")
+        self.assertIn("AI ranking couldn't finish this time",
+                      response.context["ai_search_status"]["message"])
+        self.assertContains(response, "data-ai-search-toast")
 
     @patch("marketplace.browse.retrieve")
     @patch("marketplace.local_llm._generate_response", return_value='{"ids":[]}')
@@ -183,7 +202,9 @@ class LocalLLMSearchViewTests(TestCase):
         self.assertEqual([item.pk for item in response.context["listings"]],
                          [self.first.pk, self.second.pk])
         self.assertTrue(response.context["ai_search_fallback"])
-        self.assertContains(response, "Llama did not select any listings")
+        self.assertContains(response, "AI ranking found no clear pick")
+        self.assertContains(response, "data-ai-search-notice")
+        self.assertNotContains(response, "data-ai-search-toast")
 
     @patch("marketplace.browse.retrieve")
     @patch("marketplace.local_llm._generate_response", return_value='{"ids":[]}')
@@ -191,7 +212,7 @@ class LocalLLMSearchViewTests(TestCase):
         semantic.side_effect = lambda query, candidates: [(item, .35) for item in candidates]
         response = self._get()
         self.assertEqual(response.context["listings"], [])
-        self.assertContains(response, "No relevant listings found")
+        self.assertContains(response, "No close matches.")
 
     @patch("marketplace.browse.retrieve")
     @patch("marketplace.local_llm._generate_response", return_value='{"ids":[999]}')
