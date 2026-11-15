@@ -166,3 +166,57 @@ class EmbeddingBackendTests(SimpleTestCase):
         with patch("marketplace.pricing.semantic._model") as model:
             apps.get_app_config("marketplace").ready()
         model.assert_not_called()
+
+
+GEMINI_TEST_THRESHOLDS = {
+    "search": 0.60, "fallback": 0.70, "semantic_only": 0.65, "gate": 0.70, "pricing": 0.70,
+}
+
+
+class SimilarityThresholdTests(SimpleTestCase):
+    def test_local_backend_keeps_the_a9_minilm_values(self):
+        from marketplace.embeddings import similarity_threshold
+
+        with override_settings(EMBEDDING_BACKEND="local"):
+            self.assertEqual(
+                {name: similarity_threshold(name)
+                 for name in ("search", "fallback", "semantic_only", "gate", "pricing")},
+                {"search": 0.30, "fallback": 0.40, "semantic_only": 0.33, "gate": 0.40, "pricing": 0.40},
+            )
+
+    @override_settings(EMBEDDING_BACKEND="gemini")
+    def test_uncalibrated_gemini_fails_closed_as_search_unavailable(self):
+        from marketplace.search_semantic import SemanticSearchError, retrieve
+
+        encoder = SimpleNamespace(encode=lambda texts, **kwargs: [[1.0, 0.0] for _ in texts])
+        with patch.dict("marketplace.embeddings.SIMILARITY_THRESHOLDS",
+                        {"gemini": dict.fromkeys(GEMINI_TEST_THRESHOLDS)}):
+            with self.assertRaises(SemanticSearchError):
+                retrieve("desk", [{"pk": 1, "title": "Desk"}], model=encoder)
+
+    @override_settings(EMBEDDING_BACKEND="gemini")
+    def test_search_and_gate_use_the_active_backend_values(self):
+        from marketplace.local_llm import gate_listing_ids
+        from marketplace.search_semantic import retrieve
+
+        # Query vector [1, 0]; listing cosines are 0.65 and 0.5.
+        vectors = {"desk": [1.0, 0.0], "Lamp": [0.65, 0.76], "Rug": [0.5, 0.866]}
+        encoder = SimpleNamespace(encode=lambda texts, **kwargs: [vectors[t] for t in texts])
+        candidates = [{"pk": 1, "title": "Lamp"}, {"pk": 2, "title": "Rug"}]
+        catalog = [{"id": 1, "title": "Lamp", "category": "", "description": ""}]
+        with patch.dict("marketplace.embeddings.SIMILARITY_THRESHOLDS",
+                        {"gemini": GEMINI_TEST_THRESHOLDS}):
+            kept = retrieve("desk", candidates, model=encoder)
+            # 0.65 clears Gemini's 0.60 search bar but not its 0.70 gate.
+            gated = gate_listing_ids("desk", [1], catalog, {1: 0.65})
+        self.assertEqual([item["pk"] for item, _ in kept], [1])
+        self.assertEqual(gated, [])
+
+    @override_settings(EMBEDDING_BACKEND="gemini")
+    def test_word_gate_without_scores_needs_no_threshold(self):
+        from marketplace.local_llm import gate_listing_ids
+
+        catalog = [{"id": 1, "title": "Desk lamp", "category": "", "description": ""}]
+        with patch.dict("marketplace.embeddings.SIMILARITY_THRESHOLDS",
+                        {"gemini": dict.fromkeys(GEMINI_TEST_THRESHOLDS)}):
+            self.assertEqual(gate_listing_ids("desk", [1], catalog), [1])

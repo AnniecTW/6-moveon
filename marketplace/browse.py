@@ -10,10 +10,8 @@ from .featured import decorate_listing, featured_bundles
 from .forms import BrowseForm
 from .models import Listing
 from .local_llm import LocalLLMError, gate_listing_ids, rank_listing_ids
-from .search_semantic import (
-    MIN_FALLBACK_SIMILARITY, MIN_SEMANTIC_ONLY_SIMILARITY,
-    SemanticSearchError, retrieve,
-)
+from .embeddings import similarity_threshold
+from .search_semantic import SemanticSearchError, retrieve
 
 ORDERING = {
     "newest": "-created_at",
@@ -142,7 +140,9 @@ def browse_context(request, use_local_llm=False):
                     retrieved = []
                 if retrieved:
                     relevant_candidates = [item for item, _ in retrieved]
-                    minimum_similarity = MIN_SEMANTIC_ONLY_SIMILARITY if semantic_only else MIN_FALLBACK_SIMILARITY
+                    minimum_similarity = similarity_threshold(
+                        "semantic_only" if semantic_only else "fallback"
+                    )
                     fallback_ids = [item["pk"] for item, score in retrieved
                                     if score >= minimum_similarity]
                     if not semantic_only:

@@ -8,15 +8,13 @@ from time import monotonic
 
 from django.conf import settings
 
+from .embeddings import similarity_threshold
+
 logger = logging.getLogger(__name__)
 LOCAL_LLM_GENERATION_TIMEOUT_SECONDS = 60
 _model_load_lock = Lock()
 _loaded_model = None
 _CODE_FENCE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.DOTALL)
-# Embedding cosine at which a Llama pick passes the gate without a shared word.
-# Same bar as semantic fallback; with Llama's pick, two signals then agree.
-# 0.35 also admitted coffee tables for "sit" and curtains for "brighter".
-MIN_GATE_SIMILARITY = 0.40
 _RELEVANCE_STOP_WORDS = frozenset(
     """a an and are for i in it me my of on or please recommend some the this to
     want with would you your looking find need items item things thing nice room
@@ -168,6 +166,8 @@ def gate_listing_ids(query, ranked_ids, catalog, similarities=None):
     """
     requirements = _relevance_requirements(query)
     similarities = similarities or {}
+    # With Llama's pick, an embedding score above this bar is a second signal.
+    gate_minimum = similarity_threshold("gate") if similarities else None
     listings_by_id = {item["id"]: item for item in catalog}
     accepted_ids = []
     rejected_ids = []
@@ -181,7 +181,8 @@ def gate_listing_ids(query, ranked_ids, catalog, similarities=None):
         # Keep a model pick when it shares at least one query concept. Requiring
         # every query word rejected valid matches for natural phrasing (A9 Part 3).
         if (any(requirement & listing_tokens for requirement in requirements)
-                or similarities.get(listing_id, 0.0) >= MIN_GATE_SIMILARITY):
+                or (gate_minimum is not None
+                    and similarities.get(listing_id, 0.0) >= gate_minimum)):
             accepted_ids.append(listing_id)
         else:
             rejected_ids.append(listing_id)

@@ -23,9 +23,47 @@ TASK_QUERY = "retrieval_query"
 TASK_DOCUMENT = "retrieval_document"
 MAX_CACHED_VECTORS = 5000
 
+# Cosine cutoffs differ per model: Gemini scores sit higher overall (an unrelated
+# dresser scored 0.53 for "heat up food quickly"), so MiniLM's values would let
+# nearly everything through. Gemini stays None until calibrated; lookups then
+# fail closed, and search shows its unavailable state instead of noise.
+SIMILARITY_THRESHOLDS = {
+    "local": {
+        # Retrieval favors recall because Llama checks the shortlist.
+        "search": 0.30,
+        # Stricter when embeddings alone supply the displayed results.
+        "fallback": 0.40,
+        # Direct semantic mode admits short paraphrases ("heat up food" -> microwave).
+        "semantic_only": 0.33,
+        # A Llama pick passes the word gate without a shared word at this score.
+        # 0.35 also admitted coffee tables for "sit" and curtains for "brighter".
+        "gate": 0.40,
+        # Pricing type discovery only; not a price-confidence probability.
+        "pricing": 0.40,
+    },
+    "gemini": {
+        "search": None,
+        "fallback": None,
+        "semantic_only": None,
+        "gate": None,
+        "pricing": None,
+    },
+}
+
 
 class EmbeddingError(RuntimeError):
     """The hosted embedding service could not return vectors."""
+
+
+def similarity_threshold(name):
+    """Return the active backend's cosine cutoff for one decision point."""
+    from django.conf import settings
+
+    backend = settings.EMBEDDING_BACKEND
+    value = SIMILARITY_THRESHOLDS[backend][name]
+    if value is None:
+        raise EmbeddingError(f"The {backend} '{name}' similarity threshold is not calibrated.")
+    return value
 
 
 def _normalized(vector):

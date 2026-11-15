@@ -4,18 +4,13 @@ import logging
 from functools import lru_cache
 from time import perf_counter
 
-from .embeddings import encode_query
+from .embeddings import encode_query, similarity_threshold
 from .pricing.semantic import _model
 
 logger = logging.getLogger(__name__)
 
 MAX_RERANK_CANDIDATES = 8
-# Retrieval favors recall because Llama checks the shortlist. A stricter score
-# is required when embeddings alone must supply the displayed results.
-MIN_SEARCH_SIMILARITY = 0.30
-MIN_FALLBACK_SIMILARITY = 0.40
-# Direct semantic mode admits short paraphrases ("heat up food" -> microwave).
-MIN_SEMANTIC_ONLY_SIMILARITY = 0.33
+# Cosine cutoffs depend on the embedding backend; see embeddings.SIMILARITY_THRESHOLDS.
 
 
 class SemanticSearchError(RuntimeError):
@@ -47,6 +42,7 @@ def retrieve(query, candidates, *, model=None, limit=MAX_RERANK_CANDIDATES):
         return []
     started = perf_counter()
     try:
+        minimum = similarity_threshold("search")
         encoder = model or _model()
         documents = tuple(listing_document(item) for item in candidates)
         query_vector = encode_query(encoder, [query[:200]])[0]
@@ -55,7 +51,7 @@ def retrieve(query, candidates, *, model=None, limit=MAX_RERANK_CANDIDATES):
         scored = []
         for candidate, vector in zip(candidates, vectors):
             similarity = float(sum(float(a) * float(b) for a, b in zip(query_vector, vector)))
-            if similarity >= MIN_SEARCH_SIMILARITY:
+            if similarity >= minimum:
                 scored.append((candidate, similarity))
     except Exception as error:
         logger.exception("Semantic listing retrieval failed.")

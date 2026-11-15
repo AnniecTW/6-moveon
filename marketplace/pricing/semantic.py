@@ -6,13 +6,12 @@ from threading import Lock
 
 from django.conf import settings
 
-from ..embeddings import encode_query, load_encoder
+from ..embeddings import encode_query, load_encoder, similarity_threshold
 from .initial import MIN_TYPE_ONLY, Observation, SOURCE_PATH, load_source, normalize
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 MAX_CANDIDATES = 5
-# Discovery only; this score is not a price-confidence probability.
-MIN_SIMILARITY = 0.40
+# The cosine cutoff depends on the backend; see embeddings.SIMILARITY_THRESHOLDS.
 
 
 _model_instance = None
@@ -80,6 +79,7 @@ def suggest_types(records: list[Observation], types, *, title: str,
         texts.append(f"{kind.item_type_name}. {kind.category.category_name}. " + ". ".join(examples))
     if not eligible:
         return []
+    minimum = similarity_threshold("pricing")
     if model is None:
         document_vectors = _document_vectors(tuple(texts))
         query_vector = encode_query(_model(), [query])[0]
@@ -90,7 +90,7 @@ def suggest_types(records: list[Observation], types, *, title: str,
     matches = []
     for (kind, group, examples), vector in zip(eligible, document_vectors):
         score = float(sum(float(a) * float(b) for a, b in zip(query_vector, vector)))
-        if score >= MIN_SIMILARITY:
+        if score >= minimum:
             matches.append({
                 "item_type_id": kind.pk,
                 "category_id": kind.category_id,
