@@ -1,0 +1,170 @@
+{
+  "gemini_model": "gemini-embedding-001",
+  "local_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "pairs": {
+    "search": {
+      "total": 658,
+      "positive": 59
+    },
+    "pricing": {
+      "total": 6258,
+      "positive": 145
+    }
+  },
+  "auc": {
+    "search": {
+      "local": 0.9241,
+      "gemini": 0.9621
+    },
+    "pricing": {
+      "local": 0.9245,
+      "gemini": 0.9707
+    }
+  },
+  "embedding_only_ndcg5": {
+    "mean": {
+      "local": 0.7818,
+      "gemini": 0.8772
+    },
+    "cases": {
+      "local": {
+        "S1": 0.7574,
+        "S2": 0.4913,
+        "S3": 0.5296,
+        "S4": 0.7883,
+        "S5": 1.0,
+        "S6": 0.4796,
+        "S7": 0.9152,
+        "S8": 1.0,
+        "S9": 0.6131,
+        "S11": 1.0,
+        "S12": 0.6433,
+        "S13": 1.0,
+        "S14": 0.8017,
+        "S15": 0.7602,
+        "S16": 0.9469
+      },
+      "gemini": {
+        "S1": 0.7766,
+        "S2": 0.8688,
+        "S3": 0.6844,
+        "S4": 0.7227,
+        "S5": 1.0,
+        "S6": 0.9502,
+        "S7": 0.9238,
+        "S8": 1.0,
+        "S9": 0.6131,
+        "S11": 1.0,
+        "S12": 0.9502,
+        "S13": 1.0,
+        "S14": 0.9082,
+        "S15": 0.7602,
+        "S16": 1.0
+      }
+    }
+  },
+  "thresholds": {
+    "search": {
+      "rule": "keep MiniLM recall",
+      "local": {
+        "threshold": 0.3,
+        "recall": 0.7288,
+        "fpr": 0.1035
+      },
+      "matched": {
+        "threshold": 0.645,
+        "recall": 0.7288,
+        "fpr": 0.0167
+      },
+      "gemini": {
+        "threshold": 0.62,
+        "source": "manual",
+        "recall": 0.8814,
+        "fpr": 0.0935
+      }
+    },
+    "fallback": {
+      "rule": "keep MiniLM fpr",
+      "local": {
+        "threshold": 0.4,
+        "recall": 0.3729,
+        "fpr": 0.0184
+      },
+      "matched": {
+        "threshold": 0.645,
+        "recall": 0.7288,
+        "fpr": 0.0167
+      },
+      "gemini": {
+        "threshold": 0.645,
+        "source": "matched",
+        "recall": 0.7288,
+        "fpr": 0.0167
+      }
+    },
+    "semantic_only": {
+      "rule": "keep MiniLM fpr",
+      "local": {
+        "threshold": 0.33,
+        "recall": 0.6949,
+        "fpr": 0.0601
+      },
+      "matched": {
+        "threshold": 0.63,
+        "recall": 0.7966,
+        "fpr": 0.0451
+      },
+      "gemini": {
+        "threshold": 0.63,
+        "source": "matched",
+        "recall": 0.7966,
+        "fpr": 0.0451
+      }
+    },
+    "gate": {
+      "rule": "keep MiniLM fpr",
+      "local": {
+        "threshold": 0.4,
+        "recall": 0.3729,
+        "fpr": 0.0184
+      },
+      "matched": {
+        "threshold": 0.645,
+        "recall": 0.7288,
+        "fpr": 0.0167
+      },
+      "gemini": {
+        "threshold": 0.645,
+        "source": "matched",
+        "recall": 0.7288,
+        "fpr": 0.0167
+      }
+    },
+    "pricing": {
+      "rule": "keep MiniLM fpr",
+      "local": {
+        "threshold": 0.4,
+        "recall": 0.6069,
+        "fpr": 0.0216
+      },
+      "gemini": {
+        "threshold": 0.615,
+        "recall": 0.6966,
+        "fpr": 0.0203,
+        "source": "matched"
+      },
+      "matched": {
+        "threshold": 0.615,
+        "recall": 0.6966,
+        "fpr": 0.0203
+      }
+    }
+  },
+  "proposed_gemini_thresholds": {
+    "search": 0.62,
+    "fallback": 0.645,
+    "semantic_only": 0.63,
+    "gate": 0.645,
+    "pricing": 0.615
+  }
+}

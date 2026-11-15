@@ -42,6 +42,7 @@ from .forms import ListingCreateForm, SellerSettingsForm, PurchaseHistorySearchF
 from .charts import listing_inquiry_data
 from .validation import database_for
 from .pricing.inventory import active_observations, recommend_for_item_type
+from .embeddings import active_model_name
 from .pricing.semantic import suggest_types, suggestion_source
 from .pricing.deadline import decide, evaluate_listing
 
@@ -422,7 +423,7 @@ def listing_type_suggestions(request):
             key: str(value) if isinstance(value, Decimal) else value
             for key, value in result.items()
         }
-    return JsonResponse({"candidates": candidates, "model": "all-MiniLM-L6-v2",
+    return JsonResponse({"candidates": candidates, "model": active_model_name(),
                          "data_version": profile["sha256"],
                          "price_guide_condition": condition,
                          "price_guide_brand": brand})

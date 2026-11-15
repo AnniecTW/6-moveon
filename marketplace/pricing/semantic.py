@@ -53,16 +53,12 @@ def suggestion_source():
     return _source_for_version(stamp.st_size, stamp.st_mtime_ns)
 
 
-def suggest_types(records: list[Observation], types, *, title: str,
-                  category: str, item_type: str, model=None) -> list[dict]:
-    """Rank database item types backed by source observations, up to five.
+def type_documents(records: list[Observation], types):
+    """Return ``(kind, group, examples)`` rows and the text embedded for each.
 
-    The caller supplies database ItemType objects. Suggestions never create
-    historical observations or alter the seller's confirmed category/type.
+    Only types with historical observations are eligible. Shared with
+    ``calibrate_embeddings`` so calibration embeds exactly what sellers match.
     """
-    query = " ".join(part for part in (title.strip(), item_type.strip(), category.strip()) if part)
-    if len(query) < 3:
-        return []
     groups = defaultdict(list)
     for record in records:
         groups[(record.category, record.item_type)].append(record)
@@ -77,6 +73,20 @@ def suggest_types(records: list[Observation], types, *, title: str,
         examples = sorted({record.name for record in group if record.name})[:8]
         eligible.append((kind, group, examples))
         texts.append(f"{kind.item_type_name}. {kind.category.category_name}. " + ". ".join(examples))
+    return eligible, texts
+
+
+def suggest_types(records: list[Observation], types, *, title: str,
+                  category: str, item_type: str, model=None) -> list[dict]:
+    """Rank database item types backed by source observations, up to five.
+
+    The caller supplies database ItemType objects. Suggestions never create
+    historical observations or alter the seller's confirmed category/type.
+    """
+    query = " ".join(part for part in (title.strip(), item_type.strip(), category.strip()) if part)
+    if len(query) < 3:
+        return []
+    eligible, texts = type_documents(records, types)
     if not eligible:
         return []
     minimum = similarity_threshold("pricing")
