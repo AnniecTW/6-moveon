@@ -123,7 +123,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["seed"]:
             self._seed()
-        report = {"label": options["label"], "model": settings.LOCAL_LLM_MODEL_ID}
+        report = {"label": options["label"],
+                  "model": (settings.GROQ_MODEL if settings.LLM_RANKING_BACKEND == "groq"
+                            else settings.LOCAL_LLM_MODEL_ID)}
         if not options["skip_search"]:
             report["search"] = self._evaluate_search()
         if not options["skip_pricing"]:
@@ -174,10 +176,10 @@ class Command(BaseCommand):
         original_generate = local_llm._generate_response
         original_retrieve = browse.retrieve
 
-        def instrumented(messages):
+        def instrumented(messages, *args, **kwargs):
             started = perf_counter()
             try:
-                text = original_generate(messages)
+                text = original_generate(messages, *args, **kwargs)
             finally:
                 captured["generation_s"] = perf_counter() - started
             captured["raw"] = text
@@ -199,7 +201,8 @@ class Command(BaseCommand):
         results = []
         try:
             load_started = perf_counter()
-            local_llm._load_model()
+            if settings.LLM_RANKING_BACKEND == "local":
+                local_llm._load_model()
             load_s = perf_counter() - load_started
             for case in self._search_cases():
                 captured.clear()

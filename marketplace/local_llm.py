@@ -1,4 +1,9 @@
-"""Local Hugging Face model for natural-language listing ranking."""
+"""LLM reranking for natural-language listing search.
+
+LLM_RANKING_BACKEND selects local Llama-3.2-3B (Hugging Face, in-process) or a
+hosted Groq model; the module name predates the hosted backend. Both share the
+prompt, the JSON parser and the relevance gate below.
+"""
 
 import json
 import logging
@@ -6,12 +11,17 @@ import re
 from threading import Lock
 from time import monotonic
 
+import requests
 from django.conf import settings
 
 from .embeddings import similarity_threshold
 
 logger = logging.getLogger(__name__)
 LOCAL_LLM_GENERATION_TIMEOUT_SECONDS = 60
+GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_TIMEOUT_SECONDS = 15
+# Reasoning models spend part of this budget thinking before the JSON answer.
+GROQ_MAX_COMPLETION_TOKENS = 512
 _model_load_lock = Lock()
 _loaded_model = None
 _CODE_FENCE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.DOTALL)
@@ -269,7 +279,84 @@ def _load_model_locked():
     return _loaded_model
 
 
-def _generate_response(messages):
+class RankingServiceError(LocalLLMError):
+    """The hosted ranking service failed; ``reason`` is a short code for logs."""
+
+    def __init__(self, message, *, reason, retry_after=None):
+        super().__init__(message)
+        self.reason = reason
+        self.retry_after = retry_after
+
+
+def groq_chat(messages, *, api_key, model, timeout=GROQ_TIMEOUT_SECONDS):
+    """Run one Groq chat completion and return ``(content, usage, seconds)``.
+
+    No retries: search falls back to embedding results instead of waiting.
+    """
+    if not api_key:
+        raise RankingServiceError("GROQ_API_KEY is not configured.", reason="not_configured")
+    body = {
+        "model": model,
+        "messages": messages,
+        "temperature": 0,
+        "max_completion_tokens": GROQ_MAX_COMPLETION_TOKENS,
+        "response_format": {"type": "json_object"},
+    }
+    if model.startswith("openai/gpt-oss"):
+        # Reasoning tokens are billed as output; low effort keeps cost and latency down.
+        body["reasoning_effort"] = "low"
+    started = monotonic()
+    try:
+        response = requests.post(GROQ_CHAT_URL, json=body, timeout=timeout,
+                                 headers={"Authorization": f"Bearer {api_key}"})
+    except requests.Timeout as error:
+        raise RankingServiceError("Groq request timed out.", reason="timeout") from error
+    except requests.RequestException as error:
+        raise RankingServiceError("Groq request failed.", reason="network") from error
+    seconds = monotonic() - started
+    if response.status_code == 429:
+        raise RankingServiceError("Groq rate limit reached.", reason="rate_limited",
+                                  retry_after=response.headers.get("retry-after"))
+    if not response.ok:
+        raise RankingServiceError(f"Groq returned HTTP {response.status_code}.",
+                                  reason=f"http_{response.status_code}")
+    try:
+        payload = response.json()
+        content = payload["choices"][0]["message"].get("content") or ""
+    except (ValueError, KeyError, IndexError, TypeError, AttributeError) as error:
+        raise RankingServiceError("Groq returned an unexpected response.",
+                                  reason="bad_response") from error
+    return content, payload.get("usage") or {}, seconds
+
+
+def _generate_response(messages, metrics=None):
+    """Return the ranking model's raw text.
+
+    ``metrics`` (a dict) receives the backend, model, seconds and token counts,
+    or an ``error`` code, so callers can log AI search usage.
+    """
+    metrics = {} if metrics is None else metrics
+    if settings.LLM_RANKING_BACKEND == "groq":
+        metrics.update(backend="groq", model=settings.GROQ_MODEL)
+        try:
+            content, usage, seconds = groq_chat(
+                messages, api_key=settings.GROQ_API_KEY, model=settings.GROQ_MODEL,
+            )
+        except RankingServiceError as error:
+            metrics["error"] = error.reason
+            raise
+        metrics.update(
+            seconds=round(seconds, 3),
+            prompt_tokens=usage.get("prompt_tokens"),
+            completion_tokens=usage.get("completion_tokens"),
+            reasoning_tokens=(usage.get("completion_tokens_details") or {}).get("reasoning_tokens"),
+        )
+        return content
+    metrics.update(backend="local", model=settings.LOCAL_LLM_MODEL_ID)
+    return _generate_local(messages, metrics)
+
+
+def _generate_local(messages, metrics):
     import torch
     from transformers import StoppingCriteria
 
@@ -314,6 +401,8 @@ def _generate_response(messages):
                 "%.2fs for remaining tokens; %s output tokens",
                 first_token_s, generation_s - first_token_s,
                 output_ids.shape[-1] - input_ids.shape[-1])
+    metrics.update(seconds=round(generation_s, 3), prompt_tokens=int(input_ids.shape[-1]),
+                   completion_tokens=int(output_ids.shape[-1] - input_ids.shape[-1]))
     if generation_s >= LOCAL_LLM_GENERATION_TIMEOUT_SECONDS:
         raise TimeoutError(
             f"Local listing model generation exceeded "
@@ -322,16 +411,25 @@ def _generate_response(messages):
     return tokenizer.decode(output_ids[0, input_ids.shape[-1]:], skip_special_tokens=True)
 
 
-def rank_listing_ids(query, candidates, similarities=None):
-    """Return the model's validated ranking for the supplied active listings."""
+def rank_listing_ids(query, candidates, similarities=None, metrics=None):
+    """Return the model's validated ranking for the supplied active listings.
+
+    ``metrics`` (a dict) receives the generation details from ``_generate_response``.
+    """
     catalog = _listing_payload(candidates)
     if not catalog:
         return []
     messages = _build_messages(query, catalog)
+    metrics = {} if metrics is None else metrics
     try:
-        response = _generate_response(messages)
+        response = _generate_response(messages, metrics)
+    except RankingServiceError as error:
+        # Expected under rate limits or outages; the caller falls back quietly.
+        logger.warning("Listing ranking service unavailable (%s).", error.reason)
+        raise
     except Exception as error:
         logger.exception("Local listing model loading or inference failed.")
+        metrics.setdefault("error", "inference")
         raise LocalLLMError("The local listing model is unavailable.") from error
     logger.debug("Local listing model raw response: %s", str(response)[:512])
     try:
@@ -340,6 +438,7 @@ def rank_listing_ids(query, candidates, similarities=None):
         )
     except LocalLLMError:
         logger.warning("Local listing model returned an invalid ranking response.", exc_info=True)
+        metrics["error"] = "invalid_response"
         raise
     ranked_ids = gate_listing_ids(query, ranked_ids, catalog, similarities)
     logger.debug("Local listing model validated IDs: %s", ranked_ids)

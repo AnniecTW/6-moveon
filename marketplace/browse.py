@@ -147,6 +147,8 @@ def browse_context(request, use_local_llm=False):
         search_mode = "keyword"
     search_state = ""
     semantic_only = False
+    # Filled by the LLM ranking step: backend, model, seconds, tokens or error.
+    llm_metrics = {}
     query = form.cleaned_data.get("q", "").strip() if form.is_valid() else ""
     if use_local_llm and search_mode == "ai" and query:
         if form.is_valid():
@@ -179,10 +181,11 @@ def browse_context(request, use_local_llm=False):
                         )
                     fallback_ids = fallback_ids[:5]
                     try:
-                        # In Llama mode the fallback above stays word-gated.
+                        # With LLM ranking, the fallback above stays word-gated.
                         ranked_ids = fallback_ids if semantic_only else rank_listing_ids(
                             query, relevant_candidates,
                             {item["pk"]: score for item, score in retrieved},
+                            metrics=llm_metrics,
                         )
                         if semantic_only:
                             search_state = "semantic_only" if ranked_ids else "no_results"
@@ -251,6 +254,7 @@ def browse_context(request, use_local_llm=False):
         "local_llm_search_enabled": use_local_llm,
         "ai_search_state": search_state,
         "ai_search_status": ai_search_status,
+        "ai_llm_metrics": llm_metrics or None,
         # Results came from embeddings because the LLM step gave nothing usable.
         "ai_search_fallback": search_state in {"semantic_fallback_empty", "semantic_fallback_error"},
         "filter_form": form,

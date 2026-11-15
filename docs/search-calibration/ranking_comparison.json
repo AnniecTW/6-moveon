@@ -1,0 +1,782 @@
+{
+  "groq_model": "openai/gpt-oss-20b",
+  "embedding_model": "gemini-embedding-001",
+  "cutoffs": {
+    "search": 0.62,
+    "semantic_only": 0.63,
+    "fallback": 0.645
+  },
+  "summary": {
+    "gemini_only": {
+      "mean_ndcg5_gold8": 0.8255,
+      "mean_ndcg5_all_labeled": 0.8557,
+      "mean_recall5_all_labeled": 0.86,
+      "false_positives_total": 13,
+      "no_match_cases_empty": 2,
+      "cases": 17
+    },
+    "groq": {
+      "mean_ndcg5_gold8": 0.7933,
+      "mean_ndcg5_all_labeled": 0.8116,
+      "mean_recall5_all_labeled": 0.8244,
+      "false_positives_total": 3,
+      "no_match_cases_empty": 2,
+      "cases": 17,
+      "states": {
+        "ai": 15,
+        "no_results": 2
+      },
+      "median_seconds": 0.338,
+      "mean_prompt_tokens": 533.7333,
+      "mean_completion_tokens": 68.8667,
+      "mean_reasoning_tokens": 51.4,
+      "paid_tier_usd_per_request": 6.069e-05
+    },
+    "a9_llama": {
+      "mean_ndcg5_gold8": 0.4537,
+      "mean_ndcg5_all_labeled": 0.4714,
+      "mean_recall5_all_labeled": 0.3759,
+      "false_positives_total": 17,
+      "no_match_cases_empty": 0,
+      "cases": 10,
+      "median_seconds": 8.0
+    }
+  },
+  "cases": [
+    {
+      "case": "S1",
+      "query": "I want to buy some decoratives for the living room",
+      "candidate_ids": [
+        31,
+        13,
+        20,
+        6,
+        40,
+        19,
+        16,
+        3
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          31,
+          13,
+          20,
+          6,
+          40
+        ],
+        "ndcg5": 0.7766,
+        "recall5": 0.4,
+        "false_positives": 0
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[20,6,40,16,31]}",
+        "seconds": 0.66,
+        "prompt_tokens": 752,
+        "completion_tokens": 102,
+        "reasoning_tokens": 80,
+        "total_tokens": 854,
+        "shown_ids": [
+          20,
+          6,
+          40,
+          16,
+          31
+        ],
+        "ndcg5": 0.5656,
+        "recall5": 0.2,
+        "false_positives": 0,
+        "state": "ai"
+      },
+      "a9_llama": {
+        "shown_ids": [
+          40,
+          16,
+          17,
+          3,
+          28
+        ],
+        "ndcg5": 0.3496,
+        "recall5": 0.0,
+        "false_positives": 2,
+        "seconds": 10.36
+      }
+    },
+    {
+      "case": "S2",
+      "query": "need something blue to complement my bedside table",
+      "candidate_ids": [
+        32,
+        25,
+        2,
+        13,
+        10,
+        15,
+        28,
+        21
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          32,
+          25,
+          2,
+          13,
+          10
+        ],
+        "ndcg5": 0.8688,
+        "recall5": 0.8,
+        "false_positives": 1
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[32,13,15,25]}",
+        "seconds": 0.335,
+        "prompt_tokens": 746,
+        "completion_tokens": 62,
+        "reasoning_tokens": 42,
+        "total_tokens": 808,
+        "shown_ids": [
+          32,
+          13,
+          15,
+          25
+        ],
+        "ndcg5": 0.8688,
+        "recall5": 0.8,
+        "false_positives": 0,
+        "state": "ai"
+      },
+      "a9_llama": {
+        "shown_ids": [
+          32,
+          27,
+          25
+        ],
+        "ndcg5": 0.5087,
+        "recall5": 0.4,
+        "false_positives": 1,
+        "seconds": 7.38
+      }
+    },
+    {
+      "case": "S3",
+      "query": "setting up a study corner in my dorm, budget under $50",
+      "candidate_ids": [
+        39,
+        28,
+        29,
+        26,
+        38,
+        27,
+        6,
+        31
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          39,
+          28,
+          29,
+          26,
+          38
+        ],
+        "ndcg5": 0.6844,
+        "recall5": 0.6,
+        "false_positives": 2
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[39,28,38,6,31]}",
+        "seconds": 0.429,
+        "prompt_tokens": 736,
+        "completion_tokens": 119,
+        "reasoning_tokens": 97,
+        "total_tokens": 855,
+        "shown_ids": [
+          39,
+          28,
+          38,
+          31
+        ],
+        "ndcg5": 0.7227,
+        "recall5": 0.6,
+        "false_positives": 1,
+        "state": "ai"
+      },
+      "a9_llama": {
+        "shown_ids": [
+          38
+        ],
+        "ndcg5": 0.3392,
+        "recall5": 0.2,
+        "false_positives": 0,
+        "seconds": 7.95
+      }
+    },
+    {
+      "case": "S4",
+      "query": "something to watch movies on in my apartment",
+      "candidate_ids": [
+        9,
+        30,
+        5,
+        7,
+        23,
+        22,
+        26
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          9,
+          30,
+          5,
+          7
+        ],
+        "ndcg5": 0.7227,
+        "recall5": 0.6,
+        "false_positives": 1
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[30,9,5]}",
+        "seconds": 0.334,
+        "prompt_tokens": 663,
+        "completion_tokens": 69,
+        "reasoning_tokens": 51,
+        "total_tokens": 732,
+        "shown_ids": [
+          30,
+          9,
+          5
+        ],
+        "ndcg5": 0.7227,
+        "recall5": 0.6,
+        "false_positives": 0,
+        "state": "ai"
+      },
+      "a9_llama": {
+        "shown_ids": [
+          9
+        ],
+        "ndcg5": 0.3392,
+        "recall5": 0.2,
+        "false_positives": 0,
+        "seconds": 8.09
+      }
+    },
+    {
+      "case": "S5",
+      "query": "I need to heat up food quickly",
+      "candidate_ids": [
+        35,
+        23
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          35,
+          23
+        ],
+        "ndcg5": 0.8671,
+        "recall5": 1.0,
+        "false_positives": 0
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[35,23]}",
+        "seconds": 0.371,
+        "prompt_tokens": 327,
+        "completion_tokens": 45,
+        "reasoning_tokens": 29,
+        "total_tokens": 372,
+        "shown_ids": [
+          35,
+          23
+        ],
+        "ndcg5": 0.8671,
+        "recall5": 1.0,
+        "false_positives": 0,
+        "state": "ai"
+      },
+      "a9_llama": {
+        "shown_ids": [
+          35,
+          23
+        ],
+        "ndcg5": 0.8671,
+        "recall5": 1.0,
+        "false_positives": 0,
+        "seconds": 8.32
+      }
+    },
+    {
+      "case": "S6",
+      "query": "make my bedroom darker so I can sleep in",
+      "candidate_ids": [
+        4
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          4
+        ],
+        "ndcg5": 0.7602,
+        "recall5": 1.0,
+        "false_positives": 0
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[4]}",
+        "seconds": 0.362,
+        "prompt_tokens": 263,
+        "completion_tokens": 36,
+        "reasoning_tokens": 22,
+        "total_tokens": 299,
+        "shown_ids": [
+          4
+        ],
+        "ndcg5": 0.7602,
+        "recall5": 1.0,
+        "false_positives": 0,
+        "state": "ai"
+      },
+      "a9_llama": {
+        "shown_ids": [
+          20,
+          7,
+          15,
+          32,
+          14
+        ],
+        "ndcg5": 0.0,
+        "recall5": 0.0,
+        "false_positives": 5,
+        "seconds": 7.04
+      }
+    },
+    {
+      "case": "S7",
+      "query": "storage for my books and stuff",
+      "candidate_ids": [
+        12,
+        24,
+        38,
+        34,
+        29
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          12,
+          24,
+          38,
+          34
+        ],
+        "ndcg5": 0.9238,
+        "recall5": 1.0,
+        "false_positives": 0
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[24,12,38]}",
+        "seconds": 0.336,
+        "prompt_tokens": 537,
+        "completion_tokens": 72,
+        "reasoning_tokens": 54,
+        "total_tokens": 609,
+        "shown_ids": [
+          24,
+          12,
+          38
+        ],
+        "ndcg5": 0.839,
+        "recall5": 1.0,
+        "false_positives": 0,
+        "state": "ai"
+      },
+      "a9_llama": {
+        "shown_ids": [
+          24
+        ],
+        "ndcg5": 0.3937,
+        "recall5": 0.3333,
+        "false_positives": 0,
+        "seconds": 8.05
+      }
+    },
+    {
+      "case": "S8",
+      "query": "comfortable seating for when friends visit",
+      "candidate_ids": [
+        26,
+        1,
+        14,
+        10
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          26,
+          1,
+          14,
+          10
+        ],
+        "ndcg5": 1.0,
+        "recall5": 1.0,
+        "false_positives": 0
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[14,10,26,1]}",
+        "seconds": 0.338,
+        "prompt_tokens": 469,
+        "completion_tokens": 113,
+        "reasoning_tokens": 93,
+        "total_tokens": 582,
+        "shown_ids": [
+          14,
+          10,
+          26,
+          1
+        ],
+        "ndcg5": 1.0,
+        "recall5": 1.0,
+        "false_positives": 0,
+        "state": "ai"
+      },
+      "a9_llama": {
+        "shown_ids": [
+          26,
+          10,
+          1
+        ],
+        "ndcg5": 0.8319,
+        "recall5": 0.75,
+        "false_positives": 0,
+        "seconds": 8.1
+      }
+    },
+    {
+      "case": "S9",
+      "query": "comfy couch for my apartment",
+      "candidate_ids": [
+        26,
+        36
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          26,
+          36
+        ],
+        "ndcg5": 0.6131,
+        "recall5": 0.5,
+        "false_positives": 1
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[26]}",
+        "seconds": 0.36,
+        "prompt_tokens": 333,
+        "completion_tokens": 47,
+        "reasoning_tokens": 33,
+        "total_tokens": 380,
+        "shown_ids": [
+          26
+        ],
+        "ndcg5": 0.6131,
+        "recall5": 0.5,
+        "false_positives": 0,
+        "state": "ai"
+      },
+      "a9_llama": {
+        "shown_ids": [
+          26,
+          37,
+          28,
+          33,
+          40
+        ],
+        "ndcg5": 0.6131,
+        "recall5": 0.5,
+        "false_positives": 4,
+        "seconds": 6.94
+      }
+    },
+    {
+      "case": "S10",
+      "query": "snowboard for winter break",
+      "candidate_ids": [],
+      "gemini_only": {
+        "shown_ids": [],
+        "ndcg5": null,
+        "recall5": null,
+        "false_positives": 0
+      },
+      "groq": {
+        "shown_ids": [],
+        "ndcg5": null,
+        "recall5": null,
+        "false_positives": 0,
+        "state": "no_results",
+        "called": false
+      },
+      "a9_llama": {
+        "shown_ids": [
+          2,
+          19,
+          22,
+          31,
+          40
+        ],
+        "ndcg5": null,
+        "recall5": null,
+        "false_positives": 5,
+        "seconds": 6.94
+      }
+    },
+    {
+      "case": "S11",
+      "query": "something to heat leftovers in my dorm",
+      "candidate_ids": [
+        35,
+        23
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          35,
+          23
+        ],
+        "ndcg5": 1.0,
+        "recall5": 1.0,
+        "false_positives": 0
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[35,23]}",
+        "seconds": 0.207,
+        "prompt_tokens": 327,
+        "completion_tokens": 39,
+        "reasoning_tokens": 23,
+        "total_tokens": 366,
+        "shown_ids": [
+          35,
+          23
+        ],
+        "ndcg5": 1.0,
+        "recall5": 1.0,
+        "false_positives": 0,
+        "state": "ai"
+      }
+    },
+    {
+      "case": "S12",
+      "query": "block morning sunlight in my bedroom",
+      "candidate_ids": [
+        4,
+        8,
+        40
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          4,
+          8,
+          40
+        ],
+        "ndcg5": 0.9502,
+        "recall5": 1.0,
+        "false_positives": 1
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[4]}",
+        "seconds": 0.272,
+        "prompt_tokens": 392,
+        "completion_tokens": 25,
+        "reasoning_tokens": 11,
+        "total_tokens": 417,
+        "shown_ids": [
+          4
+        ],
+        "ndcg5": 0.7602,
+        "recall5": 1.0,
+        "false_positives": 0,
+        "state": "ai"
+      }
+    },
+    {
+      "case": "S13",
+      "query": "small screen for my desk under $50",
+      "candidate_ids": [
+        7,
+        39,
+        28
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          7,
+          39
+        ],
+        "ndcg5": 1.0,
+        "recall5": 1.0,
+        "false_positives": 1
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[7]}",
+        "seconds": 0.235,
+        "prompt_tokens": 386,
+        "completion_tokens": 58,
+        "reasoning_tokens": 44,
+        "total_tokens": 444,
+        "shown_ids": [
+          7
+        ],
+        "ndcg5": 1.0,
+        "recall5": 1.0,
+        "false_positives": 0,
+        "state": "ai"
+      }
+    },
+    {
+      "case": "S14",
+      "query": "blue accent for a living room",
+      "candidate_ids": [
+        25,
+        10,
+        32,
+        13,
+        21,
+        19,
+        3,
+        20
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          25,
+          10,
+          32,
+          13
+        ],
+        "ndcg5": 0.9082,
+        "recall5": 1.0,
+        "false_positives": 1
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[25,32,13]}",
+        "seconds": 0.245,
+        "prompt_tokens": 740,
+        "completion_tokens": 47,
+        "reasoning_tokens": 29,
+        "total_tokens": 787,
+        "shown_ids": [
+          25,
+          32,
+          13
+        ],
+        "ndcg5": 0.6951,
+        "recall5": 0.6667,
+        "false_positives": 1,
+        "state": "ai"
+      }
+    },
+    {
+      "case": "S15",
+      "query": "compact place to sit in my apartment",
+      "candidate_ids": [
+        26,
+        38,
+        7,
+        36,
+        2,
+        39,
+        21,
+        24
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          26,
+          38,
+          7,
+          36
+        ],
+        "ndcg5": 0.7602,
+        "recall5": 1.0,
+        "false_positives": 3
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[26,39,36]}",
+        "seconds": 0.382,
+        "prompt_tokens": 733,
+        "completion_tokens": 77,
+        "reasoning_tokens": 59,
+        "total_tokens": 810,
+        "shown_ids": [
+          26,
+          36
+        ],
+        "ndcg5": 0.7602,
+        "recall5": 1.0,
+        "false_positives": 1,
+        "state": "ai"
+      }
+    },
+    {
+      "case": "S16",
+      "query": "storage for books beside my study desk",
+      "candidate_ids": [
+        38,
+        24,
+        12,
+        39,
+        27,
+        2
+      ],
+      "gemini_only": {
+        "shown_ids": [
+          38,
+          24,
+          12,
+          39,
+          27
+        ],
+        "ndcg5": 1.0,
+        "recall5": 1.0,
+        "false_positives": 2
+      },
+      "groq": {
+        "called": true,
+        "raw": "{\"ids\":[38,12,24]}",
+        "seconds": 0.516,
+        "prompt_tokens": 602,
+        "completion_tokens": 122,
+        "reasoning_tokens": 104,
+        "total_tokens": 724,
+        "shown_ids": [
+          38,
+          12,
+          24
+        ],
+        "ndcg5": 1.0,
+        "recall5": 1.0,
+        "false_positives": 0,
+        "state": "ai"
+      }
+    },
+    {
+      "case": "S17",
+      "query": "equipment for snowboarding",
+      "candidate_ids": [],
+      "gemini_only": {
+        "shown_ids": [],
+        "ndcg5": null,
+        "recall5": null,
+        "false_positives": 0
+      },
+      "groq": {
+        "shown_ids": [],
+        "ndcg5": null,
+        "recall5": null,
+        "false_positives": 0,
+        "state": "no_results",
+        "called": false
+      }
+    }
+  ]
+}

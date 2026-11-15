@@ -39,7 +39,16 @@ LOCAL_LLM_MODEL_ID = env(
     "LOCAL_LLM_MODEL_ID", default="meta-llama/Llama-3.2-3B-Instruct"
 )
 HF_TOKEN = env("HF_TOKEN", default="")
+# AI search reranks retrieved listings with an LLM only when this is true (the
+# name predates the hosted backend). LLM_RANKING_BACKEND picks the model:
+# "local" runs Llama-3.2-3B in-process; "groq" calls the hosted Groq API with
+# GROQ_API_KEY for hosts that cannot run a local model (PythonAnywhere).
 LOCAL_LLM_ENABLED = env.bool("LOCAL_LLM_ENABLED", default=True)
+LLM_RANKING_BACKEND = env("LLM_RANKING_BACKEND", default="local")
+if LLM_RANKING_BACKEND not in {"local", "groq"}:
+    raise ImproperlyConfigured("LLM_RANKING_BACKEND must be 'local' or 'groq'.")
+GROQ_API_KEY = "" if is_a5_preview_settings() else env("GROQ_API_KEY", default="")
+GROQ_MODEL = env("GROQ_MODEL", default="openai/gpt-oss-20b")
 # Listing search and pricing type discovery share one embedding backend.
 # "local" runs MiniLM with torch; "gemini" calls the hosted API with
 # GEMINI_API_KEY for hosts that cannot install torch (PythonAnywhere).
