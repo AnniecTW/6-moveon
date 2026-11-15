@@ -209,7 +209,7 @@ class Command(BaseCommand):
                 request = factory.get("/listings/", {"q": case["query"], "search_mode": "ai", **case["filters"]})
                 request.user = AnonymousUser()
                 started = perf_counter()
-                context = browse_context(request, use_local_llm=True)
+                context = browse_context(request, use_local_llm=True, record=False)
                 total_s = perf_counter() - started
                 shown = [item.pk for item in context["listings"]]
                 fallback = context["ai_search_fallback"]

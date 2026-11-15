@@ -1,6 +1,7 @@
 """Database querying and template context; independent of browser scripting."""
 
 import logging
+from time import perf_counter
 
 from django.conf import settings
 from django.db import DatabaseError
@@ -10,7 +11,8 @@ from .featured import decorate_listing, featured_bundles
 from .forms import BrowseForm
 from .models import Listing
 from .local_llm import LocalLLMError, gate_listing_ids, rank_listing_ids
-from .embeddings import similarity_threshold
+from .embeddings import active_model_name, similarity_threshold, track_embedding_usage
+from .search_logging import record_search
 from .search_semantic import SemanticSearchError, retrieve
 
 ORDERING = {
@@ -139,7 +141,12 @@ def _ai_search_status(search_state, semantic_only):
     return {"state": search_state, "title": title, "message": message, "alert": alert}
 
 
-def browse_context(request, use_local_llm=False):
+def browse_context(request, use_local_llm=False, record=True):
+    """Build the browse page context; ``record`` stores searches for analytics.
+
+    Offline evaluation passes ``record=False`` so test runs stay out of the logs.
+    """
+    started = perf_counter()
     form = BrowseForm(request.GET)
     listings = filtered_listings(form)
     search_mode = request.GET.get("search_mode", "keyword")
@@ -149,6 +156,8 @@ def browse_context(request, use_local_llm=False):
     semantic_only = False
     # Filled by the LLM ranking step: backend, model, seconds, tokens or error.
     llm_metrics = {}
+    # Retrieval-side analytics: candidate counts, embedding time, usage and errors.
+    search_metrics = {}
     query = form.cleaned_data.get("q", "").strip() if form.is_valid() else ""
     if use_local_llm and search_mode == "ai" and query:
         if form.is_valid():
@@ -161,12 +170,22 @@ def browse_context(request, use_local_llm=False):
                 logger.exception("Local AI search candidate query failed.")
                 search_state = "unavailable"
                 candidates = []
+            search_metrics["candidate_count"] = len(candidates)
             if candidates:
-                try:
-                    retrieved = retrieve(query, candidates)
-                except SemanticSearchError:
-                    search_state = "unavailable"
-                    retrieved = []
+                search_metrics["embedding_model"] = active_model_name()
+                retrieval_started = perf_counter()
+                with track_embedding_usage() as embedding_usage:
+                    try:
+                        retrieved = retrieve(query, candidates)
+                    except SemanticSearchError as error:
+                        search_state = "unavailable"
+                        retrieved = []
+                        search_metrics["embedding_error"] = getattr(error.__cause__, "reason", "error")
+                search_metrics["embedding_seconds"] = perf_counter() - retrieval_started
+                search_metrics["retrieved_count"] = len(retrieved)
+                if settings.EMBEDDING_BACKEND == "gemini":
+                    search_metrics["embedding_texts_sent"] = embedding_usage["texts_sent"]
+                    search_metrics["embedding_chars"] = embedding_usage["chars"]
                 if retrieved:
                     relevant_candidates = [item for item, _ in retrieved]
                     minimum_similarity = similarity_threshold(
@@ -248,13 +267,14 @@ def browse_context(request, use_local_llm=False):
             raise
         logger.exception("Local AI search could not load featured bundles.")
         bundles = []
-    return {
+    context = {
         "listings": [decorate_listing(item) for item in listings],
         "search_mode": search_mode,
         "local_llm_search_enabled": use_local_llm,
         "ai_search_state": search_state,
         "ai_search_status": ai_search_status,
         "ai_llm_metrics": llm_metrics or None,
+        "ai_search_metrics": search_metrics or None,
         # Results came from embeddings because the LLM step gave nothing usable.
         "ai_search_fallback": search_state in {"semantic_fallback_empty", "semantic_fallback_error"},
         "filter_form": form,
@@ -262,3 +282,7 @@ def browse_context(request, use_local_llm=False):
         "featured_bundles": bundles,
         "campus_access": request.user.is_authenticated and has_campus_access(request.user),
     }
+    if record:
+        # Server-side search time; page rendering is not included.
+        record_search(request, context, elapsed_seconds=perf_counter() - started)
+    return context

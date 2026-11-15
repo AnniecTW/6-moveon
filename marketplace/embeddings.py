@@ -9,6 +9,8 @@ import hashlib
 import logging
 import math
 from collections import OrderedDict
+from contextlib import contextmanager
+from contextvars import ContextVar
 from threading import Lock
 
 logger = logging.getLogger(__name__)
@@ -25,8 +27,9 @@ MAX_CACHED_VECTORS = 5000
 
 # Cosine cutoffs differ per model: Gemini scores sit higher overall (an unrelated
 # dresser scored 0.53 for "heat up food quickly"), so MiniLM's values would let
-# nearly everything through. Gemini stays None until calibrated; lookups then
-# fail closed, and search shows its unavailable state instead of noise.
+# nearly everything through. A None value fails closed: search shows its
+# unavailable state instead of noise. Gemini values come from
+# `manage.py calibrate_embeddings` (docs/search-calibration/gemini_calibration.json).
 SIMILARITY_THRESHOLDS = {
     "local": {
         # Retrieval favors recall because Llama checks the shortlist.
@@ -42,17 +45,57 @@ SIMILARITY_THRESHOLDS = {
         "pricing": 0.40,
     },
     "gemini": {
-        "search": None,
-        "fallback": None,
-        "semantic_only": None,
-        "gate": None,
-        "pricing": None,
+        # Set by hand below the matched 0.645 so search stays looser than fallback:
+        # recall 0.88 / FPR 0.093 vs MiniLM's 0.73 / 0.103 at 0.30. It sits between
+        # the no-match maximum (0.58, "snowboard") and "heat up food" -> Microwave (0.645).
+        "search": 0.62,
+        # The rest keep MiniLM's false-positive rate on the same labeled pairs.
+        "fallback": 0.645,
+        "semantic_only": 0.63,
+        "gate": 0.645,
+        "pricing": 0.615,
     },
 }
 
 
 class EmbeddingError(RuntimeError):
-    """The hosted embedding service could not return vectors."""
+    """The hosted embedding service could not return vectors.
+
+    ``reason`` is a short code for analytics, e.g. ``rate_limited`` or ``timeout``.
+    """
+
+    def __init__(self, message, *, reason="error"):
+        super().__init__(message)
+        self.reason = reason
+
+
+def _failure_reason(error):
+    """Classify an SDK/HTTP failure; Gemini signals quota exhaustion with HTTP 429."""
+    name = type(error).__name__
+    if getattr(error, "code", None) == 429 or name in {"TooManyRequests", "ResourceExhausted"}:
+        return "rate_limited"
+    if "Timeout" in name or name == "DeadlineExceeded" or isinstance(error, TimeoutError):
+        return "timeout"
+    return "api_error"
+
+
+# Per-request usage of the hosted API, read by search analytics.
+_embedding_usage = ContextVar("embedding_usage", default=None)
+
+
+@contextmanager
+def track_embedding_usage():
+    """Count texts and characters sent to the embedding API inside this block.
+
+    Only API calls count; cache hits are free. The dict stays at zero for the
+    local backend, which makes no API calls.
+    """
+    usage = {"texts_sent": 0, "chars": 0}
+    token = _embedding_usage.set(usage)
+    try:
+        yield usage
+    finally:
+        _embedding_usage.reset(token)
 
 
 def similarity_threshold(name):
@@ -62,7 +105,8 @@ def similarity_threshold(name):
     backend = settings.EMBEDDING_BACKEND
     value = SIMILARITY_THRESHOLDS[backend][name]
     if value is None:
-        raise EmbeddingError(f"The {backend} '{name}' similarity threshold is not calibrated.")
+        raise EmbeddingError(f"The {backend} '{name}' similarity threshold is not calibrated.",
+                             reason="not_calibrated")
     return value
 
 
@@ -97,7 +141,7 @@ class GeminiEncoder:
 
     def _embed(self, texts, task_type):
         if not self.api_key:
-            raise EmbeddingError("GEMINI_API_KEY is not configured.")
+            raise EmbeddingError("GEMINI_API_KEY is not configured.", reason="not_configured")
         import google.generativeai as genai
 
         # REST passes PythonAnywhere's HTTP proxy; the SDK's default gRPC does not.
@@ -113,10 +157,12 @@ class GeminiEncoder:
             )
             vectors = response["embedding"]
         except Exception as error:
-            raise EmbeddingError("Gemini embedding request failed.") from error
+            raise EmbeddingError("Gemini embedding request failed.",
+                                 reason=_failure_reason(error)) from error
         if len(vectors) != len(texts):
             raise EmbeddingError(
-                f"Gemini returned {len(vectors)} embeddings for {len(texts)} texts."
+                f"Gemini returned {len(vectors)} embeddings for {len(texts)} texts.",
+                reason="bad_response",
             )
         return [[float(value) for value in vector] for vector in vectors]
 
@@ -138,6 +184,10 @@ class GeminiEncoder:
         if missing:
             vectors = self._embed(list(missing.values()), task_type)
             logger.info("Gemini embedded %s new texts (%s requested).", len(missing), len(texts))
+            usage = _embedding_usage.get()
+            if usage is not None:
+                usage["texts_sent"] += len(missing)
+                usage["chars"] += sum(len(text) for text in missing.values())
             found.update(zip(missing, vectors))
             with self._lock:
                 for key, vector in zip(missing, vectors):
@@ -155,6 +205,15 @@ def load_encoder(backend, *, local_model_name, api_key, gemini_model_name):
     from sentence_transformers import SentenceTransformer
 
     return SentenceTransformer(local_model_name)
+
+
+def active_model_name():
+    """Short name of the embedding model the configured backend uses."""
+    from django.conf import settings
+
+    if settings.EMBEDDING_BACKEND == "gemini":
+        return settings.GEMINI_EMBEDDING_MODEL
+    return "all-MiniLM-L6-v2"
 
 
 def encode_query(encoder, texts):
