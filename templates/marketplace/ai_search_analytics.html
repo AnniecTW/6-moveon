@@ -1,0 +1,104 @@
+{% extends "marketplace/base.html" %}
+{% load static %}
+{% block title %}AI Search Analytics | MoveOn{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/marketplace/analytics.css' %}?v=ai-analytics-1" />{% endblock %}
+{% block listing_content %}
+<section class="analytics" aria-labelledby="analytics-title">
+  <header class="analytics-heading">
+    <p class="eyebrow">Staff analytics</p>
+    <h1 id="analytics-title">AI Search Analytics</h1>
+    <p class="analytics-subtitle">How MoveOn's AI search performs, how shoppers use it, and what it costs. Gemini embeddings find candidates; Groq <code>gpt-oss-20b</code> ranks them.</p>
+  </header>
+
+  <form class="analytics-filters" method="get" aria-label="Dashboard filters">
+    <label>Time range
+      <select name="range" onchange="this.form.submit()">
+        {% for value, label in range_options %}<option value="{{ value }}"{% if value == range_key %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Data source
+      <select name="source" onchange="this.form.submit()">
+        {% for value, label in source_options %}<option value="{{ value }}"{% if value == source_key %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <noscript><button class="button" type="submit">Apply</button></noscript>
+    <p class="analytics-source-note">Stored logs: {{ totals.real }} real search{{ totals.real|pluralize:"es" }}, {{ totals.simulated }} simulated. Simulated rows follow distributions measured on the live system.</p>
+  </form>
+
+  {% if report.empty %}
+  <div class="empty-state">
+    <h2>No searches in this range</h2>
+    <p>Run a search on the site, widen the time range, or include simulated data.</p>
+  </div>
+  {% else %}
+  <ul class="analytics-kpis" aria-label="Headline metrics">
+    {% for tile in kpi_tiles %}
+    <li class="analytics-kpi">
+      <span class="analytics-code">{{ tile.code }}</span>
+      <span class="analytics-kpi-label">{{ tile.label }}</span>
+      <strong class="analytics-kpi-value">{{ tile.value }}</strong>
+      <span class="analytics-kpi-detail">{{ tile.detail }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% for section in sections %}
+  <section class="analytics-section" aria-labelledby="section-{{ forloop.counter }}">
+    <h2 id="section-{{ forloop.counter }}">{{ section.title }}</h2>
+    <div class="analytics-grid">
+      {% for widget in section.widgets %}
+      <article class="analytics-card{% if widget.code == 'C3' or widget.code == 'U2' %} is-wide{% endif %}" aria-labelledby="question-{{ widget.code }}">
+        <h3 id="question-{{ widget.code }}"><span class="analytics-code">{{ widget.code }}</span> {{ widget.question }}</h3>
+        {% if widget.chart %}
+          {{ widget.chart.spec|json_script:widget.spec_id }}
+          <div class="analytics-chart" data-vega-spec-id="{{ widget.spec_id }}" role="img" aria-label="Chart for {{ widget.code }}; the data table below lists the same values"></div>
+          <p class="analytics-caption">{{ widget.chart.caption }}</p>
+          <details class="analytics-data"><summary>Data table</summary>
+            <table><thead><tr>{% for column in widget.chart.table.columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
+              <tbody>{% for row in widget.chart.table.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+          </details>
+        {% elif "chart" in widget %}
+          <p class="analytics-caption">No AI searches with this data yet.</p>
+        {% endif %}
+        {% if widget.second_chart %}
+          {% with second_id=widget.spec_id|add:"-b" %}
+          {{ widget.second_chart.spec|json_script:second_id }}
+          <div class="analytics-chart" data-vega-spec-id="{{ second_id }}" role="img" aria-label="Second chart for {{ widget.code }}; the data table below lists the same values"></div>
+          {% endwith %}
+          <p class="analytics-caption">{{ widget.second_chart.caption }}</p>
+          <details class="analytics-data"><summary>Data table</summary>
+            <table><thead><tr>{% for column in widget.second_chart.table.columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
+              <tbody>{% for row in widget.second_chart.table.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+          </details>
+        {% endif %}
+        {% if widget.table_columns %}
+          <div class="analytics-table-wrap"><table class="analytics-table">
+            <thead><tr>{% for column in widget.table_columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
+            <tbody>{% for row in widget.table %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ widget.table_columns|length }}">None in this range.</td></tr>{% endfor %}</tbody>
+          </table></div>
+        {% endif %}
+        {% if widget.second_columns %}
+          <div class="analytics-table-wrap"><table class="analytics-table">
+            <thead><tr>{% for column in widget.second_columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
+            <tbody>{% for row in widget.second_table %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ widget.second_columns|length }}">None in this range.</td></tr>{% endfor %}</tbody>
+          </table></div>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+
+  <section class="analytics-section analytics-method" aria-labelledby="method-title">
+    <h2 id="method-title">How to read this</h2>
+    <ul>
+      <li><strong>Percentiles, not means, for time.</strong> Search time is right-skewed (cache misses, slow API calls), so p50 shows a typical search and p95 the slow tail.</li>
+      <li><strong>Distributions and groups.</strong> Histograms show spread; stage and query-length charts compare groups, each labeled with its sample size.</li>
+      <li><strong>Trends.</strong> Daily counts show change over time; read short ranges with care when n is small.</li>
+      <li><strong>Cost.</strong> Groq reports exact tokens; Gemini embedding tokens are estimated at 4 characters per token. Prices are paid-tier list prices; the projection assumes 5 AI searches per user per day, as in A7, and scales linearly.</li>
+    </ul>
+  </section>
+  {% endif %}
+</section>
+{% endblock %}
+{% block extra_scripts %}<script type="module" src="{% static 'js/marketplace/vega-charts.js' %}?v=ai-analytics-1"></script>{% endblock %}

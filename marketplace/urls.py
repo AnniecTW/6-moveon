@@ -1,7 +1,7 @@
 from django.urls import path
 
 from marketplace import views
-from marketplace import api, charts, reports
+from marketplace import analytics_views, api, charts, reports
 from marketplace.views import (
     ListingCreateView,
     ListingDetailView,
@@ -17,6 +17,8 @@ from marketplace.views import (
 urlpatterns = [
     # Personal charts; the existing URL/name is retained for reverse compatibility.
     path("charts/", charts.personal_charts, name="a4-charts"),
+    # Staff-only AI search monitoring (A10).
+    path("analytics/ai-search/", analytics_views.ai_search_analytics, name="ai-search-analytics"),
     path("api/listings/demo/", api.listings_documentation, name="listing-api-demo"),
     # Internal listing data and external currency conversion.
     path("api/listings/", api.listings, name="listing-api"),

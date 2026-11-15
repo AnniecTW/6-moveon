@@ -105,6 +105,7 @@
       <a class="button" href="{% url 'a4-charts' %}">My charts</a>
       {% endif %}
         {% if request.user.is_authenticated %}
+          {% if request.user.is_staff %}<a class="button" href="{% url 'ai-search-analytics' %}">AI analytics</a>{% endif %}
           {% if campus_access %}
             <a class="header-user" href="{% url 'seller-listings' %}"><span class="header-avatar">{{ request.user.display_name|default:request.user.username|slice:":1"|upper }}</span><span>{{ request.user.display_name|default:request.user.username }}</span></a>
           {% else %}

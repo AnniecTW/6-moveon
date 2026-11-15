@@ -49,6 +49,24 @@ if LLM_RANKING_BACKEND not in {"local", "groq"}:
     raise ImproperlyConfigured("LLM_RANKING_BACKEND must be 'local' or 'groq'.")
 GROQ_API_KEY = "" if is_a5_preview_settings() else env("GROQ_API_KEY", default="")
 GROQ_MODEL = env("GROQ_MODEL", default="openai/gpt-oss-20b")
+# Paid-tier list prices in USD per 1M tokens, used by the AI search analytics
+# dashboard to price logged usage. MoveOn runs on free tiers, so the actual
+# bill is $0; these show what the same traffic would cost on a paid plan.
+# Checked 2026-11-15: console.groq.com/docs/models, aistudio.google.com/docs/pricing.
+AI_TOKEN_PRICES = {
+    "openai/gpt-oss-20b": {"input": 0.075, "output": 0.30},
+    "openai/gpt-oss-120b": {"input": 0.15, "output": 0.60},
+    "gemini-embedding-001": {"input": 0.15},
+}
+# Gemini embedding responses carry no token counts; estimate from characters.
+EMBEDDING_CHARS_PER_TOKEN = 4
+# Free-tier ceilings the dashboard compares observed usage against.
+AI_FREE_TIER_LIMITS = {
+    "groq_tokens_per_minute": 8_000,
+    "groq_tokens_per_day": 200_000,
+    "groq_requests_per_day": 1_000,
+    "gemini_embed_texts_per_minute": 100,
+}
 # Listing search and pricing type discovery share one embedding backend.
 # "local" runs MiniLM with torch; "gemini" calls the hosted API with
 # GEMINI_API_KEY for hosts that cannot install torch (PythonAnywhere).

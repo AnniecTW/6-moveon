@@ -19,6 +19,9 @@ PUBLIC_ROUTES = ACCOUNT_ROUTES | frozenset({
     "listing_manual", "listing_render", "listing_cbv_base", "listing_cbv_generic",
     "listing-api", "listing-api-demo",
 })
+# Staff-only pages that external reviewers (staff without a campus email) must reach.
+# The views themselves still require login and is_staff.
+STAFF_ROUTES = frozenset({"ai-search-analytics"})
 
 
 def access_denied_response(request, *, json_response=False):
@@ -48,6 +51,9 @@ class CampusAccessMiddleware:
         if "admin" in match.namespaces or (not match.namespaces and match.url_name in PUBLIC_ROUTES):
             return None
         if request.user.is_authenticated and has_campus_access(request.user):
+            return None
+        if (not match.namespaces and match.url_name in STAFF_ROUTES
+                and request.user.is_authenticated and request.user.is_active and request.user.is_staff):
             return None
         json_response = (
             request.path.startswith("/api/")
