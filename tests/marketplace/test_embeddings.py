@@ -117,12 +117,16 @@ class EmbeddingBackendTests(SimpleTestCase):
             self.assertEqual(encoder.model_name, "gemini-embedding-test")
             self.assertIs(semantic._model(), encoder)
 
-    @patch("sentence_transformers.SentenceTransformer")
-    def test_local_backend_keeps_minilm(self, sentence_transformer, configure):
-        encoder = load_encoder("local", local_model_name="minilm", api_key="",
-                               gemini_model_name="unused")
-        sentence_transformer.assert_called_once_with("minilm")
-        self.assertIs(encoder, sentence_transformer.return_value)
+    def test_local_backend_keeps_minilm(self, configure):
+        from unittest.mock import MagicMock
+
+        # A stand-in module: production installs no sentence-transformers or torch.
+        fake_module = MagicMock()
+        with patch.dict("sys.modules", {"sentence_transformers": fake_module}):
+            encoder = load_encoder("local", local_model_name="minilm", api_key="",
+                                   gemini_model_name="unused")
+        fake_module.SentenceTransformer.assert_called_once_with("minilm")
+        self.assertIs(encoder, fake_module.SentenceTransformer.return_value)
 
     def test_listing_search_embeds_query_and_listings_with_their_task_types(self, configure):
         from marketplace.search_semantic import retrieve
